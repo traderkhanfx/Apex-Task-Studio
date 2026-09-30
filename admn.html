@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apex Task Studio | Agency Admin Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: { 950: '#0a0f1d', 900: '#0f172a', 800: '#1e293b', 700: '#334155' },
+                        emerald: { 400: '#34d399', 500: '#10b981', 600: '#059669' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased">
+
+    <!-- Top Navigation Bar -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center font-bold text-slate-950 text-xl shadow-lg shadow-emerald-500/20">
+                        A
+                    </div>
+                    <div>
+                        <span class="font-extrabold text-lg tracking-wider text-slate-100">APEX TASK STUDIO</span>
+                        <span class="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20">Owner / QA Admin</span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="openModal('newTaskModal')" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 py-2 rounded-lg text-sm transition-all flex items-center shadow-lg shadow-emerald-500/20">
+                        <i class="fa-solid fa-plus mr-2"></i> Post Client Task Batch
+                    </button>
+                    <div class="h-6 w-px bg-slate-800"></div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 font-bold text-sm">
+                            CM
+                        </div>
+                        <div class="text-left hidden md:block">
+                            <p class="text-xs font-semibold text-slate-200">Collins Magu</p>
+                            <p class="text-[10px] text-emerald-400">Agency Director</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- Business Performance Metrics -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs uppercase tracking-wider font-semibold text-slate-400">Active B2B Contracts</p>
+                        <h3 class="text-2xl font-bold mt-1 text-slate-100">$2,450 <span class="text-xs font-normal text-slate-400">USD</span></h3>
+                    </div>
+                    <div class="p-2 bg-emerald-500/10 rounded-xl text-emerald-400">
+                        <i class="fa-solid fa-briefcase text-lg"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-emerald-400 mt-3 flex items-center"><i class="fa-solid fa-arrow-trend-up mr-1"></i> 3 Active foreign client batches</p>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs uppercase tracking-wider font-semibold text-slate-400">Pending QA Review</p>
+                        <h3 class="text-2xl font-bold mt-1 text-amber-400" id="pendingCount">5 Tasks</h3>
+                    </div>
+                    <div class="p-2 bg-amber-500/10 rounded-xl text-amber-400">
+                        <i class="fa-solid fa-list-check text-lg"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-400 mt-3">Awaiting your approval/rejection</p>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs uppercase tracking-wider font-semibold text-slate-400">Worker Payout Pool</p>
+                        <h3 class="text-2xl font-bold mt-1 text-slate-100">KES 14,850</h3>
+                    </div>
+                    <div class="p-2 bg-indigo-500/10 rounded-xl text-indigo-400">
+                        <i class="fa-solid fa-mobile-retro text-lg"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-indigo-400 mt-3"><i class="fa-solid fa-circle-check mr-1"></i> Safaricom B2C API Connected</p>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs uppercase tracking-wider font-semibold text-slate-400">Agency Profit Spread</p>
+                        <h3 class="text-2xl font-bold mt-1 text-emerald-400">54.2%</h3>
+                    </div>
+                    <div class="p-2 bg-emerald-500/10 rounded-xl text-emerald-400">
+                        <i class="fa-solid fa-chart-pie text-lg"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-400 mt-3">Client pay vs Worker payouts</p>
+            </div>
+        </div>
+
+        <!-- QA Review Queue Section -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+            <div class="p-5 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-100">Worker Submissions Queue (QA Check)</h2>
+                    <p class="text-xs text-slate-400">Inspect worker submissions before approving their M-Pesa earnings.</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-slate-300">Filter: All Categories</span>
+                </div>
+            </div>
+
+            <div class="divide-y divide-slate-800" id="submissionQueue">
+                
+                <!-- Submission Item 1 -->
+                <div class="p-5 hover:bg-slate-800/40 transition-colors flex flex-col lg:flex-row lg:items-center justify-between gap-4" id="item-1">
+                    <div class="space-y-2 lg:max-w-xl">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs font-bold px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">Audio Transcription</span>
+                            <span class="text-xs text-slate-400">• Worker ID: #W-104 (Brian K.)</span>
+                            <span class="text-xs text-slate-400">• Payout: KES 180</span>
+                        </div>
+                        <h4 class="font-bold text-slate-200">Kenyan English Customer Support Call</h4>
+                        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs font-mono text-slate-300">
+                            "Agent: Hello, welcome to Safaricom support. How can I assist you today?<br>
+                            Caller: Yes, I am inquiring about the new fiber internet package in Murang'a."
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3 shrink-0">
+                        <button onclick="approveSubmission('item-1', 180)" class="bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 border border-emerald-500/30 px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center">
+                            <i class="fa-solid fa-check mr-2"></i> Approve & Credit KES 180
+                        </button>
+                        <button onclick="rejectSubmission('item-1')" class="bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/30 px-3 py-2 rounded-lg text-xs font-bold transition-all">
+                            <i class="fa-solid fa-xmark"></i> Reject
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Submission Item 2 -->
+                <div class="p-5 hover:bg-slate-800/40 transition-colors flex flex-col lg:flex-row lg:items-center justify-between gap-4" id="item-2">
+                    <div class="space-y-2 lg:max-w-xl">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs font-bold px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">RLHF AI Evaluation</span>
+                            <span class="text-xs text-slate-400">• Worker ID: #W-109 (Shie M.)</span>
+                            <span class="text-xs text-slate-400">• Payout: KES 120</span>
+                        </div>
+                        <h4 class="font-bold text-slate-200">Rate AI Chatbot Response Quality</h4>
+                        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs font-mono text-slate-300">
+                            "Selection: Response B selected.<br>Reasoning: Response B accurately provided the exact tax code calculation without inventing fictitious rates."
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3 shrink-0">
+                        <button onclick="approveSubmission('item-2', 120)" class="bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 border border-emerald-500/30 px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center">
+                            <i class="fa-solid fa-check mr-2"></i> Approve & Credit KES 120
+                        </button>
+                        <button onclick="rejectSubmission('item-2')" class="bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/30 px-3 py-2 rounded-lg text-xs font-bold transition-all">
+                            <i class="fa-solid fa-xmark"></i> Reject
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal: Post New Client Batch -->
+    <div id="newTaskModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 space-y-5 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-lg text-slate-100">Post New Client Task Batch</h3>
+                <button onclick="closeModal('newTaskModal')" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <form onsubmit="handlePostTask(event)" class="space-y-4">
+                <div>
+                    <label class="text-xs font-semibold text-slate-300 block mb-1">Task Title</label>
+                    <input type="text" required placeholder="e.g. Extract Tech Lead Contact Information" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-100 focus:border-emerald-500 focus:outline-none">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-semibold text-slate-300 block mb-1">Category</label>
+                        <select class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-100 focus:border-emerald-500 focus:outline-none">
+                            <option>Data B2B Scraping</option>
+                            <option>Audio Transcription</option>
+                            <option>RLHF AI Evaluation</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-slate-300 block mb-1">Worker Payout (KES)</label>
+                        <input type="number" required placeholder="150" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-100 focus:border-emerald-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-semibold text-slate-300 block mb-1">Instructions for Workers</label>
+                    <textarea rows="3" required placeholder="Provide step-by-step instructions for completing this work..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-100 focus:border-emerald-500 focus:outline-none"></textarea>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeModal('newTaskModal')" class="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-slate-200">Cancel</button>
+                    <button type="submit" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-5 py-2 rounded-xl text-xs transition-all">Publish Batch to Workers</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function approveSubmission(itemId, amount) {
+            document.getElementById(itemId).style.opacity = '0.4';
+            document.getElementById(itemId).style.pointerEvents = 'none';
+            alert(`Approved! Worker credited KES ${amount}.`);
+        }
+
+        function rejectSubmission(itemId) {
+            document.getElementById(itemId).remove();
+            alert('Submission rejected and sent back to worker.');
+        }
+
+        function handlePostTask(e) {
+            e.preventDefault();
+            alert('New task batch successfully published to Worker Dashboard!');
+            closeModal('newTaskModal');
+        }
+    </script>
+</body>
+</html>

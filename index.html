@@ -244,9 +244,12 @@
     </div>
 
     <!-- MODAL 3: PAYWALL MODAL -->
-    <div id="paywallModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-[#0b1329] border border-slate-700/80 w-full max-w-md rounded-2xl p-6 text-center">
-            <div class="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-full flex items-center justify-center mx-auto mb-4 text-xl">
+    <div id="paywallModal" onclick="closePaywallModalOnBackdrop(event)" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-[#0b1329] border border-slate-700/80 w-full max-w-md rounded-2xl p-6 text-center relative shadow-2xl">
+            <!-- CLOSE BUTTON (X) -->
+            <button onclick="closePaywallModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold w-8 h-8 rounded-full flex items-center justify-center bg-slate-800/50 hover:bg-slate-700 transition">&times;</button>
+            
+            <div class="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-full flex items-center justify-center mx-auto mb-4 text-xl border border-amber-500/20">
                 ⚡
             </div>
             <h3 class="text-xl font-bold text-white mb-2">Worker Portal Activation</h3>
@@ -263,11 +266,18 @@
                     <span class="text-amber-400 font-bold">Pending Activation</span>
                 </div>
             </div>
-            <button class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 rounded-xl text-xs transition">
-                Pay Activation & Unlock All
-            </button>
+            
+            <div class="space-y-2">
+                <button onclick="alert('Redirecting to activation payment gateway...')" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 rounded-xl text-xs transition">
+                    Pay Activation & Unlock All
+                </button>
+                <button onclick="closePaywallModal()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-2.5 rounded-xl text-xs transition">
+                    Cancel / Go Back
+                </button>
+            </div>
         </div>
     </div>
+
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
@@ -403,6 +413,16 @@
             
             document.getElementById('paywallModal').classList.remove('hidden');
         }
+                function closePaywallModal() {
+            document.getElementById('paywallModal').classList.add('hidden');
+        }
+
+        function closePaywallModalOnBackdrop(event) {
+            if (event.target.id === 'paywallModal') {
+                closePaywallModal();
+            }
+        }
+
     </script>
 </body>
 </html>

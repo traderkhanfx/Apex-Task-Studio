@@ -1,577 +1,177 @@
+
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Apex Task Studio - Worker Portal</title>
-    <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        slate: {
-                            850: '#131e32',
-                            900: '#0f172a',
-                            950: '#080d1a',
-                        },
-                        emerald: {
-                            400: '#34d399',
-                            500: '#10b981',
-                            600: '#059669',
-                            900: '#064e3b',
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- Google Fonts: Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        /* Custom scrollbar styling */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0f172a;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 9999px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
+        body { background-color: #0f172a; } /* Deep slate dark theme */
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between antialiased selection:bg-emerald-500 selection:text-white">
+<body class="text-white font-sans p-4 md:p-8">
 
-    <!-- Top Header / Navbar -->
-    <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-30">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            
-            <!-- Brand & Badge -->
-            <div class="flex items-center space-x-3">
-                <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                    <i class="fa-solid font-bold text-slate-950 text-xl fa-bolt"></i>
-                </div>
-                <div>
-                    <div class="flex items-center space-x-2">
-                        <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">APEX TASK STUDIO</span>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-950/80 text-emerald-400 border border-emerald-500/30">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse mr-1.5"></span>
-                            Worker Portal
-                        </span>
-                    </div>
-                    <p class="text-[11px] text-slate-400 hidden sm:block">Direct BPO Client Task Execution Platform</p>
-                </div>
+    <!-- TOP NAVIGATION BAR -->
+    <nav class="flex flex-col md:flex-row justify-between items-center pb-6 border-b border-slate-700 mb-8">
+        <div class="flex items-center gap-3 mb-4 md:mb-0">
+            <h1 class="text-2xl font-bold tracking-wider">APEX TASK STUDIO</h1>
+            <span class="bg-emerald-900 text-emerald-400 text-xs px-2 py-1 rounded-full border border-emerald-700">● Worker Portal</span>
+        </div>
+        
+        <!-- CURRENCY SWITCHER DROPDOWN -->
+        <div class="flex items-center gap-2 bg-slate-800 p-2 rounded-lg border border-slate-600">
+            <label for="currencyToggle" class="text-sm text-slate-300 font-medium">Currency:</label>
+            <select id="currencyToggle" onchange="switchCurrency(this.value)" class="bg-slate-900 text-white text-sm border-none outline-none rounded p-1 cursor-pointer">
+                <option value="KES">KES (Shilling)</option>
+                <option value="USD">USD ($ Dollar)</option>
+            </select>
+        </div>
+    </nav>
+
+    <!-- BALANCE AND STATS SECTION -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+        <!-- Available Balance Card -->
+        <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 flex flex-col justify-between">
+            <div>
+                <p class="text-xs text-slate-400 font-semibold tracking-wider mb-2">AVAILABLE BALANCE</p>
+                <!-- NOTE: data-kes and money-value class added here -->
+                <h2 class="text-4xl font-bold mb-4 money-value" data-kes="1450">KES 1,450</h2>
             </div>
-
-            <!-- User Profile & Status -->
-            <div class="flex items-center space-x-4">
-                <div class="hidden sm:flex flex-col text-right">
-                    <span class="text-sm font-semibold text-slate-200">Collins Magu</span>
-                    <span class="text-xs text-emerald-400 flex items-center justify-end font-medium">
-                        <i class="fa-solid fa-shield-check mr-1"></i> Verified Specialist
-                    </span>
-                </div>
-                <div class="relative group">
-                    <div class="h-10 w-10 rounded-full bg-slate-800 border-2 border-emerald-500/40 p-0.5 flex items-center justify-center text-slate-300 font-bold overflow-hidden cursor-pointer">
-                        <img src="https://placehold.co/100x100/10b981/ffffff?text=CM" alt="Collins Magu" class="h-full w-full object-cover rounded-full">
-                    </div>
-                </div>
+            <div class="flex items-center justify-between mt-4">
+                <span class="text-sm text-emerald-400 flex items-center gap-1">
+                    <span>✓</span> Ready for transfer
+                </span>
+                <button class="bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold py-2 px-4 rounded-lg transition-colors">
+                    Withdraw via M-Pesa
+                </button>
             </div>
         </div>
-    </header>
 
-    <!-- Main Container -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-grow space-y-8">
-
-        <!-- Metrics & Balance Overview Bar -->
-        <section class="grid grid-cols-1 md:grid-cols-3 gap-5">
-            
-            <!-- Card 1: Available Balance -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition">
-                <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition"></div>
-                <div class="flex justify-between items-start mb-3">
-                    <div>
-                        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Available Balance</p>
-                        <h2 class="text-3xl font-extrabold text-white mt-1 tracking-tight" id="available-balance">KES 1,450</h2>
-                    </div>
-                    <div class="p-2.5 bg-emerald-500/10 rounded-xl text-emerald-400">
-                        <i class="fa-solid fa-wallet text-xl"></i>
-                    </div>
-                </div>
-                <div class="pt-2 flex items-center justify-between">
-                    <span class="text-xs text-slate-400 flex items-center">
-                        <i class="fa-solid fa-circle-check text-emerald-400 mr-1.5"></i> Ready for transfer
-                    </span>
-                    <button onclick="triggerPayoutRequest()" class="bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-slate-950 font-bold text-xs px-3.5 py-2 rounded-xl shadow-md shadow-emerald-500/20 transition flex items-center space-x-1.5">
-                        <i class="fa-solid fa-mobile-screen-button"></i>
-                        <span>Withdraw via M-Pesa</span>
-                    </button>
-                </div>
+        <!-- Pending Approvals Card -->
+        <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 flex flex-col justify-between">
+            <div>
+                <p class="text-xs text-slate-400 font-semibold tracking-wider mb-2">PENDING APPROVALS</p>
+                <!-- NOTE: data-kes and money-value class added here -->
+                <h2 class="text-4xl font-bold mb-4 money-value" data-kes="350">KES 350</h2>
             </div>
-
-            <!-- Card 2: Pending Approvals -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition">
-                <div class="flex justify-between items-start mb-3">
-                    <div>
-                        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Pending Approvals</p>
-                        <h2 class="text-3xl font-extrabold text-white mt-1 tracking-tight" id="pending-balance">KES 350</h2>
-                    </div>
-                    <div class="p-2.5 bg-amber-500/10 rounded-xl text-amber-400">
-                        <i class="fa-solid fa-clock-rotate-left text-xl"></i>
-                    </div>
-                </div>
-                <div class="pt-2 flex items-center justify-between text-xs text-slate-400">
-                    <span id="pending-count-label">3 tasks currently under QA review</span>
-                    <span class="text-amber-400 font-semibold">~24h turnaround</span>
-                </div>
+            <div class="flex items-center justify-between mt-4">
+                <span class="text-sm text-slate-400">3 tasks currently under QA review</span>
+                <span class="text-sm text-amber-400">~24h turnaround</span>
             </div>
-
-            <!-- Card 3: Performance Stats -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition">
-                <div class="flex justify-between items-start mb-3">
-                    <div>
-                        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Completed Tasks</p>
-                        <h2 class="text-3xl font-extrabold text-white mt-1 tracking-tight" id="completed-count">42</h2>
-                    </div>
-                    <div class="p-2.5 bg-blue-500/10 rounded-xl text-blue-400">
-                        <i class="fa-solid fa-circle-check text-xl"></i>
-                    </div>
-                </div>
-                <div class="pt-2 flex items-center justify-between text-xs">
-                    <span class="text-slate-400">Quality Rating</span>
-                    <span class="text-emerald-400 font-bold bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/20">
-                        <i class="fa-solid fa-star text-amber-400 mr-1"></i>98.5% Accuracy
-                    </span>
-                </div>
-            </div>
-        </section>
-
-        <!-- Task Queue Header & Tab Navigation -->
-        <section class="space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-4">
-                <div>
-                    <h3 class="text-xl font-bold text-white tracking-tight flex items-center">
-                        <i class="fa-solid fa-list-check text-emerald-400 mr-2.5"></i> Active Task Workstation
-                    </h3>
-                    <p class="text-xs text-slate-400 mt-1">Select an assigned project task, execute work, and submit for QA verification.</p>
-                </div>
-
-                <!-- Tabs -->
-                <div class="flex items-center space-x-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs font-semibold">
-                    <button onclick="switchTab('available')" id="tab-available" class="px-3.5 py-2 rounded-lg transition bg-emerald-500 text-slate-950 font-bold shadow">
-                        Available (<span id="available-badge-count">3</span>)
-                    </button>
-                    <button onclick="switchTab('in-progress')" id="tab-in-progress" class="px-3.5 py-2 rounded-lg transition text-slate-400 hover:text-white">
-                        In Progress (<span id="progress-badge-count">1</span>)
-                    </button>
-                    <button onclick="switchTab('history')" id="tab-history" class="px-3.5 py-2 rounded-lg transition text-slate-400 hover:text-white">
-                        History (<span id="history-badge-count">3</span>)
-                    </button>
-                </div>
-            </div>
-
-            <!-- Tab Content Container: AVAILABLE TASKS -->
-            <div id="view-available" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                
-                <!-- Task Card 1 -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition flex flex-col justify-between space-y-4">
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between">
-                            <span class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-indigo-950 text-indigo-300 border border-indigo-800/40">
-                                <i class="fa-solid fa-robot mr-1"></i> RLHF AI Evaluation
-                            </span>
-                            <span class="text-xs text-slate-400"><i class="fa-regular fa-clock mr-1"></i> ~10 mins</span>
-                        </div>
-                        <h4 class="text-base font-bold text-white line-clamp-1">Rate AI Chatbot Response Quality</h4>
-                        <p class="text-xs text-slate-400 line-clamp-2">Compare two generated AI responses for legal accuracy, tone, and conciseness. Select the superior response and provide a 2-sentence rationale.</p>
-                    </div>
-                    <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
-                        <div>
-                            <span class="text-[10px] uppercase tracking-wider text-slate-500 block">Payout</span>
-                            <span class="text-base font-extrabold text-emerald-400">KES 120</span>
-                        </div>
-                        <button onclick="openWorkspace(1)" class="bg-slate-800 hover:bg-emerald-500 hover:text-slate-950 text-slate-200 font-semibold text-xs px-4 py-2 rounded-xl transition border border-slate-700 hover:border-emerald-500 flex items-center space-x-1">
-                            <span>Start Task</span>
-                            <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Task Card 2 -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition flex flex-col justify-between space-y-4">
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between">
-                            <span class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-950 text-emerald-300 border border-emerald-800/40">
-                                <i class="fa-solid fa-file-audio mr-1"></i> Audio Transcription
-                            </span>
-                            <span class="text-xs text-slate-400"><i class="fa-regular fa-clock mr-1"></i> ~15 mins</span>
-                        </div>
-                        <h4 class="text-base font-bold text-white line-clamp-1">Kenyan English Customer Support Call</h4>
-                        <p class="text-xs text-slate-400 line-clamp-2">Listen to a 1.5 minute customer care recording and transcribe the conversation verbatim into English following formatting guidelines.</p>
-                    </div>
-                    <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
-                        <div>
-                            <span class="text-[10px] uppercase tracking-wider text-slate-500 block">Payout</span>
-                            <span class="text-base font-extrabold text-emerald-400">KES 180</span>
-                        </div>
-                        <button onclick="openWorkspace(2)" class="bg-slate-800 hover:bg-emerald-500 hover:text-slate-950 text-slate-200 font-semibold text-xs px-4 py-2 rounded-xl transition border border-slate-700 hover:border-emerald-500 flex items-center space-x-1">
-                            <span>Start Task</span>
-                            <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Task Card 3 -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition flex flex-col justify-between space-y-4">
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between">
-                            <span class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-amber-950 text-amber-300 border border-amber-800/40">
-                                <i class="fa-solid fa-database mr-1"></i> Data B2B Scraping
-                            </span>
-                            <span class="text-xs text-slate-400"><i class="fa-regular fa-clock mr-1"></i> ~8 mins</span>
-                        </div>
-                        <h4 class="text-base font-bold text-white line-clamp-1">Extract Tech Lead Contact Information</h4>
-                        <p class="text-xs text-slate-400 line-clamp-2">Locate official contact email address and LinkedIn profile URLs for 5 specified tech business entries from provided web sources.</p>
-                    </div>
-                    <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
-                        <div>
-                            <span class="text-[10px] uppercase tracking-wider text-slate-500 block">Payout</span>
-                            <span class="text-base font-extrabold text-emerald-400">KES 90</span>
-                        </div>
-                        <button onclick="openWorkspace(3)" class="bg-slate-800 hover:bg-emerald-500 hover:text-slate-950 text-slate-200 font-semibold text-xs px-4 py-2 rounded-xl transition border border-slate-700 hover:border-emerald-500 flex items-center space-x-1">
-                            <span>Start Task</span>
-                            <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Tab Content Container: IN PROGRESS -->
-            <div id="view-in-progress" class="hidden grid-cols-1 md:grid-cols-2 gap-5">
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between space-y-4">
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between">
-                            <span class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-blue-950 text-blue-300 border border-blue-800/40">
-                                <i class="fa-solid fa-images mr-1"></i> Image Bounding Box
-                            </span>
-                            <span class="text-xs text-amber-400 font-medium"><i class="fa-solid fa-hourglass-half mr-1"></i> Session Active</span>
-                        </div>
-                        <h4 class="text-base font-bold text-white">Annotate Retail Shelf Products Batch #14</h4>
-                        <p class="text-xs text-slate-400">Draw tight bounding boxes around all visible soft drink cans in 10 test images for supermarket inventory training.</p>
-                    </div>
-                    <div class="pt-3 border-t border-slate-800 flex items-center justify-between">
-                        <span class="text-base font-extrabold text-emerald-400">KES 150</span>
-                        <button onclick="openWorkspace(4)" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl transition flex items-center space-x-1">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                            <span>Resume Execution</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tab Content Container: HISTORY -->
-            <div id="view-history" class="hidden">
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-slate-800/60 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-800">
-                                <tr>
-                                    <th class="px-5 py-3.5">Task Title</th>
-                                    <th class="px-5 py-3.5">Category</th>
-                                    <th class="px-5 py-3.5">Submitted</th>
-                                    <th class="px-5 py-3.5">Status</th>
-                                    <th class="px-5 py-3.5 text-right">Earned</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-800/60" id="history-table-body">
-                                <tr class="hover:bg-slate-850/50 transition">
-                                    <td class="px-5 py-4 font-semibold text-white">E-commerce Product Description QA</td>
-                                    <td class="px-5 py-4 text-slate-400">Content QA</td>
-                                    <td class="px-5 py-4 text-slate-400">Today, 09:20 AM</td>
-                                    <td class="px-5 py-4">
-                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-950 text-emerald-400 border border-emerald-500/30">Approved</span>
-                                    </td>
-                                    <td class="px-5 py-4 text-right font-bold text-emerald-400">+ KES 140</td>
-                                </tr>
-                                <tr class="hover:bg-slate-850/50 transition">
-                                    <td class="px-5 py-4 font-semibold text-white">Swahili-English Medical Transcript</td>
-                                    <td class="px-5 py-4 text-slate-400">Audio Transcription</td>
-                                    <td class="px-5 py-4 text-slate-400">Yesterday, 16:45 PM</td>
-                                    <td class="px-5 py-4">
-                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-950 text-emerald-400 border border-emerald-500/30">Approved</span>
-                                    </td>
-                                    <td class="px-5 py-4 text-right font-bold text-emerald-400">+ KES 210</td>
-                                </tr>
-                                <tr class="hover:bg-slate-850/50 transition">
-                                    <td class="px-5 py-4 font-semibold text-white">LinkedIn Executive Data Extraction</td>
-                                    <td class="px-5 py-4 text-slate-400">Data Scraping</td>
-                                    <td class="px-5 py-4 text-slate-400">Yesterday, 11:10 AM</td>
-                                    <td class="px-5 py-4">
-                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-amber-950 text-amber-400 border border-amber-500/30">Pending QA</span>
-                                    </td>
-                                    <td class="px-5 py-4 text-right font-bold text-amber-400">KES 100</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- Interactive Workspace Modal (Simulated Task Execution) -->
-    <div id="workspace-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col justify-between">
-            
-            <!-- Modal Header -->
-            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between sticky top-0 bg-slate-900 z-10">
-                <div class="flex items-center space-x-2">
-                    <span id="modal-category" class="px-2.5 py-0.5 rounded text-xs font-semibold bg-emerald-950 text-emerald-400 border border-emerald-500/30">
-                        Category
-                    </span>
-                    <span class="text-xs text-slate-400">| Task #<span id="modal-id">01</span></span>
-                </div>
-                <button onclick="closeWorkspace()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <!-- Modal Body -->
-            <div class="p-6 space-y-6">
-                <div>
-                    <h3 id="modal-title" class="text-xl font-bold text-white">Task Title</h3>
-                    <p id="modal-reward" class="text-emerald-400 font-extrabold text-lg mt-1">KES 0</p>
-                </div>
-
-                <!-- Guidelines Box -->
-                <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-2">
-                    <h5 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center">
-                        <i class="fa-solid fa-circle-info text-emerald-400 mr-2"></i> Client Execution Instructions
-                    </h5>
-                    <p id="modal-instructions" class="text-xs text-slate-400 leading-relaxed">
-                        Read the instructions carefully before entering your work submission. Ensure no spelling errors.
-                    </p>
-                </div>
-
-                <!-- Submission Form Area -->
-                <div class="space-y-4">
-                    <label class="block text-xs font-semibold text-slate-300">
-                        Work Deliverable Output / Response Payload
-                    </label>
-                    <textarea id="task-output-input" rows="4" placeholder="Type or paste your completed task output here (e.g. text analysis, transcribed text, or URL proof)..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition resize-none"></textarea>
-                    
-                    <div class="border-2 border-dashed border-slate-800 rounded-xl p-4 text-center hover:border-slate-700 transition cursor-pointer bg-slate-950/50">
-                        <i class="fa-solid fa-cloud-arrow-up text-slate-500 text-xl mb-1"></i>
-                        <p class="text-xs text-slate-400">Optional: Attach Proof Document / Screenshot (Max 10MB)</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Modal Footer -->
-            <div class="px-6 py-4 border-t border-slate-800 bg-slate-900/90 flex items-center justify-end space-x-3 sticky bottom-0">
-                <button onclick="closeWorkspace()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition">
-                    Cancel
-                </button>
-                <button onclick="submitTaskForReview()" class="bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-slate-950 font-bold text-xs px-5 py-2.5 rounded-xl shadow-lg shadow-emerald-500/20 transition flex items-center space-x-2">
-                    <i class="fa-solid fa-paper-plane"></i>
-                    <span>Submit Work for QA Review</span>
-                </button>
-            </div>
-
         </div>
     </div>
 
-    <!-- Toast Notification Container -->
-    <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 border border-emerald-500/40 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
-        <div class="h-8 w-8 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-            <i class="fa-solid fa-circle-check"></i>
-        </div>
-        <div>
-            <h5 id="toast-title" class="text-xs font-bold">Success</h5>
-            <p id="toast-message" class="text-[11px] text-slate-400">Operation completed successfully.</p>
-        </div>
+    <!-- WORKSTATION SECTION -->
+    <div class="mb-6">
+        <h3 class="text-xl font-bold mb-1 flex items-center gap-2">≡ Active Task Workstation</h3>
+        <p class="text-sm text-slate-400">Select an assigned project task, execute work, and submit for QA verification.</p>
     </div>
 
-    <!-- Footer -->
-    <footer class="border-t border-slate-800/80 bg-slate-950 py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-            <p>© 2026 Apex Task Studio Ltd. All rights reserved.</p>
-            <div class="flex items-center space-x-6">
-                <span class="hover:text-slate-400 cursor-pointer">Quality Guidelines</span>
-                <span class="hover:text-slate-400 cursor-pointer">M-Pesa Terms</span>
-                <span class="hover:text-slate-400 cursor-pointer">Support Helpdesk</span>
+    <!-- TASK CARDS GRID -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Task 1 -->
+        <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 hover:border-blue-500 transition-colors flex flex-col justify-between">
+            <div>
+                <div class="flex justify-between items-center mb-3">
+                    <span class="bg-blue-900 text-blue-300 text-xs px-2 py-1 rounded border border-blue-700">RLHF AI Evaluation</span>
+                    <span class="text-xs text-slate-400">⏱ ~10 mins</span>
+                </div>
+                <h4 class="font-bold text-lg mb-2">Rate AI Chatbot Response Quality</h4>
+                <p class="text-xs text-slate-400 mb-6 line-clamp-3">Compare two generated AI responses for legal accuracy, tone, and conciseness. Select the superior response and provide reasoning.</p>
+            </div>
+            <div class="flex justify-between items-center mt-auto border-t border-slate-700 pt-4">
+                <div>
+                    <p class="text-xs text-slate-500 mb-1">PAYOUT</p>
+                    <!-- NOTE: data-kes and money-value class added here -->
+                    <p class="font-bold text-blue-400 money-value" data-kes="120">KES 120</p>
+                </div>
+                <button class="bg-slate-700 hover:bg-blue-600 text-white text-sm py-2 px-4 rounded transition-colors">Start Task →</button>
             </div>
         </div>
+
+        <!-- Task 2 -->
+        <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 hover:border-emerald-500 transition-colors flex flex-col justify-between">
+            <div>
+                <div class="flex justify-between items-center mb-3">
+                    <span class="bg-emerald-900 text-emerald-300 text-xs px-2 py-1 rounded border border-emerald-700">Audio Transcription</span>
+                    <span class="text-xs text-slate-400">⏱ ~15 mins</span>
+                </div>
+                <h4 class="font-bold text-lg mb-2">Kenyan English Customer Support Call</h4>
+                <p class="text-xs text-slate-400 mb-6 line-clamp-3">Listen to a 1.5 minute customer care recording and transcribe the conversation verbatim into English following formatting rules.</p>
+            </div>
+            <div class="flex justify-between items-center mt-auto border-t border-slate-700 pt-4">
+                <div>
+                    <p class="text-xs text-slate-500 mb-1">PAYOUT</p>
+                    <!-- NOTE: data-kes and money-value class added here -->
+                    <p class="font-bold text-emerald-400 money-value" data-kes="180">KES 180</p>
+                </div>
+                <button class="bg-slate-700 hover:bg-emerald-600 text-white text-sm py-2 px-4 rounded transition-colors">Start Task →</button>
+            </div>
+        </div>
+
+        <!-- Task 3 -->
+        <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 hover:border-purple-500 transition-colors flex flex-col justify-between">
+            <div>
+                <div class="flex justify-between items-center mb-3">
+                    <span class="bg-purple-900 text-purple-300 text-xs px-2 py-1 rounded border border-purple-700">Data Extraction</span>
+                    <span class="text-xs text-slate-400">⏱ ~5 mins</span>
+                </div>
+                <h4 class="font-bold text-lg mb-2">Extract Business Contact Details</h4>
+                <p class="text-xs text-slate-400 mb-6 line-clamp-3">Locate company websites from the provided URLs and extract the primary support email address and phone number.</p>
+            </div>
+            <div class="flex justify-between items-center mt-auto border-t border-slate-700 pt-4">
+                <div>
+                    <p class="text-xs text-slate-500 mb-1">PAYOUT</p>
+                    <!-- NOTE: data-kes and money-value class added here -->
+                    <p class="font-bold text-purple-400 money-value" data-kes="90">KES 90</p>
+                </div>
+                <button class="bg-slate-700 hover:bg-purple-600 text-white text-sm py-2 px-4 rounded transition-colors">Start Task →</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="mt-12 pt-6 border-t border-slate-800 text-center text-xs text-slate-500">
+        © 2026 Apex Task Studio Ltd. All rights reserved.
     </footer>
 
-    <!-- Application Logic Javascript -->
+    <!-- JAVASCRIPT FOR CURRENCY CONVERSION -->
     <script>
-        // In-memory Task State
-        const taskDatabase = {
-            1: { id: "1", title: "Rate AI Chatbot Response Quality", category: "RLHF AI Evaluation", reward: 120, instructions: "Read two chatbot outputs provided in the prompt. Grade which output is more accurate, factual, and free of bias. Write a concise rationale explaining your pick." },
-            2: { id: "2", title: "Kenyan English Customer Support Call", category: "Audio Transcription", reward: 180, instructions: "Listen to the 1.5-minute audio clip carefully. Transcribe all spoken words into clear standard English text without changing meaning." },
-            3: { id: "3", title: "Extract Tech Lead Contact Information", category: "Data B2B Scraping", reward: 90, instructions: "Locate verified business email addresses for 5 targeted companies provided. Paste the emails separated by commas." },
-            4: { id: "4", title: "Annotate Retail Shelf Products Batch #14", category: "Image Bounding Box", reward: 150, instructions: "Identify all visible soft drink containers on the test image. Provide bounding box coordinate tags or verification status." }
-        };
+        // Conversion rate base (1 USD ≈ 130 KES)
+        const USD_RATE = 130;
 
-        let currentActiveTaskId = null;
-        let stateAvailableCount = 3;
-        let statePendingCount = 3;
-        let statePendingBalance = 350;
-
-        // Switch Tab Logic
-        function switchTab(tabName) {
-            const availableView = document.getElementById('view-available');
-            const progressView = document.getElementById('view-in-progress');
-            const historyView = document.getElementById('view-history');
-
-            const tabAvailable = document.getElementById('tab-available');
-            const tabProgress = document.getElementById('tab-in-progress');
-            const tabHistory = document.getElementById('tab-history');
-
-            // Reset all tab styles
-            [tabAvailable, tabProgress, tabHistory].forEach(tab => {
-                tab.className = "px-3.5 py-2 rounded-lg transition text-slate-400 hover:text-white";
+        function switchCurrency(currency) {
+            // Save user preference
+            localStorage.setItem('preferred_currency', currency);
+            
+            // Find all elements with money values
+            const moneyElements = document.querySelectorAll('.money-value');
+            
+            moneyElements.forEach(el => {
+                const baseKesValue = parseFloat(el.getAttribute('data-kes'));
+                
+                if (currency === 'USD') {
+                    const usdValue = (baseKesValue / USD_RATE).toFixed(2);
+                    el.textContent = `$${usdValue}`;
+                } else {
+                    // Format back to KES with commas
+                    el.textContent = `KES ${baseKesValue.toLocaleString()}`;
+                }
             });
+        }
 
-            // Hide all views
-            availableView.classList.add('hidden');
-            progressView.classList.add('hidden');
-            historyView.classList.add('hidden');
-
-            // Activate selected
-            if (tabName === 'available') {
-                availableView.classList.remove('hidden');
-                tabAvailable.className = "px-3.5 py-2 rounded-lg transition bg-emerald-500 text-slate-950 font-bold shadow";
-            } else if (tabName === 'in-progress') {
-                progressView.classList.remove('hidden');
-                tabProgress.className = "px-3.5 py-2 rounded-lg transition bg-emerald-500 text-slate-950 font-bold shadow";
-            } else if (tabName === 'history') {
-                historyView.classList.remove('hidden');
-                tabHistory.className = "px-3.5 py-2 rounded-lg transition bg-emerald-500 text-slate-950 font-bold shadow";
+        // Run on page load to maintain user choice
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedCurrency = localStorage.getItem('preferred_currency') || 'KES';
+            const toggle = document.getElementById('currencyToggle');
+            if (toggle) {
+                toggle.value = savedCurrency;
+                switchCurrency(savedCurrency); // Trigger initial conversion
             }
-        }
-
-        // Open Workspace Modal
-        function openWorkspace(taskId) {
-            const task = taskDatabase[taskId];
-            if (!task) return;
-
-            currentActiveTaskId = taskId;
-            document.getElementById('modal-id').innerText = task.id;
-            document.getElementById('modal-category').innerText = task.category;
-            document.getElementById('modal-title').innerText = task.title;
-            document.getElementById('modal-reward').innerText = `KES ${task.reward}`;
-            document.getElementById('modal-instructions').innerText = task.instructions;
-            document.getElementById('task-output-input').value = "";
-
-            document.getElementById('workspace-modal').classList.remove('hidden');
-        }
-
-        // Close Workspace Modal
-        function closeWorkspace() {
-            document.getElementById('workspace-modal').classList.add('hidden');
-            currentActiveTaskId = null;
-        }
-
-        // Submit Task Logic
-        function submitTaskForReview() {
-            const inputVal = document.getElementById('task-output-input').value.trim();
-            if (!inputVal) {
-                showToast("Submission Empty", "Please input your task work deliverable before submitting.", true);
-                return;
-            }
-
-            const task = taskDatabase[currentActiveTaskId];
-
-            // Close modal
-            closeWorkspace();
-
-            // Update state & metrics
-            if (task) {
-                statePendingBalance += task.reward;
-                statePendingCount += 1;
-                if (stateAvailableCount > 0) stateAvailableCount -= 1;
-
-                // Update UI text
-                document.getElementById('pending-balance').innerText = `KES ${statePendingBalance}`;
-                document.getElementById('pending-count-label').innerText = `${statePendingCount} tasks currently under QA review`;
-                document.getElementById('available-badge-count').innerText = stateAvailableCount;
-
-                // Add row to history table
-                const historyTable = document.getElementById('history-table-body');
-                const newRow = document.createElement('tr');
-                newRow.className = "hover:bg-slate-850/50 transition bg-emerald-950/10";
-                newRow.innerHTML = `
-                    <td class="px-5 py-4 font-semibold text-white">${task.title}</td>
-                    <td class="px-5 py-4 text-slate-400">${task.category}</td>
-                    <td class="px-5 py-4 text-slate-400">Just Now</td>
-                    <td class="px-5 py-4">
-                        <span class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-amber-950 text-amber-400 border border-amber-500/30">Pending QA</span>
-                    </td>
-                    <td class="px-5 py-4 text-right font-bold text-amber-400">KES ${task.reward}</td>
-                `;
-                historyTable.insertBefore(newRow, historyTable.firstChild);
-
-                // Update history count badge
-                const currentHistCount = parseInt(document.getElementById('history-badge-count').innerText) || 0;
-                document.getElementById('history-badge-count').innerText = currentHistCount + 1;
-
-                showToast("Task Submitted!", `Work submitted for review. KES ${task.reward} added to pending balance.`);
-            }
-        }
-
-        // Trigger M-Pesa Payout Simulation
-        function triggerPayoutRequest() {
-            showToast("Payout Initialized", "Transfer request of KES 1,450 to M-Pesa account processed.");
-        }
-
-        // Toast Notification System
-        function showToast(title, message, isError = false) {
-            const toast = document.getElementById('toast');
-            const toastTitle = document.getElementById('toast-title');
-            const toastMsg = document.getElementById('toast-message');
-
-            toastTitle.innerText = title;
-            toastMsg.innerText = message;
-
-            if (isError) {
-                toast.classList.remove('border-emerald-500/40');
-                toast.classList.add('border-rose-500/40');
-            } else {
-                toast.classList.remove('border-rose-500/40');
-                toast.classList.add('border-emerald-500/40');
-            }
-
-            // Slide in
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            toast.classList.add('translate-y-0', 'opacity-100');
-
-            setTimeout(() => {
-                toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3500);
-        }
+        });
     </script>
 </body>
 </html>

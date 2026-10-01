@@ -462,14 +462,14 @@
             }
         });
 
-        // Handle Submit & Save
+            // Handle Submit & Save
         function handleAuthSubmit(e) {
             e.preventDefault();
             const fullName = document.getElementById('authFullName').value.trim();
             const email = document.getElementById('authEmail').value.trim();
             const phone = document.getElementById('authPhone').value.trim();
 
-            if (!fullName || !email || !phone) return;
+            if (!fullName) return;
 
             const userData = { fullName, email, phone };
             localStorage.setItem('apex_user', JSON.stringify(userData));
@@ -478,12 +478,13 @@
             document.getElementById('authModal').classList.add('hidden');
         }
 
-        // Generate Avatar Initials
+        // Generate Avatar Initials (e.g. Collins Can -> CC)
         function updateUserHeader(name) {
+            if (!name) return;
             const parts = name.trim().split(' ').filter(p => p.length > 0);
             let initials = 'U';
             if (parts.length >= 2) {
-                initials = (parts[0][0] + parts[1][0]).toUpperCase();
+                initials = (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
             } else if (parts.length === 1) {
                 initials = parts[0].substring(0, 2).toUpperCase();
             }

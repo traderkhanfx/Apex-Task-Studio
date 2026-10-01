@@ -42,7 +42,8 @@
                 <span class="text-sm text-emerald-400 flex items-center gap-1">
                     <span>✓</span> Ready for transfer
                 </span>
-                <button class="bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold py-2 px-4 rounded-lg transition-colors">
+               <button onclick="handleWithdraw()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-lg transition-colors">
+
                     Withdraw via M-Pesa
                 </button>
             </div>
@@ -231,6 +232,10 @@
 </div>
 <!-- JavaScript Logic -->
 <script>
+    function handleWithdraw() {
+        document.getElementById('paywallModal').classList.remove('hidden');
+    }
+
     function handleTaskClick(taskId) {
         const isVerified = localStorage.getItem('apex_user_verified') === 'true';
         const freeTaskUsed = localStorage.getItem('apex_free_task_used') === 'true';
@@ -266,7 +271,18 @@
             alert('Account verified successfully! Your 1 Free Task is now unlocked.');
         } else {
             alert('Invalid verification code. Enter any 6-digit code for testing.');
-        }
+        } <!-- JavaScript Logic -->
+<script>
+    function handleWithdraw() {
+        document.getElementById('paywallModal').classList.remove('hidden');
+    }
+
+    function handleTaskClick(taskId) {
+        const isVerified = localStorage.getItem('apex_user_verified') === 'true';
+
+    function handleTaskClick(taskId) {
+        const isVerified = localStorage.getItem('apex_user_verified') === 'true';
+        const freeTask
     }
 
     function closeAuthModal() {

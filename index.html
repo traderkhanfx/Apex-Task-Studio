@@ -87,7 +87,7 @@
                     <!-- NOTE: data-kes and money-value class added here -->
                     <p class="font-bold text-blue-400 money-value" data-kes="120">KES 120</p>
                 </div>
-                <button class="bg-slate-700 hover:bg-blue-600 text-white text-sm py-2 px-4 rounded transition-colors">Start Task →</button>
+                <button onclick="handleTaskClick('task-101')" class="bg-slate-700 hover:bg-blue-600 text-white text-sm py-2 px-4 rounded transition-colors">Start Task →</button>
             </div>
         </div>
 
@@ -107,7 +107,7 @@
                     <!-- NOTE: data-kes and money-value class added here -->
                     <p class="font-bold text-emerald-400 money-value" data-kes="180">KES 180</p>
                 </div>
-                <button class="bg-slate-700 hover:bg-emerald-600 text-white text-sm py-2 px-4 rounded transition-colors">Start Task →</button>
+                <button onclick="handleTaskClick('task-102')" class="bg-slate-700 hover:bg-emerald-600 text-white text-sm py-2 px-4 rounded transition-colors">Start Task →</button>
             </div>
         </div>
 
@@ -127,7 +127,7 @@
                     <!-- NOTE: data-kes and money-value class added here -->
                     <p class="font-bold text-purple-400 money-value" data-kes="90">KES 90</p>
                 </div>
-                <button class="bg-slate-700 hover:bg-purple-600 text-white text-sm py-2 px-4 rounded transition-colors">Start Task →</button>
+                <button onclick="handleTaskClick('task-103')" class="bg-slate-700 hover:bg-purple-600 text-white text-sm py-2 px-4 rounded transition-colors">Start Task →</button>
             </div>
         </div>
 
@@ -173,5 +173,106 @@
             }
         });
     </script>
+    <!-- Verification & Onboarding Modal -->
+<div id="authModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+        <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">✕</button>
+        
+        <!-- Step 1: Phone Input -->
+        <div id="phoneStep">
+            <h3 class="text-xl font-bold text-white mb-2">Verify Your Account</h3>
+            <p class="text-slate-400 text-sm mb-6">Enter your phone number to unlock your 1 Free High-Yield Task.</p>
+            
+            <div class="mb-4">
+                <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Phone Number</label>
+                <div class="flex gap-2">
+                    <select id="countryCode" class="bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <option value="+254">🇰🇪 +254</option>
+                        <option value="+1">🇺🇸 +1</option>
+                        <option value="+44">🇬🇧 +44</option>
+                    </select>
+                    <input type="tel" id="phoneNumber" placeholder="712345678" class="bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2.5 w-full focus:ring-2 focus:ring-emerald-500 outline-none">
+                </div>
+            </div>
+            
+            <button onclick="sendOTP()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 rounded-lg transition-colors">
+                Send Verification Code
+            </button>
+        </div>
+
+        <!-- Step 2: OTP Verification -->
+        <div id="otpStep" class="hidden">
+            <h3 class="text-xl font-bold text-white mb-2">Enter Security Code</h3>
+            <p class="text-slate-400 text-sm mb-6">We sent a 6-digit verification code to <span id="displayPhone" class="text-emerald-400 font-mono"></span></p>
+            
+            <input type="text" id="otpCode" maxlength="6" placeholder="123456" class="bg-slate-800 border border-slate-700 text-white text-center text-2xl tracking-widest rounded-lg px-3 py-3 w-full mb-4 focus:ring-2 focus:ring-emerald-500 outline-none font-mono">
+            
+            <button onclick="verifyOTP()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 rounded-lg transition-colors">
+                Verify & Unlock Free Task
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Paywall Locked Modal -->
+<div id="paywallModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-emerald-500/30 rounded-2xl max-w-md w-full p-6 text-center shadow-2xl relative">
+        <button onclick="document.getElementById('paywallModal').classList.add('hidden')" class="absolute top-4 right-4 text-slate-400 hover:text-white">✕</button>
+        <div class="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🔒</div>
+        <h3 class="text-xl font-bold text-white mb-2">Free Task Completed!</h3>
+        <p class="text-slate-300 text-sm mb-6">You've successfully finished your trial task. Upgrade to a Pro Account to unlock unlimited daily BPO batches and withdraw earnings.</p>
+        <button onclick="alert('Redirecting to activation portal...')" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 rounded-lg transition-colors">
+            Activate Account
+        </button>
+    </div>
+</div>
+<script>
+    function handleTaskClick(taskId) {
+        const isVerified = localStorage.getItem('apex_user_verified') === 'true';
+        const freeTaskUsed = localStorage.getItem('apex_free_task_used') === 'true';
+
+        if (!isVerified) {
+            document.getElementById('authModal').classList.remove('hidden');
+        } else if (freeTaskUsed) {
+            document.getElementById('paywallModal').classList.remove('hidden');
+        } else {
+            startTaskSession(taskId);
+        }
+    }
+
+    function sendOTP() {
+        const code = document.getElementById('countryCode').value;
+        const phone = document.getElementById('phoneNumber').value.trim();
+        if (phone.length < 7) {
+            alert('Please enter a valid phone number.');
+            return;
+        }
+        
+        const fullPhone = `${code} ${phone}`;
+        document.getElementById('displayPhone').innerText = fullPhone;
+        document.getElementById('phoneStep').classList.add('hidden');
+        document.getElementById('otpStep').classList.remove('hidden');
+    }
+
+    function verifyOTP() {
+        const otp = document.getElementById('otpCode').value.trim();
+        if (otp.length === 6) {
+            localStorage.setItem('apex_user_verified', 'true');
+            closeAuthModal();
+            alert('Account verified successfully! Your 1 Free Task is now unlocked.');
+        } else {
+            alert('Invalid verification code. Enter any 6-digit code for testing.');
+        }
+    }
+
+    function closeAuthModal() {
+        document.getElementById('authModal').classList.add('hidden');
+    }
+
+    function startTaskSession(taskId) {
+        alert(`Starting Task #${taskId}. Complete it to earn your payout!`);
+        localStorage.setItem('apex_free_task_used', 'true');
+    }
+</script>
 </body>
 </html>

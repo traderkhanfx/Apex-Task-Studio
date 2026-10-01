@@ -8,6 +8,35 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="bg-[#050914] text-slate-100 min-h-screen font-sans flex flex-col justify-between">
+        <!-- AUTHENTICATION MODAL -->
+    <div id="authModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
+        <div class="bg-[#0b1329] border border-slate-700/80 w-full max-w-md rounded-2xl p-6 text-center shadow-2xl relative">
+            <div class="w-12 h-12 bg-indigo-500/10 text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-3 text-xl border border-indigo-500/20">
+                👤
+            </div>
+            <h3 class="text-xl font-bold text-white mb-1">Welcome to Apex Studio</h3>
+            <p class="text-xs text-slate-400 mb-6">Enter your details to create your worker profile and access task queues.</p>
+            
+            <form onsubmit="handleAuthSubmit(event)" class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Full Name</label>
+                    <input type="text" id="authFullName" required placeholder="e.g. Collins Magu" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Email Address</label>
+                    <input type="email" id="authEmail" required placeholder="name@example.com" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Phone Number (M-Pesa)</label>
+                    <input type="tel" id="authPhone" required placeholder="0712345678" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500 transition">
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl text-xs transition mt-2">
+                    Start Earning Now →
+                </button>
+            </form>
+        </div>
+    </div>
+
 
     <!-- TOP HEADER -->
     <header class="border-b border-slate-800/80 bg-[#070d1e]/90 backdrop-blur sticky top-0 z-40 px-4 py-3">
@@ -422,6 +451,49 @@
                 closePaywallModal();
             }
         }
+                // Check Auth Status on Load
+        window.addEventListener('DOMContentLoaded', () => {
+            const user = JSON.parse(localStorage.getItem('apex_user'));
+            if (user && user.fullName) {
+                updateUserHeader(user.fullName);
+                document.getElementById('authModal').classList.add('hidden');
+            } else {
+                document.getElementById('authModal').classList.remove('hidden');
+            }
+        });
+
+        // Handle Submit & Save
+        function handleAuthSubmit(e) {
+            e.preventDefault();
+            const fullName = document.getElementById('authFullName').value.trim();
+            const email = document.getElementById('authEmail').value.trim();
+            const phone = document.getElementById('authPhone').value.trim();
+
+            if (!fullName || !email || !phone) return;
+
+            const userData = { fullName, email, phone };
+            localStorage.setItem('apex_user', JSON.stringify(userData));
+
+            updateUserHeader(fullName);
+            document.getElementById('authModal').classList.add('hidden');
+        }
+
+        // Generate Avatar Initials
+        function updateUserHeader(name) {
+            const parts = name.trim().split(' ').filter(p => p.length > 0);
+            let initials = 'U';
+            if (parts.length >= 2) {
+                initials = (parts[0][0] + parts[1][0]).toUpperCase();
+            } else if (parts.length === 1) {
+                initials = parts[0].substring(0, 2).toUpperCase();
+            }
+
+            const avatarEl = document.getElementById('headerAvatar');
+            if (avatarEl) {
+                avatarEl.textContent = initials;
+            }
+        }
+
 
     </script>
 </body>

@@ -1,398 +1,344 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apex Task Studio - Worker Portal</title>
+    <title>Apex Task Studio | Worker Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background-color: #0f172a; } /* Deep slate dark theme */
-    </style>
 </head>
-<body class="text-white font-sans p-4 md:p-8">
+<body class="bg-slate-950 text-white font-sans p-4 md:p-8">
 
-    <!-- TOP NAVIGATION BAR -->
-    <nav class="flex flex-col md:flex-row justify-between items-center pb-6 border-b border-slate-700 mb-8">
-        <div class="flex items-center gap-3 mb-4 md:mb-0">
-            <h1 class="text-2xl font-bold tracking-wider">APEX TASK STUDIO</h1>
-            <span class="bg-emerald-900 text-emerald-400 text-xs px-2 py-1 rounded-full border border-emerald-700">● Worker Portal</span>
-        </div>
+    <!-- Top Dashboard Overview -->
+    <div class="max-w-6xl mx-auto space-y-8">
         
-        <!-- CURRENCY SWITCHER DROPDOWN -->
-        <div class="flex items-center gap-2 bg-slate-800 p-2 rounded-lg border border-slate-600">
-            <label for="currencyToggle" class="text-sm text-slate-300 font-medium">Currency:</label>
-            <select id="currencyToggle" onchange="switchCurrency(this.value)" class="bg-slate-900 text-white text-sm border-none outline-none rounded p-1 cursor-pointer">
-                <option value="KES">KES (Shilling)</option>
-                <option value="USD">USD ($ Dollar)</option>
-            </select>
-        </div>
-    </nav>
-
-    <!-- BALANCE AND STATS SECTION -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-        <!-- Available Balance Card -->
-        <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 flex flex-col justify-between">
+        <!-- Header -->
+        <div class="flex flex-wrap items-center justify-between gap-4 bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl">
             <div>
-                <p class="text-xs text-slate-400 font-semibold tracking-wider mb-2">AVAILABLE BALANCE</p>
-                <!-- NOTE: data-kes and money-value class added here -->
-                <h2 class="text-4xl font-bold mb-4 money-value" data-kes="1450">KES 1,450</h2>
+                <h1 class="text-2xl font-bold text-white">Apex Task Studio</h1>
+                <p class="text-slate-400 text-sm">Localized AI Data Annotation & BPO Portal</p>
             </div>
-            <div class="flex items-center justify-between mt-4">
-                <span class="text-sm text-emerald-400 flex items-center gap-1">
-                    <span>✓</span> Ready for transfer
-                </span>
-               <button onclick="handleWithdraw()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-lg transition-colors">
+            <div class="flex items-center gap-3 bg-slate-950 px-4 py-2 rounded-xl border border-slate-800">
+                <span class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></span>
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-300">Live Workspace Status: Active</span>
+            </div>
+        </div>
 
-                    Withdraw via M-Pesa
+        <!-- Metrics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- Available Earnings Card -->
+            <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 flex flex-col justify-between shadow-lg">
+                <div>
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Available Balance</span>
+                    <h2 class="text-4xl font-bold text-emerald-400 my-2">KES 0.00</h2>
+                    <p class="text-slate-400 text-sm">Unlocked funds ready for direct mobile transfer.</p>
+                </div>
+                <div class="flex items-center justify-between mt-6 pt-4 border-t border-slate-800">
+                    <span class="text-sm text-emerald-400 flex items-center gap-1">
+                        <span>✓</span> Ready for transfer
+                    </span>
+                    <button onclick="handleWithdraw()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-5 py-2.5 rounded-xl transition-colors shadow-lg shadow-emerald-500/10">
+                        Withdraw via M-Pesa
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pending Approvals Card -->
+            <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 flex flex-col justify-between shadow-lg">
+                <div>
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Pending Approvals</span>
+                    <h2 class="text-4xl font-bold text-white my-2">KES 350.00</h2>
+                    <p class="text-slate-400 text-sm">3 tasks currently under QA review.</p>
+                </div>
+                <div class="mt-6 pt-4 border-t border-slate-800">
+                    <span class="text-xs text-slate-500">QA Queue: Processing submissions</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Workstation Section -->
+        <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl space-y-6">
+            <div>
+                <h3 class="text-xl font-bold text-white">Task Workstation</h3>
+                <p class="text-slate-400 text-sm mt-1">Select an active queue to reserve a task, execute work, and submit for QA verification.</p>
+            </div>
+
+            <!-- Task List Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <!-- Task Card 1 -->
+                <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 hover:border-slate-700 transition-all flex flex-col justify-between">
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">Audio Transcription</span>
+                            <span class="text-xs text-slate-500">~15 mins</span>
+                        </div>
+                        <h4 class="font-bold text-white">Kenyan English Customer Support Call</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">Listen to a 1.5 minute customer care recording and transcribe the conversation verbatim into English following formatting rules.</p>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-slate-900 flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] text-slate-500 uppercase block">PAYOUT</span>
+                            <span class="text-sm font-bold text-emerald-400">KES 180.00</span>
+                        </div>
+                        <button onclick="handleTaskClick('task-101')" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs px-4 py-2 rounded-lg transition-colors">
+                            Start Task →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Task Card 2 -->
+                <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 hover:border-slate-700 transition-all flex flex-col justify-between">
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-500/20">RLHF Evaluation</span>
+                            <span class="text-xs text-slate-500">~10 mins</span>
+                        </div>
+                        <h4 class="font-bold text-white">Rate AI Chatbot Response Quality</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">Evaluate two model responses for legal accuracy, tone, and conciseness. Rank the preferred response and provide reasoning.</p>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-slate-900 flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] text-slate-500 uppercase block">PAYOUT</span>
+                            <span class="text-sm font-bold text-emerald-400">KES 250.00</span>
+                        </div>
+                        <button onclick="handleTaskClick('task-102')" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs px-4 py-2 rounded-lg transition-colors">
+                            Start Task →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Task Card 3 -->
+                <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 hover:border-slate-700 transition-all flex flex-col justify-between">
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-purple-400 bg-purple-500/10 px-2.5 py-1 rounded-full border border-purple-500/20">Data Extraction</span>
+                            <span class="text-xs text-slate-500">~5 mins</span>
+                        </div>
+                        <h4 class="font-bold text-white">Extract Business Details from Invoices</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">Locate company websites, tax PINs, and primary support email addresses from scanned PDF invoice images.</p>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-slate-900 flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] text-slate-500 uppercase block">PAYOUT</span>
+                            <span class="text-sm font-bold text-emerald-400">KES 150.00</span>
+                        </div>
+                        <button onclick="handleTaskClick('task-103')" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs px-4 py-2 rounded-lg transition-colors">
+                            Start Task →
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <p class="text-center text-xs text-slate-600 pt-4">© 2026 Apex Task Studio Ltd. All rights reserved.</p>
+
+    </div>
+
+    <!-- Modal 1: Onboarding / Verification Modal -->
+    <div id="authModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-6 shadow-2xl relative">
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">✕</button>
+            <div class="space-y-2">
+                <h3 class="text-xl font-bold text-white">Worker Phone Verification</h3>
+                <p class="text-xs text-slate-400">Verify your mobile number to unlock your first 1 Free Task and enable automated payouts.</p>
+            </div>
+
+            <!-- Phone Input Step -->
+            <div id="phoneStep" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase mb-2">Mobile Phone Number</label>
+                    <div class="flex gap-2">
+                        <select id="countryCode" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white outline-none">
+                            <option value="+254">🇰🇪 +254</option>
+                            <option value="+256">🇺🇬 +256</option>
+                            <option value="+255">🇹🇿 +255</option>
+                        </select>
+                        <input id="phoneNumber" type="tel" placeholder="712345678" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white outline-none focus:border-emerald-500">
+                    </div>
+                </div>
+                <button onclick="sendOTP()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 rounded-xl transition-colors">
+                    Send Verification Code
+                </button>
+            </div>
+
+            <!-- OTP Input Step -->
+            <div id="otpStep" class="space-y-4 hidden">
+                <p class="text-xs text-slate-300">Code sent to <span id="displayPhone" class="font-bold text-emerald-400"></span></p>
+                <div>
+                    <input id="otpCode" type="text" maxlength="6" placeholder="Enter 6-digit code" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white text-center font-mono tracking-widest outline-none focus:border-emerald-500">
+                </div>
+                <button onclick="verifyOTP()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 rounded-xl transition-colors">
+                    Verify & Unlock Tasks
                 </button>
             </div>
         </div>
-
-        <!-- Pending Approvals Card -->
-        <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 flex flex-col justify-between">
-            <div>
-                <p class="text-xs text-slate-400 font-semibold tracking-wider mb-2">PENDING APPROVALS</p>
-                <!-- NOTE: data-kes and money-value class added here -->
-                <h2 class="text-4xl font-bold mb-4 money-value" data-kes="350">KES 350</h2>
-            </div>
-            <div class="flex items-center justify-between mt-4">
-                <span class="text-sm text-slate-400">3 tasks currently under QA review</span>
-                <span class="text-sm text-amber-400">~24h turnaround</span>
-            </div>
-        </div>
     </div>
 
-    <!-- WORKSTATION SECTION -->
-    <div class="mb-6">
-        <h3 class="text-xl font-bold mb-1 flex items-center gap-2">≡ Active Task Workstation</h3>
-        <p class="text-sm text-slate-400">Select an assigned project task, execute work, and submit for QA verification.</p>
-    </div>
-
-    <!-- TASK CARDS GRID -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        <!-- Task 1 -->
-        <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 hover:border-blue-500 transition-colors flex flex-col justify-between">
-            <div>
-                <div class="flex justify-between items-center mb-3">
-                    <span class="bg-blue-900 text-blue-300 text-xs px-2 py-1 rounded border border-blue-700">RLHF AI Evaluation</span>
-                    <span class="text-xs text-slate-400">⏱ ~10 mins</span>
-                </div>
-                <h4 class="font-bold text-lg mb-2">Rate AI Chatbot Response Quality</h4>
-                <p class="text-xs text-slate-400 mb-6 line-clamp-3">Compare two generated AI responses for legal accuracy, tone, and conciseness. Select the superior response and provide reasoning.</p>
-            </div>
-            <div class="flex justify-between items-center mt-auto border-t border-slate-700 pt-4">
+    <!-- Modal 2: Task Execution Workspace Modal -->
+    <div id="taskWorkspaceModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 space-y-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <div class="flex items-start justify-between border-b border-slate-800 pb-4">
                 <div>
-                    <p class="text-xs text-slate-500 mb-1">PAYOUT</p>
-                    <!-- NOTE: data-kes and money-value class added here -->
-                    <p class="font-bold text-blue-400 money-value" data-kes="120">KES 120</p>
+                    <span id="workspaceTaskCategory" class="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">Audio Transcription</span>
+                    <h3 id="workspaceTaskTitle" class="text-lg font-bold text-white mt-2">Task Execution Workspace</h3>
                 </div>
-                <button onclick="handleTaskClick('task-101')" class="bg-slate-700 hover:bg-blue-600 text-white text-sm py-2 px-4 rounded transition-colors">Start Task →</button>
-            </div>
-        </div>
-
-        <!-- Task 2 -->
-        <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 hover:border-emerald-500 transition-colors flex flex-col justify-between">
-            <div>
-                <div class="flex justify-between items-center mb-3">
-                    <span class="bg-emerald-900 text-emerald-300 text-xs px-2 py-1 rounded border border-emerald-700">Audio Transcription</span>
-                    <span class="text-xs text-slate-400">⏱ ~15 mins</span>
-                </div>
-                <h4 class="font-bold text-lg mb-2">Kenyan English Customer Support Call</h4>
-                <p class="text-xs text-slate-400 mb-6 line-clamp-3">Listen to a 1.5 minute customer care recording and transcribe the conversation verbatim into English following formatting rules.</p>
-            </div>
-            <div class="flex justify-between items-center mt-auto border-t border-slate-700 pt-4">
-                <div>
-                    <p class="text-xs text-slate-500 mb-1">PAYOUT</p>
-                    <!-- NOTE: data-kes and money-value class added here -->
-                    <p class="font-bold text-emerald-400 money-value" data-kes="180">KES 180</p>
-                </div>
-                <button onclick="handleTaskClick('task-102')" class="bg-slate-700 hover:bg-emerald-600 text-white text-sm py-2 px-4 rounded transition-colors">Start Task →</button>
-            </div>
-        </div>
-
-        <!-- Task 3 -->
-        <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 hover:border-purple-500 transition-colors flex flex-col justify-between">
-            <div>
-                <div class="flex justify-between items-center mb-3">
-                    <span class="bg-purple-900 text-purple-300 text-xs px-2 py-1 rounded border border-purple-700">Data Extraction</span>
-                    <span class="text-xs text-slate-400">⏱ ~5 mins</span>
-                </div>
-                <h4 class="font-bold text-lg mb-2">Extract Business Contact Details</h4>
-                <p class="text-xs text-slate-400 mb-6 line-clamp-3">Locate company websites from the provided URLs and extract the primary support email address and phone number.</p>
-            </div>
-            <div class="flex justify-between items-center mt-auto border-t border-slate-700 pt-4">
-                <div>
-                    <p class="text-xs text-slate-500 mb-1">PAYOUT</p>
-                    <!-- NOTE: data-kes and money-value class added here -->
-                    <p class="font-bold text-purple-400 money-value" data-kes="90">KES 90</p>
-                </div>
-                <button onclick="handleTaskClick('task-103')" class="bg-slate-700 hover:bg-purple-600 text-white text-sm py-2 px-4 rounded transition-colors">Start Task →</button>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- FOOTER -->
-    <footer class="mt-12 pt-6 border-t border-slate-800 text-center text-xs text-slate-500">
-        © 2026 Apex Task Studio Ltd. All rights reserved.
-    </footer>
-
-    <!-- JAVASCRIPT FOR CURRENCY CONVERSION -->
-    <script>
-        // Conversion rate base (1 USD ≈ 130 KES)
-        const USD_RATE = 130;
-
-        function switchCurrency(currency) {
-            // Save user preference
-            localStorage.setItem('preferred_currency', currency);
-            
-            // Find all elements with money values
-            const moneyElements = document.querySelectorAll('.money-value');
-            
-            moneyElements.forEach(el => {
-                const baseKesValue = parseFloat(el.getAttribute('data-kes'));
-                
-                if (currency === 'USD') {
-                    const usdValue = (baseKesValue / USD_RATE).toFixed(2);
-                    el.textContent = `$${usdValue}`;
-                } else {
-                    // Format back to KES with commas
-                    el.textContent = `KES ${baseKesValue.toLocaleString()}`;
-                }
-            });
-        }
-
-        // Run on page load to maintain user choice
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedCurrency = localStorage.getItem('preferred_currency') || 'KES';
-            const toggle = document.getElementById('currencyToggle');
-            if (toggle) {
-                toggle.value = savedCurrency;
-                switchCurrency(savedCurrency); // Trigger initial conversion
-            }
-        });
-    </script>
-    <!-- Verification & Onboarding Modal -->
-<div id="authModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
-        <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">✕</button>
-        
-        <!-- Step 1: Phone Input -->
-        <div id="phoneStep">
-            <h3 class="text-xl font-bold text-white mb-2">Verify Your Account</h3>
-            <p class="text-slate-400 text-sm mb-6">Enter your phone number to unlock your 1 Free High-Yield Task.</p>
-            
-            <div class="mb-4">
-                <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Phone Number</label>
-                <div class="flex gap-2">
-                    <select id="countryCode" class="bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-emerald-500 outline-none">
-                        <option value="+254">🇰🇪 +254</option>
-                        <option value="+1">🇺🇸 +1</option>
-                        <option value="+44">🇬🇧 +44</option>
-                        <option value="+91">🇮🇳 +91</option>
-                        <option value="+256">UG +256</option>
-                        <option value="+255">TZ +255</option>
-                    </select>
-                    <input type="tel" id="phoneNumber" placeholder="712345678" class="bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2.5 w-full focus:ring-2 focus:ring-emerald-500 outline-none">
-                </div>
-            </div>
-            
-            <button onclick="sendOTP()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 rounded-lg transition-colors">
-                Send Verification Code
-            </button>
-        </div>
-
-        <!-- Step 2: OTP Verification -->
-        <div id="otpStep" class="hidden">
-            <h3 class="text-xl font-bold text-white mb-2">Enter Security Code</h3>
-            <p class="text-slate-400 text-sm mb-6">We sent a 6-digit verification code to <span id="displayPhone" class="text-emerald-400 font-mono"></span></p>
-            
-            <input type="text" id="otpCode" maxlength="6" placeholder="123456" class="bg-slate-800 border border-slate-700 text-white text-center text-2xl tracking-widest rounded-lg px-3 py-3 w-full mb-4 focus:ring-2 focus:ring-emerald-500 outline-none font-mono">
-            
-            <button onclick="verifyOTP()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 rounded-lg transition-colors">
-                Verify & Unlock Free Task
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Paywall Locked Modal -->
-<div id="paywallModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-slate-900 border border-emerald-500/30 rounded-2xl max-w-md w-full p-6 text-center shadow-2xl relative">
-        <button onclick="document.getElementById('paywallModal').classList.add('hidden')" class="absolute top-4 right-4 text-slate-400 hover:text-white">✕</button>
-        <div class="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🔒</div>
-        <h3 class="text-xl font-bold text-white mb-2">Free Task Completed!</h3>
-        <p class="text-slate-300 text-sm mb-6">You've successfully finished your trial task. Upgrade to a Pro Account to unlock unlimited daily BPO batches and withdraw earnings.</p>
-        <button onclick="alert('Redirecting to activation portal...')" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 rounded-lg transition-colors">
-            Activate Account
-        </button>
-    </div>
-</div>
-<!-- JavaScript Logic -->
-<script>
-    function handleWithdraw() {
-        document.getElementById('paywallModal').classList.remove('hidden');
-    }
-
-    function handleTaskClick(taskId) {
-        const isVerified = localStorage.getItem('apex_user_verified') === 'true';
-        const freeTaskUsed = localStorage.getItem('apex_free_task_used') === 'true';
-
-        if (!isVerified) {
-            document.getElementById('authModal').classList.remove('hidden');
-        } else if (freeTaskUsed) {
-            document.getElementById('paywallModal').classList.remove('hidden');
-        } else {
-            startTaskSession(taskId);
-        }
-    }
-
-    function sendOTP() {
-        const code = document.getElementById('countryCode').value;
-        const phone = document.getElementById('phoneNumber').value.trim();
-        if (phone.length < 7) {
-            alert('Please enter a valid phone number.');
-            return;
-        }
-        
-        const fullPhone = `${code} ${phone}`;
-        document.getElementById('displayPhone').innerText = fullPhone;
-        document.getElementById('phoneStep').classList.add('hidden');
-        document.getElementById('otpStep').classList.remove('hidden');
-    }
-
-    function verifyOTP() {
-        const otp = document.getElementById('otpCode').value.trim();
-        if (otp.length === 6) {
-            localStorage.setItem('apex_user_verified', 'true');
-            closeAuthModal();
-            alert('Account verified successfully! Your 1 Free Task is now unlocked.');
-        } else {
-            alert('Invalid verification code. Enter any 6-digit code for testing.');
-        } <!-- JavaScript Logic -->
-<script>
-    function handleWithdraw() {
-        document.getElementById('paywallModal').classList.remove('hidden');
-    }
-
-    function handleTaskClick(taskId) {
-        const isVerified = localStorage.getItem('apex_user_verified') === 'true';
-
-    function handleTaskClick(taskId) {
-        const isVerified = localStorage.getItem('apex_user_verified') === 'true';
-        const freeTask
-    }
-
-    function closeAuthModal() {
-        document.getElementById('authModal').classList.add('hidden');
-    }
-
-    function startTaskSession(taskId) {
-        const workspace = document.getElementById('taskWorkspaceModal');
-        
-        if (taskId === 'task-101') {
-            document.getElementById('workspaceTaskTitle').innerText = 'Kenyan English Customer Support Call';
-            document.getElementById('workspaceTaskCategory').innerText = 'Audio Transcription';
-            document.getElementById('workspacePayout').innerText = 'KES 180.00';
-        } else if (taskId === 'task-102') {
-            document.getElementById('workspaceTaskTitle').innerText = 'Rate AI Chatbot Response Accuracy';
-            document.getElementById('workspaceTaskCategory').innerText = 'RLHF Evaluation';
-            document.getElementById('workspacePayout').innerText = 'KES 250.00';
-        } else {
-            document.getElementById('workspaceTaskTitle').innerText = 'BPO Data Cleaning & Verification';
-            document.getElementById('workspaceTaskCategory').innerText = 'Data Entry';
-            document.getElementById('workspacePayout').innerText = 'KES 150.00';
-        }
-
-        workspace.classList.remove('hidden');
-    }
-
-    function closeWorkspace() {
-        document.getElementById('taskWorkspaceModal').classList.add('hidden');
-    }
-
-    function submitTaskWork() {
-        const response = document.getElementById('taskResponse').value.trim();
-        if (response.length < 5) {
-            alert('Please complete the submission field before submitting.');
-            return;
-        }
-
-        localStorage.setItem('apex_free_task_used', 'true');
-        closeWorkspace();
-
-        alert('Task submitted successfully! QA status: Pending Review.\n\nYour earnings have been credited to your pending balance.');
-        
-        document.getElementById('paywallModal').classList.remove('hidden');
-    }
-</script>
-
-<!-- Interactive Task Execution Workspace Modal -->
-<div id="taskWorkspaceModal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md hidden flex flex-col z-50 overflow-y-auto p-4 sm:p-8">
-    <div class="max-w-4xl w-full mx-auto bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl flex flex-col my-auto overflow-hidden">
-        
-        <!-- Workspace Header -->
-        <div class="bg-slate-800/80 border-b border-slate-700/60 p-4 sm:p-6 flex flex-wrap items-center justify-between gap-4">
-            <div>
-                <span id="workspaceTaskCategory" class="text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">Data Annotation</span>
-                <h2 id="workspaceTaskTitle" class="text-lg sm:text-xl font-bold text-white mt-1">Audio Transcription & QA Verification</h2>
-            </div>
-            <div class="flex items-center gap-4">
                 <div class="text-right">
-                    <p class="text-xs text-slate-400">ESTIMATED PAYOUT</p>
-                    <p id="workspacePayout" class="text-base font-bold text-emerald-400">KES 180.00</p>
+                    <span class="text-[10px] text-slate-500 uppercase block">Payout</span>
+                    <span id="workspacePayout" class="text-base font-bold text-emerald-400">KES 180.00</span>
                 </div>
-                <button onclick="closeWorkspace()" class="text-slate-400 hover:text-white p-2 text-xl">✕</button>
-            </div>
-        </div>
-
-        <!-- Task Body -->
-        <div class="p-6 space-y-6">
-            <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 text-sm text-slate-300">
-                <h4 class="font-semibold text-white mb-1 flex items-center gap-2">
-                    <span>📋</span> Guidelines
-                </h4>
-                <p id="workspaceInstructions">Review the audio transcript segment below, correct any typos or misheard words, and select the customer's sentiment score.</p>
             </div>
 
             <div class="space-y-4">
+                <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl text-xs text-slate-300 space-y-1">
+                    <p class="font-bold text-white">📋 Instructions:</p>
+                    <p>Review the transcript draft below, make necessary spelling/grammar corrections, and choose the overall customer sentiment tag.</p>
+                </div>
+
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Original Audio Transcript (Draft)</label>
-                    <div class="bg-slate-950 border border-slate-800 p-3.5 rounded-lg text-slate-300 text-sm font-mono italic">
+                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Original Audio Transcript (Draft)</label>
+                    <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl text-xs text-slate-300 font-mono italic">
                         "Agent: Hello, welcome to Safaricom customer care. How can I assist you with your Home Fibre connection today?"
                     </div>
                 </div>
 
                 <div>
-                    <label for="taskResponse" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Your Corrected Transcript / Submission</label>
-                    <textarea id="taskResponse" rows="4" placeholder="Type or verify the corrected text here..." class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition-all"></textarea>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Customer Sentiment Tag</label>
-                    <div class="grid grid-cols-3 gap-3">
-                        <label class="bg-slate-800 border border-slate-700 hover:border-emerald-500/50 p-3 rounded-lg flex items-center gap-2 cursor-pointer text-sm text-slate-200">
-                            <input type="radio" name="sentiment" value="neutral" checked class="accent-emerald-500"> Neutral
-                        </label>
-                        <label class="bg-slate-800 border border-slate-700 hover:border-emerald-500/50 p-3 rounded-lg flex items-center gap-2 cursor-pointer text-sm text-slate-200">
-                            <input type="radio" name="sentiment" value="satisfied" class="accent-emerald-500"> Satisfied
-                        </label>
-                        <label class="bg-slate-800 border border-slate-700 hover:border-emerald-500/50 p-3 rounded-lg flex items-center gap-2 cursor-pointer text-sm text-slate-200">
-                            <input type="radio" name="sentiment" value="escalated" class="accent-emerald-500"> Escalation
-                        </label>
-                    </div>
+                    <label for="taskResponse" class="block text-xs font-semibold text-slate-400 uppercase mb-2">Your Submission / Verified Text</label>
+                    <textarea id="taskResponse" rows="4" placeholder="Type or verify corrected response here..." class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white outline-none focus:border-emerald-500 transition-colors"></textarea>
                 </div>
             </div>
 
-            <div class="pt-4 border-t border-slate-800 flex items-center justify-between">
-                <p class="text-xs text-slate-400">Status: <span class="text-amber-400 font-semibold">In Progress</span></p>
-                <button onclick="submitTaskWork()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-6 py-2.5 rounded-lg transition-colors flex items-center gap-2">
-                    <span>Submit Task for QA</span>
-                    <span>→</span>
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+                <button onclick="closeWorkspace()" class="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors">
+                    Cancel
+                </button>
+                <button onclick="submitTaskWork()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-6 py-2.5 rounded-xl text-sm transition-colors">
+                    Submit Task for QA →
                 </button>
             </div>
         </div>
     </div>
-</div>
+
+    <!-- Modal 3: Account Activation Paywall Modal -->
+    <div id="paywallModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-emerald-500/30 rounded-2xl max-w-md w-full p-6 space-y-6 shadow-2xl relative text-center">
+            <div class="w-12 h-12 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center justify-center mx-auto text-emerald-400 text-2xl font-bold">
+                🔒
+            </div>
+            <div class="space-y-2">
+                <h3 class="text-xl font-bold text-white">Account Activation Required</h3>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    You have used your 1 Free Task allocation. Activate your worker account to release pending earnings (KES 350.00) and unlock unlimited task queues.
+                </p>
+            </div>
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-left space-y-2">
+                <div class="flex justify-between text-xs">
+                    <span class="text-slate-400">Activation Fee:</span>
+                    <span class="font-bold text-white">KES 250.00</span>
+                </div>
+                <div class="flex justify-between text-xs">
+                    <span class="text-slate-400">Pending Balance Release:</span>
+                    <span class="font-bold text-emerald-400">KES 350.00</span>
+                </div>
+            </div>
+            <button onclick="alert('Redirecting to M-Pesa Account Activation Gateway...')" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 rounded-xl transition-colors shadow-lg shadow-emerald-500/20">
+                Activate Account via M-Pesa
+            </button>
+            <button onclick="document.getElementById('paywallModal').classList.add('hidden')" class="text-xs text-slate-500 hover:text-slate-300 block w-full">
+                Close
+            </button>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic Block -->
+    <script>
+        function handleWithdraw() {
+            document.getElementById('paywallModal').classList.remove('hidden');
+        }
+
+        function handleTaskClick(taskId) {
+            const isVerified = localStorage.getItem('apex_user_verified') === 'true';
+            const freeTaskUsed = localStorage.getItem('apex_free_task_used') === 'true';
+
+            if (!isVerified) {
+                document.getElementById('authModal').classList.remove('hidden');
+            } else if (freeTaskUsed) {
+                document.getElementById('paywallModal').classList.remove('hidden');
+            } else {
+                startTaskSession(taskId);
+            }
+        }
+
+        function sendOTP() {
+            const code = document.getElementById('countryCode').value;
+            const phone = document.getElementById('phoneNumber').value.trim();
+            if (phone.length < 7) {
+                alert('Please enter a valid phone number.');
+                return;
+            }
+            
+            const fullPhone = `${code} ${phone}`;
+            document.getElementById('displayPhone').innerText = fullPhone;
+            document.getElementById('phoneStep').classList.add('hidden');
+            document.getElementById('otpStep').classList.remove('hidden');
+        }
+
+        function verifyOTP() {
+            const otp = document.getElementById('otpCode').value.trim();
+            if (otp.length === 6) {
+                localStorage.setItem('apex_user_verified', 'true');
+                closeAuthModal();
+                alert('Account verified successfully! Your 1 Free Task is now unlocked.');
+            } else {
+                alert('Invalid verification code. Enter any 6-digit code for testing.');
+            }
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.add('hidden');
+        }
+
+        function startTaskSession(taskId) {
+            const workspace = document.getElementById('taskWorkspaceModal');
+            
+            if (taskId === 'task-101') {
+                document.getElementById('workspaceTaskTitle').innerText = 'Kenyan English Customer Support Call';
+                document.getElementById('workspaceTaskCategory').innerText = 'Audio Transcription';
+                document.getElementById('workspacePayout').innerText = 'KES 180.00';
+            } else if (taskId === 'task-102') {
+                document.getElementById('workspaceTaskTitle').innerText = 'Rate AI Chatbot Response Quality';
+                document.getElementById('workspaceTaskCategory').innerText = 'RLHF Evaluation';
+                document.getElementById('workspacePayout').innerText = 'KES 250.00';
+            } else {
+                document.getElementById('workspaceTaskTitle').innerText = 'Extract Business Details from Invoices';
+                document.getElementById('workspaceTaskCategory').innerText = 'Data Extraction';
+                document.getElementById('workspacePayout').innerText = 'KES 150.00';
+            }
+
+            workspace.classList.remove('hidden');
+        }
+
+        function closeWorkspace() {
+            document.getElementById('taskWorkspaceModal').classList.add('hidden');
+        }
+
+        function submitTaskWork() {
+            const response = document.getElementById('taskResponse').value.trim();
+            if (response.length < 5) {
+                alert('Please complete the submission field before submitting.');
+                return;
+            }
+
+            localStorage.setItem('apex_free_task_used', 'true');
+            closeWorkspace();
+
+            alert('Task submitted successfully! QA status: Pending Review.\n\nYour earnings have been credited to your pending balance.');
+            
+            document.getElementById('paywallModal').classList.remove('hidden');
+        }
+    </script>
+
+</body>
+</html>

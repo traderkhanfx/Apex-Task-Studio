@@ -18,7 +18,22 @@
                 }
             }
         }
-    </script>
+   </script>
+    // Set your secret PIN or passcode here
+    const ADMIN_PIN = "7788"; 
+
+    // Check if session is already unlocked
+    if (sessionStorage.getItem("admin_authenticated") !== "true") {
+        let userPin = prompt("Apex Admin Terminal - Enter Access PIN:");
+        
+        if (userPin === ADMIN_PIN) {
+            sessionStorage.setItem("admin_authenticated", "true");
+        } else {
+            alert("Unauthorized Access. Redirecting to home...");
+            window.location.href = "index.html"; // Send unauthorized visitors back to worker portal
+        }
+    }
+</script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased">
 

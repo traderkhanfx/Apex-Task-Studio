@@ -113,6 +113,10 @@
       </div>
       <p class="text-sm text-gray-400 mb-3" id="stkDescription">Enter your M-Pesa number to receive an STK Push prompt.</p>
       <input type="tel" id="stkPhone" placeholder="07XX XXX XXX" class="w-full p-3 rounded-lg bg-black/30 border border-gray-700 text-white text-sm focus:border-emerald-500 outline-none mb-3" />
+      <div id="customDepositInput" class="hidden mb-3">
+        <label class="text-xs text-gray-400 block mb-1">Deposit Amount (USD)</label>
+        <input type="number" id="stkCustomAmount" min="1" step="0.5" value="1.00" class="w-full p-3 rounded-lg bg-black/30 border border-gray-700 text-white text-sm focus:border-emerald-500 outline-none" />
+      </div>
       <p id="stkAmountText" class="text-xs text-gray-500 mb-3">Amount: —</p>
       <button id="stkConfirmBtn" class="btn-primary w-full py-3 rounded-lg text-sm">Send STK Push</button>
     </div>
@@ -345,7 +349,6 @@
     function renderTasks() {
       const container = document.getElementById('taskList');
 
-      // Available tab: show tasks OR coming soon
       if (currentTab === 'available') {
         if (currentCategory === 'AI Evaluation' || currentCategory === 'Microtask') {
           container.innerHTML = `
@@ -404,7 +407,6 @@
         return;
       }
 
-      // Completed tab
       if (currentTab === 'completed') {
         const completed = TASKS.slice(0, 1).map(t => ({
           ...t,
@@ -428,7 +430,6 @@
         return;
       }
 
-      // Waiting for Review tab
       if (currentTab === 'review') {
         const review = TASKS.slice(1, 2).map(t => ({
           ...t,
@@ -452,7 +453,6 @@
         return;
       }
 
-      // Task History tab
       if (currentTab === 'history') {
         const history = [
           { id: 1, title: 'Kenyan Customer Call Transcription', status: 'Approved', payout: 1.80, date: 'Oct 2, 2026' },
@@ -490,15 +490,17 @@
       document.getElementById('stkTitle').textContent = '🔒 Unlock Task';
       document.getElementById('stkDescription').textContent = `Pay ${format(task.fee)} via M-Pesa STK Push to unlock "${task.title}".`;
       document.getElementById('stkAmountText').textContent = `Amount: ${format(task.fee)}`;
+      document.getElementById('customDepositInput').classList.add('hidden');
       document.getElementById('stkPhone').value = workerProfile?.mpesa_phone || '';
       openModal('stkModal');
     }
 
     function openDeposit() {
-      pendingStkAction = { type: 'deposit', amount: 5.00 };
+      pendingStkAction = { type: 'deposit', amount: 1.00 };
       document.getElementById('stkTitle').textContent = '➕ Deposit Funds';
-      document.getElementById('stkDescription').textContent = 'Enter your M-Pesa number to receive an STK Push and top up your wallet.';
-      document.getElementById('stkAmountText').textContent = `Amount: $5.00 (minimum)`;
+      document.getElementById('stkDescription').textContent = 'Enter your M-Pesa number and deposit amount (Minimum $1.00):';
+      document.getElementById('customDepositInput').classList.remove('hidden');
+      document.getElementById('stkAmountText').textContent = `Minimum Deposit: $1.00`;
       document.getElementById('stkPhone').value = workerProfile?.mpesa_phone || '';
       openModal('stkModal');
     }
@@ -510,8 +512,19 @@
         return;
       }
       if (!pendingStkAction) return;
+
+      let depAmount = pendingStkAction.amount;
+      if (pendingStkAction.type === 'deposit') {
+        const val = parseFloat(document.getElementById('stkCustomAmount').value);
+        if (isNaN(val) || val < 1.00) {
+          showAlert('Minimum deposit amount is $1.00');
+          return;
+        }
+        depAmount = val;
+      }
+
       closeModal('stkModal');
-      showAlert(`📲 STK Push sent to ${phone}. Please enter your PIN on your phone to confirm ${format(pendingStkAction.amount)}.`);
+      showAlert(`📲 STK Push sent to ${phone}. Please enter your PIN on your phone to confirm ${format(depAmount)}.`);
       setTimeout(() => {
         if (pendingStkAction.type === 'unlock') {
           if (!unlockedTasks.includes(pendingStkAction.taskId)) unlockedTasks.push(pendingStkAction.taskId);
@@ -519,9 +532,9 @@
           renderTasks();
           showAlert('✅ Payment received! Task unlocked.');
         } else if (pendingStkAction.type === 'deposit') {
-          walletBalance += pendingStkAction.amount;
+          walletBalance += depAmount;
           renderBalance();
-          showAlert(`✅ Deposit successful! ${format(pendingStkAction.amount)} added to your wallet.`);
+          showAlert(`✅ Deposit successful! ${format(depAmount)} added to your wallet.`);
         }
         pendingStkAction = null;
       }, 2000);
@@ -564,7 +577,7 @@
         return;
       }
       if (amount > walletBalance) {
-        showAlert('Insufficient balance. Your available balance is ' + format(walletBalance) + '.');
+        showAlert('Insufficient balance! Your available balance is ' + format(walletBalance) + '.');
         return;
       }
       walletBalance -= amount;

@@ -7,24 +7,136 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { background: #0a0f1a; color: #e5e7eb; font-family: system-ui, -apple-system, sans-serif; }
-    .glass { background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.06); }
-    .card-glow { box-shadow: 0 4px 24px rgba(0,0,0,0.4); }
-    .btn-primary { background: #10b981; color: #022c22; font-weight: 600; transition: all 0.2s; }
-    .btn-primary:hover { background: #059669; transform: translateY(-1px); }
-    .btn-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); transition: all 0.2s; }
-    .btn-danger:hover { background: rgba(239, 68, 68, 0.25); }
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 1rem; }
-    .modal-content { background: #111827; border: 1px solid rgba(255,255,255,0.08); border-radius: 1rem; max-width: 480px; width: 100%; padding: 1.5rem; max-height: 90vh; overflow-y: auto; }
+    body {
+      background: linear-gradient(135deg, #0f0a2e 0%, #1a1145 50%, #0a1a3e 100%);
+      color: #f1f5f9;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(139, 92, 246, 0.15);
+      box-shadow: 0 8px 32px rgba(88, 28, 135, 0.15);
+    }
+    .card-white {
+      background: #ffffff;
+      color: #1e1b4b;
+      border-radius: 1rem;
+      border: 1px solid rgba(139, 92, 246, 0.1);
+      box-shadow: 0 4px 24px rgba(88, 28, 135, 0.08);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+      color: #ffffff;
+      font-weight: 600;
+      transition: all 0.25s;
+      box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-accept {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #ffffff;
+      font-weight: 600;
+      transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+    .btn-accept:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(16, 185, 129, 0.45); }
+    .btn-reject {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: #ffffff;
+      font-weight: 600;
+      transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+    }
+    .btn-reject:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(239, 68, 68, 0.45); }
+    .btn-ghost {
+      background: rgba(139, 92, 246, 0.08);
+      border: 1px solid rgba(139, 92, 246, 0.25);
+      color: #c4b5fd;
+      transition: all 0.2s;
+    }
+    .btn-ghost:hover { background: rgba(139, 92, 246, 0.18); color: #ffffff; }
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(15, 10, 46, 0.85);
+      backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100; padding: 1rem;
+    }
+    .modal-content {
+      background: #ffffff;
+      color: #1e1b4b;
+      border-radius: 1rem;
+      max-width: 480px; width: 100%;
+      padding: 1.5rem;
+      max-height: 90vh; overflow-y: auto;
+      border: 1px solid rgba(139, 92, 246, 0.2);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
     .hidden { display: none !important; }
-    .input-field { width: 100%; padding: 0.75rem; border-radius: 0.5rem; background: rgba(0,0,0,0.3); border: 1px solid #374151; color: white; font-size: 0.875rem; outline: none; transition: border-color 0.2s; }
-    .input-field:focus { border-color: #10b981; }
+    .input-field {
+      width: 100%; padding: 0.75rem;
+      border-radius: 0.5rem;
+      background: #ffffff;
+      border: 1.5px solid #e0e7ff;
+      color: #1e1b4b; font-size: 0.875rem;
+      outline: none; transition: all 0.2s;
+    }
+    .input-field:focus { border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1); }
+    .input-field::placeholder { color: #a5b4fc; }
+    .label-light { color: #c4b5fd; }
     table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-    th, td { padding: 0.75rem 0.5rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
-    th { color: #9ca3af; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.65rem; }
-    .badge { font-size: 0.65rem; padding: 0.2rem 0.6rem; border-radius: 9999px; font-weight: 600; }
-    .loading-spinner { border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid #10b981; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; margin: 0 auto; }
+    th, td { padding: 0.75rem 0.6rem; text-align: left; border-bottom: 1px solid rgba(139, 92, 246, 0.1); }
+    th { color: #a5b4fc; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.65rem; }
+    .badge {
+      font-size: 0.65rem; padding: 0.25rem 0.65rem;
+      border-radius: 9999px; font-weight: 600;
+      letter-spacing: 0.02em; display: inline-block;
+    }
+    .badge-pending { background: #fef3c7; color: #92400e; }
+    .badge-accepted { background: #d1fae5; color: #065f46; }
+    .badge-rejected { background: #fee2e2; color: #991b1b; }
+    .badge-purple { background: rgba(139, 92, 246, 0.15); color: #c4b5fd; }
+    .badge-locked { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
+    .loading-spinner {
+      border: 3px solid rgba(139, 92, 246, 0.2);
+      border-top: 3px solid #8b5cf6;
+      border-radius: 50%; width: 24px; height: 24px;
+      animation: spin 1s linear infinite; margin: 0 auto;
+    }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .stat-gradient-1 { background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); }
+    .stat-gradient-2 { background: linear-gradient(135deg, #6366f1 0%, #3b82f6 100%); }
+    .stat-gradient-3 { background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%); }
+    .tab-btn {
+      padding: 0.65rem 1.25rem;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #a5b4fc;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: #ffffff; }
+    .tab-btn.active { color: #ffffff; border-bottom-color: #8b5cf6; }
+    .proof-cell {
+      max-width: 280px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #cbd5e1;
+      font-size: 0.78rem;
+    }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    .header-title {
+      background: linear-gradient(135deg, #ffffff 0%, #c4b5fd 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
   </style>
 </head>
 <body>
@@ -32,65 +144,89 @@
   <!-- ============ ALERT MODAL ============ -->
   <div id="alertModal" class="modal-overlay hidden">
     <div class="modal-content text-center">
-      <p id="alertMessage" class="text-base mb-4">Done!</p>
-      <button onclick="closeModal('alertModal')" class="btn-primary w-full py-2 rounded-lg text-sm">OK</button>
+      <p id="alertMessage" class="text-base mb-4 font-medium">Done!</p>
+      <button onclick="closeModal('alertModal')" class="btn-primary w-full py-2.5 rounded-lg text-sm">OK</button>
     </div>
   </div>
 
   <!-- ============ CONFIRM MODAL ============ -->
   <div id="confirmModal" class="modal-overlay hidden">
     <div class="modal-content text-center">
-      <p id="confirmMessage" class="text-base mb-4">Are you sure?</p>
+      <p id="confirmMessage" class="text-base mb-5 font-medium">Are you sure?</p>
       <div class="flex gap-3">
-        <button id="confirmYes" class="btn-primary flex-1 py-2 rounded-lg text-sm">Yes</button>
-        <button onclick="closeModal('confirmModal')" class="btn-ghost flex-1 py-2 rounded-lg text-sm">Cancel</button>
+        <button id="confirmYes" class="btn-primary flex-1 py-2.5 rounded-lg text-sm">Yes</button>
+        <button onclick="closeModal('confirmModal')" class="btn-ghost flex-1 py-2.5 rounded-lg text-sm">Cancel</button>
       </div>
     </div>
   </div>
 
   <!-- ============ MAIN ============ -->
-  <div class="max-w-5xl mx-auto p-4 pb-16">
+  <div class="max-w-6xl mx-auto p-4 pb-16">
 
     <!-- HEADER -->
     <header class="flex flex-wrap items-center justify-between gap-3 mb-6">
       <div>
         <div class="flex items-center gap-2">
           <span class="text-2xl">⚡</span>
-          <h1 class="text-xl font-bold tracking-tight">APEX TASK STUDIO</h1>
-          <span class="badge bg-emerald-900/50 text-emerald-400">ADMIN</span>
+          <h1 class="text-xl font-bold tracking-tight header-title">APEX TASK STUDIO</h1>
+          <span class="badge badge-purple">ADMIN</span>
         </div>
-        <p class="text-xs text-gray-500">Manage tasks, workers, and payouts</p>
+        <p class="text-xs text-purple-300/60 mt-0.5">Manage tasks, submissions & payouts</p>
       </div>
-      <a href="index.html" class="btn-ghost px-4 py-2 rounded-lg text-xs">← Back to Worker Portal</a>
+      <a href="index.html" class="btn-ghost px-4 py-2 rounded-lg text-xs font-medium">← Worker Portal</a>
     </header>
 
     <!-- STATS ROW -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
-      <div class="glass rounded-xl p-4 card-glow">
-        <p class="text-xs text-gray-500 uppercase tracking-wider">Total Tasks Posted</p>
-        <p class="text-3xl font-bold mt-1" id="statTotalTasks">—</p>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
+      <div class="stat-gradient-1 rounded-xl p-4 shadow-lg">
+        <p class="text-xs text-white/70 uppercase tracking-wider font-medium">Total Tasks</p>
+        <p class="text-3xl font-bold mt-1 text-white" id="statTotalTasks">—</p>
       </div>
-      <div class="glass rounded-xl p-4 card-glow">
-        <p class="text-xs text-gray-500 uppercase tracking-wider">Active Tasks</p>
-        <p class="text-3xl font-bold mt-1 text-emerald-400" id="statActiveTasks">—</p>
+      <div class="stat-gradient-2 rounded-xl p-4 shadow-lg">
+        <p class="text-xs text-white/70 uppercase tracking-wider font-medium">Active Tasks</p>
+        <p class="text-3xl font-bold mt-1 text-white" id="statActiveTasks">—</p>
       </div>
-      <div class="glass rounded-xl p-4 card-glow">
-        <p class="text-xs text-gray-500 uppercase tracking-wider">Locked Tasks</p>
+      <div class="stat-gradient-3 rounded-xl p-4 shadow-lg">
+        <p class="text-xs text-white/70 uppercase tracking-wider font-medium">Pending Reviews</p>
+        <p class="text-3xl font-bold mt-1 text-white" id="statPendingSubs">—</p>
+      </div>
+      <div class="glass rounded-xl p-4">
+        <p class="text-xs text-purple-300/70 uppercase tracking-wider font-medium">Locked Tasks</p>
         <p class="text-3xl font-bold mt-1 text-amber-400" id="statLockedTasks">—</p>
       </div>
     </div>
 
-    <!-- POST NEW JOB FORM -->
-    <div class="glass rounded-xl p-5 card-glow mb-6">
-      <h2 class="text-lg font-bold mb-4">📝 Post New Job</h2>
-      <form id="postJobForm" class="space-y-3">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <!-- TABS -->
+    <div class="glass rounded-xl overflow-hidden mb-6">
+      <div class="flex border-b border-purple-500/10 overflow-x-auto scrollbar-hide">
+        <button onclick="setAdminTab('tasks')" id="tabTasks" class="tab-btn active">📋 Manage Tasks</button>
+        <button onclick="setAdminTab('post')" id="tabPost" class="tab-btn">➕ Post New Job</button>
+        <button onclick="setAdminTab('submissions')" id="tabSubmissions" class="tab-btn">📥 Review Submissions <span id="pendingBadge" class="badge badge-pending ml-1 hidden">0</span></button>
+      </div>
+    </div>
+
+    <!-- ============ TAB: MANAGE TASKS ============ -->
+    <div id="panelTasks" class="glass rounded-xl p-5">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-bold text-white">📋 All Tasks</h2>
+        <button onclick="loadTasks()" class="btn-ghost px-3 py-1.5 rounded-lg text-xs font-medium">🔄 Refresh</button>
+      </div>
+      <div id="adminTaskList">
+        <div class="text-center py-12"><div class="loading-spinner"></div><p class="text-sm text-purple-300/60 mt-3">Loading tasks...</p></div>
+      </div>
+    </div>
+
+    <!-- ============ TAB: POST NEW JOB ============ -->
+    <div id="panelPost" class="glass rounded-xl p-5 hidden">
+      <h2 class="text-lg font-bold mb-5 text-white">📝 Post New Job</h2>
+      <form id="postJobForm" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="text-xs text-gray-400 block mb-1">Task Title</label>
+            <label class="text-xs label-light block mb-1.5 font-medium">Task Title</label>
             <input type="text" id="jobTitle" placeholder="e.g. Rate AI Chatbot Response" required class="input-field" />
           </div>
           <div>
-            <label class="text-xs text-gray-400 block mb-1">Category</label>
+            <label class="text-xs label-light block mb-1.5 font-medium">Category</label>
             <select id="jobCategory" class="input-field">
               <option value="Data Annotation">Data Annotation</option>
               <option value="Transcription">Transcription</option>
@@ -99,27 +235,27 @@
             </select>
           </div>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="text-xs text-gray-400 block mb-1">Payout (USD)</label>
+            <label class="text-xs label-light block mb-1.5 font-medium">Payout (USD)</label>
             <input type="number" id="jobPayout" placeholder="1.50" step="0.01" min="0.10" required class="input-field" />
           </div>
           <div>
-            <label class="text-xs text-gray-400 block mb-1">Estimated Time (minutes)</label>
+            <label class="text-xs label-light block mb-1.5 font-medium">Estimated Time (minutes)</label>
             <input type="number" id="jobTime" placeholder="10" min="1" required class="input-field" />
           </div>
         </div>
         <div>
-          <label class="text-xs text-gray-400 block mb-1">Description</label>
+          <label class="text-xs label-light block mb-1.5 font-medium">Description</label>
           <textarea id="jobDescription" rows="3" placeholder="Describe what the worker needs to do..." required class="input-field"></textarea>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
-          <div class="flex items-center gap-3">
-            <input type="checkbox" id="jobLocked" class="w-4 h-4 accent-emerald-500" onchange="toggleLockFee()" />
-            <label for="jobLocked" class="text-sm text-gray-300">Locked / Premium Task</label>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+          <div class="flex items-center gap-3 py-2">
+            <input type="checkbox" id="jobLocked" class="w-4 h-4 accent-purple-500" onchange="toggleLockFee()" />
+            <label for="jobLocked" class="text-sm text-purple-100 font-medium">Locked / Premium Task</label>
           </div>
           <div id="lockFeeContainer" class="hidden">
-            <label class="text-xs text-gray-400 block mb-1">Unlock Fee (USD)</label>
+            <label class="text-xs label-light block mb-1.5 font-medium">Unlock Fee (USD)</label>
             <input type="number" id="jobFee" placeholder="1.50" step="0.01" min="0" class="input-field" />
           </div>
         </div>
@@ -127,29 +263,33 @@
       </form>
     </div>
 
-    <!-- TASK LIST TABLE -->
-    <div class="glass rounded-xl p-5 card-glow">
+    <!-- ============ TAB: SUBMISSIONS ============ -->
+    <div id="panelSubmissions" class="glass rounded-xl p-5 hidden">
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-bold">📋 All Tasks</h2>
-        <button onclick="loadTasks()" class="btn-ghost px-3 py-1.5 rounded-lg text-xs">🔄 Refresh</button>
+        <h2 class="text-lg font-bold text-white">📥 Worker Submissions</h2>
+        <button onclick="loadSubmissions()" class="btn-ghost px-3 py-1.5 rounded-lg text-xs font-medium">🔄 Refresh</button>
       </div>
-      <div id="adminTaskList">
-        <div class="text-center py-12"><div class="loading-spinner"></div><p class="text-sm text-gray-500 mt-3">Loading tasks...</p></div>
+      <div id="submissionsList">
+        <div class="text-center py-12"><div class="loading-spinner"></div><p class="text-sm text-purple-300/60 mt-3">Loading submissions...</p></div>
       </div>
     </div>
 
     <!-- FOOTER -->
-    <footer class="text-center text-xs text-gray-600 border-t border-gray-800 pt-6 mt-8">
+    <footer class="text-center text-xs text-purple-300/40 border-t border-purple-500/10 pt-6 mt-8">
       <p>© 2026 Apex Task Studio — Admin Panel</p>
     </footer>
   </div>
 
   <script>
+    // ============ SUPABASE INIT ============
     const SUPABASE_URL = 'https://dwdtvasykhorrvmwmnhb.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3ZHR2YXN5a2hvcnJ2bXdtbmhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUzNzQsImV4cCI6MjEwNjUzMTM3NH0.vt_I7uvUqsjv5e8RTgREMoXJiZqq_80a9fVOqVyW6Lk';
     const { createClient } = supabase;
     const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    let TASK_CACHE = [];
+
+    // ============ HELPERS ============
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
     function showAlert(msg) {
@@ -162,28 +302,44 @@
       if (locked) container.classList.remove('hidden');
       else container.classList.add('hidden');
     }
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+    }
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
       overlay.addEventListener('click', (e) => {
         if (e.target === overlay) overlay.classList.add('hidden');
       });
     });
 
+    // ============ TAB SWITCHING ============
+    function setAdminTab(tab) {
+      ['tasks', 'post', 'submissions'].forEach(t => {
+        document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)).classList.remove('active');
+        document.getElementById('panel' + t.charAt(0).toUpperCase() + t.slice(1)).classList.add('hidden');
+      });
+      document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+      document.getElementById('panel' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.remove('hidden');
+      if (tab === 'tasks') loadTasks();
+      if (tab === 'submissions') loadSubmissions();
+    }
+
+    // ============ LOAD TASKS ============
     async function loadTasks() {
       const container = document.getElementById('adminTaskList');
-      container.innerHTML = '<div class="text-center py-12"><div class="loading-spinner"></div><p class="text-sm text-gray-500 mt-3">Loading tasks...</p></div>';
+      container.innerHTML = '<div class="text-center py-12"><div class="loading-spinner"></div><p class="text-sm text-purple-300/60 mt-3">Loading tasks...</p></div>';
       try {
-        const { data, error } = await db
-          .from('tasks')
-          .select('*')
-          .order('created_at', { ascending: false });
+        const { data, error } = await db.from('tasks').select('*').order('created_at', { ascending: false });
         if (error) throw error;
+        TASK_CACHE = data || [];
 
-        document.getElementById('statTotalTasks').textContent = data.length;
-        document.getElementById('statActiveTasks').textContent = data.filter(t => t.status === 'active').length;
-        document.getElementById('statLockedTasks').textContent = data.filter(t => t.is_locked).length;
+        // Update stats
+        document.getElementById('statTotalTasks').textContent = TASK_CACHE.length;
+        document.getElementById('statActiveTasks').textContent = TASK_CACHE.filter(t => t.status === 'active').length;
+        document.getElementById('statLockedTasks').textContent = TASK_CACHE.filter(t => t.is_locked).length;
 
-        if (!data || data.length === 0) {
-          container.innerHTML = '<p class="text-center text-gray-500 py-8 text-sm">No tasks posted yet. Use the form above to add your first job.</p>';
+        if (!TASK_CACHE.length) {
+          container.innerHTML = '<p class="text-center text-purple-300/60 py-8 text-sm">No tasks posted yet. Use the "Post New Job" tab to add your first job.</p>';
           return;
         }
         container.innerHTML = `
@@ -200,14 +356,14 @@
                 </tr>
               </thead>
               <tbody>
-                ${data.map(t => `
+                ${TASK_CACHE.map(t => `
                   <tr>
-                    <td class="text-gray-200 font-medium">${t.title || '—'}</td>
-                    <td><span class="badge bg-emerald-900/40 text-emerald-400">${t.category || '—'}</span></td>
+                    <td class="text-white font-medium">${escapeHtml(t.title) || '—'}</td>
+                    <td><span class="badge badge-purple">${escapeHtml(t.category) || '—'}</span></td>
                     <td class="text-emerald-400 font-bold">$${parseFloat(t.payout || 0).toFixed(2)}</td>
-                    <td class="text-gray-400">${t.time || '—'} min</td>
-                    <td>${t.is_locked ? `<span class="badge bg-amber-900/40 text-amber-400">🔒 $${parseFloat(t.lock_fee || 0).toFixed(2)}</span>` : '<span class="text-gray-500 text-xs">Free</span>'}</td>
-                    <td><button onclick="deleteTask('${t.id}')" class="btn-danger px-3 py-1 rounded-md text-xs">Delete</button></td>
+                    <td class="text-purple-200/70">${t.time || '—'} min</td>
+                    <td>${t.is_locked ? `<span class="badge badge-locked">🔒 $${parseFloat(t.lock_fee || 0).toFixed(2)}</span>` : '<span class="text-purple-300/40 text-xs">Free</span>'}</td>
+                    <td><button onclick="deleteTask('${t.id}')" class="btn-reject px-3 py-1 rounded-md text-xs">Delete</button></td>
                   </tr>
                 `).join('')}
               </tbody>
@@ -216,10 +372,11 @@
         `;
       } catch (err) {
         console.error('Load tasks error:', err);
-        container.innerHTML = `<p class="text-center text-red-400 py-8 text-sm">Failed to load tasks.<br><span class="text-gray-500 text-xs">${err.message}</span></p>`;
+        container.innerHTML = `<p class="text-center text-red-400 py-8 text-sm">Failed to load tasks.<br><span class="text-purple-300/40 text-xs">${escapeHtml(err.message)}</span></p>`;
       }
     }
 
+    // ============ POST JOB ============
     document.getElementById('postJobForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const title = document.getElementById('jobTitle').value.trim();
@@ -230,25 +387,10 @@
       const is_locked = document.getElementById('jobLocked').checked;
       const lock_fee = is_locked ? parseFloat(document.getElementById('jobFee').value) || 0 : 0;
 
-      if (!title || !description || !payout || !time) {
-        showAlert('Please fill in all required fields.');
-        return;
-      }
-      if (is_locked && lock_fee <= 0) {
-        showAlert('Please enter a valid unlock fee for locked tasks.');
-        return;
-      }
+      if (!title || !description || !payout || !time) { showAlert('Please fill in all required fields.'); return; }
+      if (is_locked && lock_fee <= 0) { showAlert('Please enter a valid unlock fee for locked tasks.'); return; }
 
-      const payload = {
-        title,
-        category,
-        payout,
-        time,
-        description,
-        is_locked,
-        lock_fee,
-        status: 'active'
-      };
+      const payload = { title, category, payout, time, description, is_locked, lock_fee, status: 'active' };
 
       try {
         const { error } = await db.from('tasks').insert([payload]);
@@ -256,13 +398,14 @@
         showAlert('✅ Job posted successfully! It will now appear on the worker portal.');
         document.getElementById('postJobForm').reset();
         toggleLockFee();
-        loadTasks();
+        setAdminTab('tasks');
       } catch (err) {
         console.error('Post job error:', err);
         showAlert('❌ Failed to post job: ' + err.message);
       }
     });
 
+    // ============ DELETE TASK ============
     function deleteTask(id) {
       document.getElementById('confirmMessage').textContent = 'Delete this task? Workers will no longer see it.';
       document.getElementById('confirmModal').classList.remove('hidden');
@@ -280,8 +423,111 @@
       };
     }
 
+    // ============ LOAD SUBMISSIONS ============
+    async function loadSubmissions() {
+      const container = document.getElementById('submissionsList');
+      container.innerHTML = '<div class="text-center py-12"><div class="loading-spinner"></div><p class="text-sm text-purple-300/60 mt-3">Loading submissions...</p></div>';
+      try {
+        // Fetch submissions and join task titles manually
+        const { data: subs, error: subErr } = await db
+          .from('submissions')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (subErr) throw subErr;
+
+        // Fetch tasks to map titles
+        const { data: tasks } = await db.from('tasks').select('id, title');
+        const taskMap = {};
+        (tasks || []).forEach(t => { taskMap[t.id] = t.title; });
+
+        const pending = (subs || []).filter(s => (s.status || 'pending') === 'pending').length;
+        const badge = document.getElementById('pendingBadge');
+        document.getElementById('statPendingSubs').textContent = pending;
+        if (pending > 0) {
+          badge.textContent = pending;
+          badge.classList.remove('hidden');
+        } else {
+          badge.classList.add('hidden');
+        }
+
+        if (!subs || !subs.length) {
+          container.innerHTML = '<p class="text-center text-purple-300/60 py-8 text-sm">No submissions yet. Workers haven\'t submitted any tasks.</p>';
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="overflow-x-auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Worker</th>
+                  <th>Task</th>
+                  <th>Proof / Submission</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${subs.map(s => {
+                  const status = (s.status || 'pending').toLowerCase();
+                  const badgeClass = status === 'accepted' ? 'badge-accepted' : status === 'rejected' ? 'badge-rejected' : 'badge-pending';
+                  const taskTitle = taskMap[s.task_id] || s.task_title || 'Unknown Task';
+                  const proof = s.proof || s.text || s.link || '—';
+                  return `
+                    <tr>
+                      <td class="text-white font-medium">${escapeHtml(s.worker_name || s.worker_id || 'Anonymous')}</td>
+                      <td class="text-purple-100">${escapeHtml(taskTitle)}</td>
+                      <td><div class="proof-cell" title="${escapeHtml(proof)}">${escapeHtml(proof)}</div></td>
+                      <td><span class="badge ${badgeClass}">${status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
+                      <td>
+                        ${status === 'pending' ? `
+                          <div class="flex gap-2">
+                            <button onclick="updateSubmission('${s.id}', 'accepted')" class="btn-accept px-3 py-1 rounded-md text-xs">✓ Accept</button>
+                            <button onclick="updateSubmission('${s.id}', 'rejected')" class="btn-reject px-3 py-1 rounded-md text-xs">✕ Reject</button>
+                          </div>
+                        ` : `
+                          <span class="text-xs text-purple-300/40">No actions</span>
+                        `}
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      } catch (err) {
+        console.error('Load submissions error:', err);
+        container.innerHTML = `<p class="text-center text-red-400 py-8 text-sm">Failed to load submissions.<br><span class="text-purple-300/40 text-xs">${escapeHtml(err.message)}</span></p>`;
+      }
+    }
+
+    // ============ UPDATE SUBMISSION STATUS ============
+    async function updateSubmission(id, newStatus) {
+      const actionLabel = newStatus === 'accepted' ? 'accept' : 'reject';
+      document.getElementById('confirmMessage').textContent = `Are you sure you want to ${actionLabel} this submission?`;
+      document.getElementById('confirmModal').classList.remove('hidden');
+      document.getElementById('confirmYes').onclick = async () => {
+        closeModal('confirmModal');
+        try {
+          const { error } = await db
+            .from('submissions')
+            .update({ status: newStatus })
+            .eq('id', id);
+          if (error) throw error;
+          showAlert(`✅ Submission ${newStatus} successfully.`);
+          loadSubmissions();
+        } catch (err) {
+          console.error('Update submission error:', err);
+          showAlert(`❌ Failed to ${actionLabel} submission: ` + err.message);
+        }
+      };
+    }
+
+    // ============ INIT ============
     document.addEventListener('DOMContentLoaded', () => {
       loadTasks();
+      loadSubmissions(); // Loads pending count for the badge
     });
   </script>
 </body>

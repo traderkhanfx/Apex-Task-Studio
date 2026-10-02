@@ -469,13 +469,22 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         });
 
             // Handle Submit & Save
-        async function handleAuthSubmit(e) {
-    e.preventDefault();
-    const fullName = document.getElementById('authFullName').value;
-    const email = document.getElementById('authEmail').value;
-    const phone = document.getElementById('authPhone').value;
+     async function handleAuthSubmit(e) {
+    if (e) e.preventDefault(); // Stop form submission / refresh immediately
 
-    if (!fullName) return;
+    // Safely pull from either 'authFullName' or 'fullName' depending on HTML ID
+    const fullNameInput = document.getElementById('authFullName') || document.getElementById('fullName');
+    const emailInput = document.getElementById('authEmail') || document.getElementById('email');
+    const phoneInput = document.getElementById('authPhone') || document.getElementById('phone');
+
+    const fullName = fullNameInput ? fullNameInput.value : '';
+    const email = emailInput ? emailInput.value : '';
+    const phone = phoneInput ? phoneInput.value : '';
+
+    if (!fullName || !email) {
+        alert('Please fill in your name and email address.');
+        return;
+    }
 
     // Send user data directly to Supabase
     const { data, error } = await supabaseClient
@@ -483,7 +492,6 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         .insert([
             { full_name: fullName, email: email, phone: phone }
         ]);
-
     if (error) {
         console.error('Supabase Error:', error.message);
         alert('Failed to save profile to database: ' + error.message);

@@ -34,8 +34,8 @@
                 </div>
 
                 <!-- Profile Avatar / Header -->
-                <div id="userHeader" class="flex items-center gap-3 bg-slate-900/80 border border-slate-800 px-3 py-1.5 rounded-full cursor-pointer" onclick="openAuthModal()">
-                    <div id="headerAvatar" class="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold text-white">
+                <div id="userHeader" class="flex items-center gap-3 bg-slate-900/80 border border-slate-800 px-3 py-1.5 rounded-full cursor-pointer hover:border-slate-700 transition" onclick="openProfileModal()">
+                    <div id="headerAvatar" class="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold text-white overflow-hidden">
                         ?
                     </div>
                     <span id="headerName" class="text-xs font-medium text-slate-300">Guest User</span>
@@ -62,11 +62,11 @@
             </div>
         </div>
 
-        <!-- STATS & RANKINGS GRID -->
+        <!-- STATS GRID -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="bg-[#0b1329] border border-slate-800 p-5 rounded-xl flex items-center gap-4">
-                <div class="w-12 h-12 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl">
-                    <i class="fa-solid fa-[#00aa00]">M</i>
+                <div class="w-12 h-12 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl font-bold">
+                    KSh
                 </div>
                 <div>
                     <p class="text-xs text-slate-400">Total Earnings</p>
@@ -86,25 +86,38 @@
 
             <div class="bg-[#0b1329] border border-slate-800 p-5 rounded-xl flex items-center gap-4">
                 <div class="w-12 h-12 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center text-xl">
-                    <i class="fa-solid fa-trophy"></i>
+                    <i class="fa-solid fa-clock-rotate-left"></i>
                 </div>
                 <div>
-                    <p class="text-xs text-slate-400">Global Rank</p>
-                    <h3 id="statRank" class="text-xl font-bold text-white">Unranked</h3>
+                    <p class="text-xs text-slate-400">Tasks Under Review</p>
+                    <h3 id="statReview" class="text-xl font-bold text-white">0</h3>
                 </div>
             </div>
         </div>
 
-        <!-- AVAILABLE JOBS QUEUE -->
-        <section class="space-y-4">
-            <div class="flex items-center justify-between">
+        <!-- TASK WORKSPACE WITH TABS -->
+        <section class="space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
                 <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-briefcase text-indigo-400"></i> Available Task Queues
+                    <i class="fa-solid fa-briefcase text-indigo-400"></i> Task Dashboard
                 </h3>
-                <span class="text-xs text-slate-400">Updated Real-Time</span>
+
+                <!-- Category Filter Tabs -->
+                <div class="flex items-center gap-2 bg-slate-900/80 p-1 rounded-xl border border-slate-800 text-xs">
+                    <button id="tabAll" onclick="switchTab('all')" class="px-4 py-2 rounded-lg font-semibold bg-indigo-600 text-white transition">
+                        All Tasks
+                    </button>
+                    <button id="tabReview" onclick="switchTab('review')" class="px-4 py-2 rounded-lg font-semibold text-slate-400 hover:text-white transition">
+                        Under Review
+                    </button>
+                    <button id="tabHistory" onclick="switchTab('history')" class="px-4 py-2 rounded-lg font-semibold text-slate-400 hover:text-white transition">
+                        History
+                    </button>
+                </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- ALL TASKS VIEW -->
+            <div id="viewAllTasks" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- Task Card 1 -->
                 <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition space-y-4">
                     <div class="flex justify-between items-start">
@@ -115,7 +128,7 @@
                         <span class="text-sm font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg">KSh 450 / task</span>
                     </div>
                     <p class="text-xs text-slate-400">Review model output quality and mark factual errors or accuracy scores.</p>
-                    <button onclick="openWorkspace('AI Response Evaluation')" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition">
+                    <button onclick="handleStartTask('AI Response Evaluation')" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition">
                         Start Working
                     </button>
                 </div>
@@ -130,36 +143,33 @@
                         <span class="text-sm font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg">KSh 300 / task</span>
                     </div>
                     <p class="text-xs text-slate-400">Categorize customer query intentions and evaluate search result accuracy.</p>
-                    <button onclick="openWorkspace('Web Query Classification')" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition">
+                    <button onclick="handleStartTask('Web Query Classification')" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition">
                         Start Working
                     </button>
                 </div>
             </div>
-        </section>
 
-        <!-- TOP WORKER LEADERBOARD -->
-        <section class="bg-[#0b1329] border border-slate-800 rounded-xl p-5 space-y-4">
-            <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                <i class="fa-solid fa-ranking-star text-amber-400"></i> Top Weekly Workers
-            </h3>
-            <div class="divide-y divide-slate-800 text-xs">
-                <div class="py-2.5 flex justify-between items-center">
-                    <span class="text-slate-300 font-medium">1. Muchfx</span>
-                    <span class="text-emerald-400 font-bold">KSh 24,500</span>
+            <!-- UNDER REVIEW VIEW -->
+            <div id="viewReviewTasks" class="hidden bg-[#0b1329] border border-slate-800 rounded-xl p-8 text-center space-y-3">
+                <div class="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-full flex items-center justify-center mx-auto text-xl">
+                    <i class="fa-solid fa-hourglass-half"></i>
                 </div>
-                <div class="py-2.5 flex justify-between items-center">
-                    <span class="text-slate-300 font-medium">2. Ian Traders</span>
-                    <span class="text-emerald-400 font-bold">KSh 18,200</span>
+                <h4 class="font-bold text-white">No Submissions Currently Under Review</h4>
+                <p class="text-xs text-slate-400 max-w-sm mx-auto">When you submit tasks, they will appear here while undergoing quality verification.</p>
+            </div>
+
+            <!-- HISTORY VIEW -->
+            <div id="viewHistoryTasks" class="hidden bg-[#0b1329] border border-slate-800 rounded-xl p-8 text-center space-y-3">
+                <div class="w-12 h-12 bg-indigo-500/10 text-indigo-400 rounded-full flex items-center justify-center mx-auto text-xl">
+                    <i class="fa-solid fa-folder-open"></i>
                 </div>
-                <div class="py-2.5 flex justify-between items-center">
-                    <span class="text-slate-300 font-medium">3. Shie</span>
-                    <span class="text-emerald-400 font-bold">KSh 15,400</span>
-                </div>
+                <h4 class="font-bold text-white">No Completed Task History</h4>
+                <p class="text-xs text-slate-400 max-w-sm mx-auto">Your verified task log and completed payout records will display here.</p>
             </div>
         </section>
     </main>
 
-    <!-- AUTHENTICATION MODAL -->
+    <!-- INITIAL AUTHENTICATION MODAL -->
     <div id="authModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
         <div class="bg-[#0b1329] border border-slate-700/80 w-full max-w-md rounded-2xl p-6 space-y-6 shadow-2xl">
             <div class="text-center space-y-2">
@@ -195,6 +205,95 @@
         </div>
     </div>
 
+    <!-- PROFILE MANAGEMENT MODAL (DRAWER) -->
+    <div id="profileModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
+        <div class="bg-[#0b1329] border border-slate-700/80 w-full max-w-lg rounded-2xl p-6 space-y-6 shadow-2xl relative">
+            <button onclick="closeProfileModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="flex items-center gap-4 border-b border-slate-800 pb-4">
+                <div id="profileImagePreview" class="w-14 h-14 rounded-full bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-xl font-bold text-indigo-400 overflow-hidden">
+                    ?
+                </div>
+                <div>
+                    <h3 id="profileModalTitle" class="text-lg font-bold text-white">Worker Profile</h3>
+                    <p class="text-xs text-slate-400">Update your account & payout details</p>
+                </div>
+            </div>
+
+            <form onsubmit="handleProfileUpdate(event)" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Country</label>
+                        <input type="text" id="profCountry" placeholder="e.g. Kenya" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">M-Pesa Number</label>
+                        <input type="text" id="profPhone" placeholder="0712345678" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">P.O. Box Address</label>
+                    <input type="text" id="profPoBox" placeholder="e.g. P.O. Box 123-10204, Kiriaini" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Photo URL (Optional)</label>
+                    <input type="text" id="profPhotoUrl" placeholder="https://example.com/avatar.jpg" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500">
+                </div>
+
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeProfileModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold">
+                        Cancel
+                    </button>
+                    <button type="submit" id="saveProfBtn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TASK PAYWALL MODAL ($2 UNLOCK) -->
+    <div id="paywallModal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
+        <div class="bg-[#0b1329] border border-indigo-500/30 w-full max-w-md rounded-2xl p-6 space-y-6 shadow-2xl text-center relative">
+            <button onclick="closePaywallModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="w-14 h-14 bg-amber-500/10 text-amber-400 rounded-full flex items-center justify-center mx-auto text-2xl border border-amber-500/20">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+
+            <div class="space-y-2">
+                <h3 class="text-xl font-bold text-white">Free Task Limit Reached</h3>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    Your phone number has already used its <span class="text-amber-400 font-semibold">1 free task</span> trial.
+                </p>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    To access unlimited task queues and continue earning, activate your full worker status for <span class="text-emerald-400 font-bold">$2.00 (KSh 260)</span>.
+                </p>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-left space-y-2 text-xs">
+                <div class="flex justify-between text-slate-300">
+                    <span>Activation Fee:</span>
+                    <span class="font-bold text-white">$2.00 / KSh 260</span>
+                </div>
+                <div class="flex justify-between text-slate-300">
+                    <span>M-Pesa Express:</span>
+                    <span class="font-bold text-emerald-400">Instant Activation</span>
+                </div>
+            </div>
+
+            <button onclick="alert('Redirecting to M-Pesa payment gateway...')" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-bolt"></i> Unlock Premium Tasks ($2.00)
+            </button>
+        </div>
+    </div>
+
     <!-- FOOTER -->
     <footer class="border-t border-slate-800 bg-[#050914] py-6 px-4 text-center text-xs text-slate-500">
         <p>&copy; 2026 Apex Task Studio. All rights reserved.</p>
@@ -207,32 +306,69 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3ZHR2YXN5a2hvcnJ2bXdtbmhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUzNzQsImV4cCI6MjEwNjUzMTM3NH0.vt_I7uvUqsjv5e8RTgREMoXJiZqq_80a9fVOqVyW6Lk';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let selectedCurrency = 'KES';
+        let currentUser = null;
 
-        // Check local storage on initial load
+        // Load profile on initial startup
         window.addEventListener('DOMContentLoaded', () => {
             const savedUser = localStorage.getItem('apex_user');
             if (savedUser) {
-                const parsed = JSON.parse(savedUser);
-                if (parsed.fullName) {
-                    updateUserHeader(parsed.fullName);
+                currentUser = JSON.parse(savedUser);
+                if (currentUser.fullName) {
+                    updateUserHeader(currentUser.fullName, currentUser.photoUrl);
+                    populateProfileFields(currentUser);
                     document.getElementById('authModal').classList.add('hidden');
                 }
             }
         });
 
-        function openAuthModal() {
-            document.getElementById('authModal').classList.remove('hidden');
-        }
-
-        function updateUserHeader(name) {
+        function updateUserHeader(name, photoUrl) {
             const headerName = document.getElementById('headerName');
             const headerAvatar = document.getElementById('headerAvatar');
             if (headerName) headerName.textContent = name;
-            if (headerAvatar) headerAvatar.textContent = name.charAt(0).toUpperCase();
+            
+            if (headerAvatar) {
+                if (photoUrl) {
+                    headerAvatar.innerHTML = `<img src="${photoUrl}" class="w-full h-full object-cover">`;
+                } else {
+                    headerAvatar.textContent = name.charAt(0).toUpperCase();
+                }
+            }
         }
 
-        // HANDLER FOR FORM SUBMISSION (PREVENTS DEFAULT RELOAD)
+        function populateProfileFields(user) {
+            if (!user) return;
+            document.getElementById('profCountry').value = user.country || '';
+            document.getElementById('profPhone').value = user.phone || '';
+            document.getElementById('profPoBox').value = user.poBox || '';
+            document.getElementById('profPhotoUrl').value = user.photoUrl || '';
+            document.getElementById('profileModalTitle').textContent = user.fullName || 'Worker Profile';
+            
+            const preview = document.getElementById('profileImagePreview');
+            if (user.photoUrl) {
+                preview.innerHTML = `<img src="${user.photoUrl}" class="w-full h-full object-cover">`;
+            } else if (user.fullName) {
+                preview.textContent = user.fullName.charAt(0).toUpperCase();
+            }
+        }
+
+        function openProfileModal() {
+            if (!currentUser) {
+                document.getElementById('authModal').classList.remove('hidden');
+                return;
+            }
+            populateProfileFields(currentUser);
+            document.getElementById('profileModal').classList.remove('hidden');
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profileModal').classList.add('hidden');
+        }
+
+        function closePaywallModal() {
+            document.getElementById('paywallModal').classList.add('hidden');
+        }
+
+        // INITIAL AUTH SUBMISSION
         async function handleAuthSubmit(e) {
             e.preventDefault();
 
@@ -245,21 +381,17 @@
             const phone = document.getElementById('authPhone').value.trim();
 
             try {
-                // Direct async write to Supabase table
                 const { data, error } = await supabaseClient
                     .from('users')
                     .insert([{ full_name: fullName, email: email, phone: phone }]);
 
                 if (error) {
                     alert('Supabase DB Error: ' + error.message);
-                    submitBtn.textContent = "Start Earning Now →";
-                    submitBtn.disabled = false;
                     return;
                 }
 
-                // Update local storage for smooth client reactivity
-                const userData = { fullName, email, phone };
-                localStorage.setItem('apex_user', JSON.stringify(userData));
+                currentUser = { fullName, email, phone, freeTaskUsed: false };
+                localStorage.setItem('apex_user', JSON.stringify(currentUser));
 
                 updateUserHeader(fullName);
                 document.getElementById('authModal').classList.add('hidden');
@@ -272,18 +404,96 @@
             }
         }
 
+        // UPDATE DETAILED PROFILE (Country, P.O. Box, Photo, etc.)
+        async function handleProfileUpdate(e) {
+            e.preventDefault();
+
+            const saveBtn = document.getElementById('saveProfBtn');
+            saveBtn.textContent = "Saving...";
+
+            const country = document.getElementById('profCountry').value.trim();
+            const phone = document.getElementById('profPhone').value.trim();
+            const poBox = document.getElementById('profPoBox').value.trim();
+            const photoUrl = document.getElementById('profPhotoUrl').value.trim();
+
+            if (!currentUser) currentUser = {};
+
+            currentUser.country = country;
+            currentUser.phone = phone;
+            currentUser.poBox = poBox;
+            currentUser.photoUrl = photoUrl;
+
+            // Sync with localStorage
+            localStorage.setItem('apex_user', JSON.stringify(currentUser));
+
+            // Update UI
+            updateUserHeader(currentUser.fullName, photoUrl);
+            closeProfileModal();
+            alert('Profile updated successfully!');
+            saveBtn.textContent = "Save Changes";
+        }
+
+        // 1-FREE-TASK ENFORCEMENT & START TASK HANDLER
+        function handleStartTask(taskTitle) {
+            if (!currentUser) {
+                document.getElementById('authModal').classList.remove('hidden');
+                return;
+            }
+
+            // Check if this phone number/user already consumed their 1 free task
+            const usedTaskPhone = localStorage.getItem('apex_free_task_used_' + currentUser.phone);
+
+            if (usedTaskPhone || currentUser.freeTaskUsed) {
+                // Show $2 paywall modal
+                document.getElementById('paywallModal').classList.remove('hidden');
+            } else {
+                // Allow the 1 free task
+                alert('Opening FREE trial workspace for: ' + taskTitle + '\nNote: This is your 1 free trial task!');
+                
+                // Flag this phone number as having used their free task
+                currentUser.freeTaskUsed = true;
+                localStorage.setItem('apex_user', JSON.stringify(currentUser));
+                localStorage.setItem('apex_free_task_used_' + currentUser.phone, 'true');
+            }
+        }
+
+        // TAB SWITCHING FUNCTIONALITY
+        function switchTab(tab) {
+            const viewAll = document.getElementById('viewAllTasks');
+            const viewReview = document.getElementById('viewReviewTasks');
+            const viewHistory = document.getElementById('viewHistoryTasks');
+
+            const tabAll = document.getElementById('tabAll');
+            const tabReview = document.getElementById('tabReview');
+            const tabHistory = document.getElementById('tabHistory');
+
+            viewAll.classList.add('hidden');
+            viewReview.classList.add('hidden');
+            viewHistory.classList.add('hidden');
+
+            [tabAll, tabReview, tabHistory].forEach(t => {
+                t.className = "px-4 py-2 rounded-lg font-semibold text-slate-400 hover:text-white transition";
+            });
+
+            if (tab === 'all') {
+                viewAll.classList.remove('hidden');
+                tabAll.className = "px-4 py-2 rounded-lg font-semibold bg-indigo-600 text-white transition";
+            } else if (tab === 'review') {
+                viewReview.classList.remove('hidden');
+                tabReview.className = "px-4 py-2 rounded-lg font-semibold bg-indigo-600 text-white transition";
+            } else if (tab === 'history') {
+                viewHistory.classList.remove('hidden');
+                tabHistory.className = "px-4 py-2 rounded-lg font-semibold bg-indigo-600 text-white transition";
+            }
+        }
+
         function changeCurrency(val) {
-            selectedCurrency = val;
             const statEarnings = document.getElementById('statEarnings');
             if (val === 'USD') {
                 statEarnings.textContent = "$ 0.00";
             } else {
                 statEarnings.textContent = "KSh 0.00";
             }
-        }
-
-        function openWorkspace(taskTitle) {
-            alert('Opening workspace for: ' + taskTitle);
         }
     </script>
 </body>

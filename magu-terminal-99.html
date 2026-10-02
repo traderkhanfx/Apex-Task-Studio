@@ -1,260 +1,314 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apex Task Studio | Agency Admin Terminal</title>
+    <title>Apex Task Studio - Admin Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        slate: { 950: '#0a0f1d', 900: '#0f172a', 800: '#1e293b', 700: '#334155' },
-                        emerald: { 400: '#34d399', 500: '#10b981', 600: '#059669' }
-                    }
-                }
-            }
-        }
-   </script>
-   <script>
-   // Set your secret PIN or passcode here
-    const ADMIN_PIN = "7788"; 
-
-    // Check if session is already unlocked
-    if (sessionStorage.getItem("admin_authenticated") !== "true") {
-        let userPin = prompt("Apex Admin Terminal - Enter Access PIN:");
-        
-        if (userPin === ADMIN_PIN) {
-            sessionStorage.setItem("admin_authenticated", "true");
-        } else {
-            alert("Unauthorized Access. Redirecting to home...");
-            window.location.href = "index.html"; // Send unauthorized visitors back to worker portal
-        }
-    }
-</script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased">
+<body class="bg-[#050914] text-slate-100 min-h-screen font-sans flex flex-col justify-between">
 
-    <!-- Top Navigation Bar -->
-    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center font-bold text-slate-950 text-xl shadow-lg shadow-emerald-500/20">
-                        A
-                    </div>
-                    <div>
-                        <span class="font-extrabold text-lg tracking-wider text-slate-100">APEX TASK STUDIO</span>
-                        <span class="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20">Owner / QA Admin</span>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <button onclick="openModal('newTaskModal')" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 py-2 rounded-lg text-sm transition-all flex items-center shadow-lg shadow-emerald-500/20">
-                        <i class="fa-solid fa-plus mr-2"></i> Post Client Task Batch
-                    </button>
-                    <div class="h-6 w-px bg-slate-800"></div>
-                    <div class="flex items-center space-x-3">
-                        <div class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 font-bold text-sm">
-                            CM
-                        </div>
-                        <div class="text-left hidden md:block">
-                            <p class="text-xs font-semibold text-slate-200">Collins Magu</p>
-                            <p class="text-[10px] text-emerald-400">Agency Director</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-
-        <!-- Business Performance Metrics -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-xs uppercase tracking-wider font-semibold text-slate-400">Active B2B Contracts</p>
-                        <h3 class="text-2xl font-bold mt-1 text-slate-100">$2,450 <span class="text-xs font-normal text-slate-400">USD</span></h3>
-                    </div>
-                    <div class="p-2 bg-emerald-500/10 rounded-xl text-emerald-400">
-                        <i class="fa-solid fa-briefcase text-lg"></i>
-                    </div>
-                </div>
-                <p class="text-xs text-emerald-400 mt-3 flex items-center"><i class="fa-solid fa-arrow-trend-up mr-1"></i> 3 Active foreign client batches</p>
+    <!-- ADMIN PIN PASSCODE MODAL GUARD -->
+    <div id="pinGuardModal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4 z-50">
+        <div class="bg-[#0b1329] border border-amber-500/30 w-full max-w-sm rounded-2xl p-6 space-y-6 shadow-2xl text-center">
+            <div class="w-14 h-14 bg-amber-500/10 text-amber-400 rounded-full flex items-center justify-center mx-auto text-2xl border border-amber-500/20">
+                <i class="fa-solid fa-lock"></i>
             </div>
 
-            <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-xs uppercase tracking-wider font-semibold text-slate-400">Pending QA Review</p>
-                        <h3 class="text-2xl font-bold mt-1 text-amber-400" id="pendingCount">5 Tasks</h3>
-                    </div>
-                    <div class="p-2 bg-amber-500/10 rounded-xl text-amber-400">
-                        <i class="fa-solid fa-list-check text-lg"></i>
-                    </div>
-                </div>
-                <p class="text-xs text-slate-400 mt-3">Awaiting your approval/rejection</p>
+            <div class="space-y-1">
+                <h3 class="text-xl font-bold text-white">Admin Authentication</h3>
+                <p class="text-xs text-slate-400">Enter your secure terminal access PIN</p>
             </div>
 
-            <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-xs uppercase tracking-wider font-semibold text-slate-400">Worker Payout Pool</p>
-                        <h3 class="text-2xl font-bold mt-1 text-slate-100">KES 14,850</h3>
-                    </div>
-                    <div class="p-2 bg-indigo-500/10 rounded-xl text-indigo-400">
-                        <i class="fa-solid fa-mobile-retro text-lg"></i>
-                    </div>
-                </div>
-                <p class="text-xs text-indigo-400 mt-3"><i class="fa-solid fa-circle-check mr-1"></i> Safaricom B2C API Connected</p>
-            </div>
-
-            <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-xs uppercase tracking-wider font-semibold text-slate-400">Agency Profit Spread</p>
-                        <h3 class="text-2xl font-bold mt-1 text-emerald-400">54.2%</h3>
-                    </div>
-                    <div class="p-2 bg-emerald-500/10 rounded-xl text-emerald-400">
-                        <i class="fa-solid fa-chart-pie text-lg"></i>
-                    </div>
-                </div>
-                <p class="text-xs text-slate-400 mt-3">Client pay vs Worker payouts</p>
-            </div>
-        </div>
-
-        <!-- QA Review Queue Section -->
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
-            <div class="p-5 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <form onsubmit="handlePinSubmit(event)" class="space-y-4">
                 <div>
-                    <h2 class="text-lg font-bold text-slate-100">Worker Submissions Queue (QA Check)</h2>
-                    <p class="text-xs text-slate-400">Inspect worker submissions before approving their M-Pesa earnings.</p>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-slate-300">Filter: All Categories</span>
-                </div>
-            </div>
-
-            <div class="divide-y divide-slate-800" id="submissionQueue">
-                
-                <!-- Submission Item 1 -->
-                <div class="p-5 hover:bg-slate-800/40 transition-colors flex flex-col lg:flex-row lg:items-center justify-between gap-4" id="item-1">
-                    <div class="space-y-2 lg:max-w-xl">
-                        <div class="flex items-center space-x-2">
-                            <span class="text-xs font-bold px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">Audio Transcription</span>
-                            <span class="text-xs text-slate-400">• Worker ID: #W-104 (Brian K.)</span>
-                            <span class="text-xs text-slate-400">• Payout: KES 180</span>
-                        </div>
-                        <h4 class="font-bold text-slate-200">Kenyan English Customer Support Call</h4>
-                        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs font-mono text-slate-300">
-                            "Agent: Hello, welcome to Safaricom support. How can I assist you today?<br>
-                            Caller: Yes, I am inquiring about the new fiber internet package in Murang'a."
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-3 shrink-0">
-                        <button onclick="approveSubmission('item-1', 180)" class="bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 border border-emerald-500/30 px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center">
-                            <i class="fa-solid fa-check mr-2"></i> Approve & Credit KES 180
-                        </button>
-                        <button onclick="rejectSubmission('item-1')" class="bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/30 px-3 py-2 rounded-lg text-xs font-bold transition-all">
-                            <i class="fa-solid fa-xmark"></i> Reject
-                        </button>
-                    </div>
+                    <input type="password" id="adminPinInput" maxlength="10" required placeholder="Enter Secret PIN" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-center text-lg tracking-widest text-white outline-none focus:border-amber-500 transition">
+                    <p id="pinError" class="text-xs text-red-400 hidden mt-2">Incorrect PIN passcode. Try again.</p>
                 </div>
 
-                <!-- Submission Item 2 -->
-                <div class="p-5 hover:bg-slate-800/40 transition-colors flex flex-col lg:flex-row lg:items-center justify-between gap-4" id="item-2">
-                    <div class="space-y-2 lg:max-w-xl">
-                        <div class="flex items-center space-x-2">
-                            <span class="text-xs font-bold px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">RLHF AI Evaluation</span>
-                            <span class="text-xs text-slate-400">• Worker ID: #W-109 (Shie M.)</span>
-                            <span class="text-xs text-slate-400">• Payout: KES 120</span>
-                        </div>
-                        <h4 class="font-bold text-slate-200">Rate AI Chatbot Response Quality</h4>
-                        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs font-mono text-slate-300">
-                            "Selection: Response B selected.<br>Reasoning: Response B accurately provided the exact tax code calculation without inventing fictitious rates."
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-3 shrink-0">
-                        <button onclick="approveSubmission('item-2', 120)" class="bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 border border-emerald-500/30 px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center">
-                            <i class="fa-solid fa-check mr-2"></i> Approve & Credit KES 120
-                        </button>
-                        <button onclick="rejectSubmission('item-2')" class="bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/30 px-3 py-2 rounded-lg text-xs font-bold transition-all">
-                            <i class="fa-solid fa-xmark"></i> Reject
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-    </main>
-
-    <!-- Modal: Post New Client Batch -->
-    <div id="newTaskModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 space-y-5 shadow-2xl">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 class="font-bold text-lg text-slate-100">Post New Client Task Batch</h3>
-                <button onclick="closeModal('newTaskModal')" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            
-            <form onsubmit="handlePostTask(event)" class="space-y-4">
-                <div>
-                    <label class="text-xs font-semibold text-slate-300 block mb-1">Task Title</label>
-                    <input type="text" required placeholder="e.g. Extract Tech Lead Contact Information" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-100 focus:border-emerald-500 focus:outline-none">
-                </div>
-                
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-xs font-semibold text-slate-300 block mb-1">Category</label>
-                        <select class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-100 focus:border-emerald-500 focus:outline-none">
-                            <option>Data B2B Scraping</option>
-                            <option>Audio Transcription</option>
-                            <option>RLHF AI Evaluation</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-xs font-semibold text-slate-300 block mb-1">Worker Payout (KES)</label>
-                        <input type="number" required placeholder="150" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-100 focus:border-emerald-500 focus:outline-none">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="text-xs font-semibold text-slate-300 block mb-1">Instructions for Workers</label>
-                    <textarea rows="3" required placeholder="Provide step-by-step instructions for completing this work..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-100 focus:border-emerald-500 focus:outline-none"></textarea>
-                </div>
-
-                <div class="flex justify-end space-x-3 pt-2">
-                    <button type="button" onclick="closeModal('newTaskModal')" class="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-slate-200">Cancel</button>
-                    <button type="submit" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-5 py-2 rounded-xl text-xs transition-all">Publish Batch to Workers</button>
-                </div>
+                <button type="submit" class="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition">
+                    Unlock Admin Terminal &rarr;
+                </button>
             </form>
         </div>
     </div>
 
-    <!-- JavaScript Logic -->
+    <!-- MAIN ADMIN INTERFACE (HIDDEN UNTIL UNLOCKED) -->
+    <div id="adminMainContent" class="hidden min-h-screen flex flex-col justify-between">
+        
+        <!-- HEADER -->
+        <header class="border-b border-slate-800 bg-[#0b1329]/80 backdrop-blur-md sticky top-0 z-40 px-4 py-3">
+            <div class="max-w-6xl mx-auto flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-600/20 text-amber-400 flex items-center justify-center font-bold text-xl border border-amber-500/30">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-white leading-tight">Magu Admin Terminal</h1>
+                        <p class="text-xs text-slate-400">Apex Task Studio Management Portal</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <button onclick="openPostModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg text-xs transition flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Post Client Task Batch
+                    </button>
+                    <button onclick="lockTerminal()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold">
+                        <i class="fa-solid fa-key"></i> Lock
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN DASHBOARD CONTENT -->
+        <main class="max-w-6xl mx-auto w-full p-4 md:p-6 flex-grow space-y-8">
+
+            <!-- ADMIN METRICS -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-[#0b1329] border border-slate-800 p-5 rounded-xl space-y-1">
+                    <p class="text-xs text-slate-400">Total Live Tasks Published</p>
+                    <h3 id="statTotalTasks" class="text-2xl font-bold text-white">...</h3>
+                </div>
+                <div class="bg-[#0b1329] border border-slate-800 p-5 rounded-xl space-y-1">
+                    <p class="text-xs text-slate-400">Database Connection</p>
+                    <h3 class="text-2xl font-bold text-emerald-400 flex items-center gap-2">
+                        <i class="fa-solid fa-signal text-sm"></i> Active (Supabase)
+                    </h3>
+                </div>
+                <div class="bg-[#0b1329] border border-slate-800 p-5 rounded-xl space-y-1">
+                    <p class="text-xs text-slate-400">Security Guard</p>
+                    <h3 class="text-2xl font-bold text-amber-400">Protected</h3>
+                </div>
+            </div>
+
+            <!-- PUBLISHED TASKS LIST -->
+            <section class="space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-indigo-400"></i> Active Published Tasks
+                    </h3>
+                    <button onclick="fetchAdminTasks()" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1">
+                        <i class="fa-solid fa-rotate"></i> Refresh List
+                    </button>
+                </div>
+
+                <div id="adminTasksList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="col-span-full text-center py-8 text-slate-400 text-xs">
+                        <i class="fa-solid fa-spinner fa-spin text-lg text-indigo-400 mb-2"></i>
+                        <p>Loading database tasks...</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- POST NEW CLIENT TASK BATCH MODAL -->
+        <div id="postTaskModal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
+            <div class="bg-[#0b1329] border border-slate-700/80 w-full max-w-lg rounded-2xl p-6 space-y-6 shadow-2xl relative">
+                <button onclick="closePostModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+
+                <div class="border-b border-slate-800 pb-3">
+                    <h3 class="text-lg font-bold text-white">Post New Client Task Batch</h3>
+                    <p class="text-xs text-slate-400">Publish new worker jobs directly to the live dashboard</p>
+                </div>
+
+                <form onsubmit="handlePostTaskSubmit(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Task Title</label>
+                        <input type="text" id="adminTaskTitle" required placeholder="e.g. Audio Annotation" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Category</label>
+                            <select id="adminTaskCategory" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500 cursor-pointer">
+                                <option value="Audio Transcription">Audio Transcription</option>
+                                <option value="Data Annotation">Data Annotation</option>
+                                <option value="Search Relevance">Search Relevance</option>
+                                <option value="Computer Vision">Computer Vision</option>
+                                <option value="Text Quality Rating">Text Quality Rating</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Worker Payout (KES)</label>
+                            <input type="number" id="adminTaskPayout" required placeholder="e.g. 130" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Instructions for Workers</label>
+                        <textarea id="adminTaskInstructions" rows="3" required placeholder="Transcribe the audio snippets accurately..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500"></textarea>
+                    </div>
+
+                    <div class="flex justify-end gap-3 pt-2">
+                        <button type="button" onclick="closePostModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold">
+                            Cancel
+                        </button>
+                        <button type="submit" id="publishBtn" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold flex items-center gap-2">
+                            Publish Batch to Workers
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="border-t border-slate-800 bg-[#050914] py-6 px-4 text-center text-xs text-slate-500">
+            <p>&copy; 2026 Apex Task Studio Admin Terminal.</p>
+        </footer>
+    </div>
+
+    <!-- SCRIPT -->
     <script>
-        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        const SECRET_PIN = "9999"; // Change this to your preferred PIN code
 
-        function approveSubmission(itemId, amount) {
-            document.getElementById(itemId).style.opacity = '0.4';
-            document.getElementById(itemId).style.pointerEvents = 'none';
-            alert(`Approved! Worker credited KES ${amount}.`);
-        }
+        const SUPABASE_URL = 'https://dwdtvasykhorrvmwmnhb.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3ZHR2YXN5a2hvcnJ2bXdtbmhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUzNzQsImV4cCI6MjEwNjUzMTM3NH0.vt_I7uvUqsjv5e8RTgREMoXJiZqq_80a9fVOqVyW6Lk';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        function rejectSubmission(itemId) {
-            document.getElementById(itemId).remove();
-            alert('Submission rejected and sent back to worker.');
-        }
-
-        function handlePostTask(e) {
+        function handlePinSubmit(e) {
             e.preventDefault();
-            alert('New task batch successfully published to Worker Dashboard!');
-            closeModal('newTaskModal');
+            const inputPin = document.getElementById('adminPinInput').value;
+            const errEl = document.getElementById('pinError');
+
+            if (inputPin === SECRET_PIN) {
+                document.getElementById('pinGuardModal').classList.add('hidden');
+                document.getElementById('adminMainContent').classList.remove('hidden');
+                fetchAdminTasks();
+            } else {
+                errEl.classList.remove('hidden');
+                document.getElementById('adminPinInput').value = '';
+            }
+        }
+
+        function lockTerminal() {
+            document.getElementById('adminMainContent').classList.add('hidden');
+            document.getElementById('pinGuardModal').classList.remove('hidden');
+            document.getElementById('adminPinInput').value = '';
+        }
+
+        function openPostModal() {
+            document.getElementById('postTaskModal').classList.remove('hidden');
+        }
+
+        function closePostModal() {
+            document.getElementById('postTaskModal').classList.add('hidden');
+        }
+
+        // FETCH ALL TASKS FOR ADMIN VIEW
+        async function fetchAdminTasks() {
+            const listEl = document.getElementById('adminTasksList');
+            const totalEl = document.getElementById('statTotalTasks');
+
+            try {
+                const { data: tasks, error } = await supabaseClient
+                    .from('tasks')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                totalEl.textContent = tasks ? tasks.length : '0';
+
+                if (!tasks || tasks.length === 0) {
+                    listEl.innerHTML = `
+                        <div class="col-span-full text-center py-8 text-slate-500 text-xs">
+                            No tasks posted yet. Click "Post Client Task Batch" above to add your first job.
+                        </div>
+                    `;
+                    return;
+                }
+
+                listEl.innerHTML = tasks.map(t => `
+                    <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-5 space-y-3">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-[10px] uppercase font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">${t.category}</span>
+                                <h4 class="font-bold text-white mt-1">${t.title}</h4>
+                            </div>
+                            <span class="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg">KSh ${t.payout_kes}</span>
+                        </div>
+                        <p class="text-xs text-slate-400">${t.description}</p>
+                        <div class="flex justify-between items-center text-[10px] text-slate-500 pt-2 border-t border-slate-800">
+                            <span>ID: #${t.id}</span>
+                            <button onclick="deleteTask(${t.id})" class="text-red-400 hover:text-red-300 font-semibold">
+                                <i class="fa-solid fa-trash-can"></i> Delete Task
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (err) {
+                listEl.innerHTML = `<div class="col-span-full text-red-400 text-xs text-center py-4">Error loading tasks: ${err.message}</div>`;
+            }
+        }
+
+        // HANDLE POSTING NEW TASK BATCH TO SUPABASE
+        async function handlePostTaskSubmit(e) {
+            e.preventDefault();
+
+            const publishBtn = document.getElementById('publishBtn');
+            publishBtn.textContent = 'Publishing...';
+            publishBtn.disabled = true;
+
+            const title = document.getElementById('adminTaskTitle').value.trim();
+            const category = document.getElementById('adminTaskCategory').value;
+            const payout_kes = parseFloat(document.getElementById('adminTaskPayout').value);
+            const description = document.getElementById('adminTaskInstructions').value.trim();
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('tasks')
+                    .insert([{ title, category, payout_kes, description }]);
+
+                if (error) {
+                    alert('Database Error: ' + error.message);
+                    return;
+                }
+
+                alert('New task batch successfully published to Worker Dashboard!');
+                closePostModal();
+
+                // Reset form inputs
+                document.getElementById('adminTaskTitle').value = '';
+                document.getElementById('adminTaskPayout').value = '';
+                document.getElementById('adminTaskInstructions').value = '';
+
+                // Refresh admin list
+                fetchAdminTasks();
+
+            } catch (err) {
+                alert('Failed to publish task: ' + err.message);
+            } finally {
+                publishBtn.textContent = 'Publish Batch to Workers';
+                publishBtn.disabled = false;
+            }
+        }
+
+        // DELETE TASK OPTION
+        async function deleteTask(taskId) {
+            if (!confirm('Are you sure you want to delete this task from the worker dashboard?')) return;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('tasks')
+                    .delete()
+                    .eq('id', taskId);
+
+                if (error) {
+                    alert('Error deleting task: ' + error.message);
+                    return;
+                }
+
+                alert('Task removed successfully!');
+                fetchAdminTasks();
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
         }
     </script>
 </body>

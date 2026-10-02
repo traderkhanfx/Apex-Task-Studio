@@ -19,13 +19,6 @@
       border: 1px solid rgba(139, 92, 246, 0.15);
       box-shadow: 0 8px 32px rgba(88, 28, 135, 0.15);
     }
-    .card-white {
-      background: #ffffff;
-      color: #1e1b4b;
-      border-radius: 1rem;
-      border: 1px solid rgba(139, 92, 246, 0.1);
-      box-shadow: 0 4px 24px rgba(88, 28, 135, 0.08);
-    }
     .btn-primary {
       background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
       color: #ffffff;
@@ -199,7 +192,7 @@
       <a href="index.html" class="btn-ghost px-4 py-2 rounded-lg text-xs font-medium">← Worker Portal</a>
     </header>
 
-    <!-- STATS ROW (INCLUDING NET PROFIT) -->
+    <!-- STATS ROW -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
       <div class="stat-gradient-1 rounded-xl p-4 shadow-lg">
         <p class="text-xs text-white/70 uppercase tracking-wider font-medium">Total Tasks</p>
@@ -239,7 +232,7 @@
       </div>
     </div>
 
-    <!-- ============ TAB: POST NEW JOB (WITH TEMPLATES) ============ -->
+    <!-- ============ TAB: POST NEW JOB ============ -->
     <div id="panelPost" class="glass rounded-xl p-5 hidden">
       <div class="flex flex-wrap justify-between items-center mb-4 gap-2">
         <h2 class="text-lg font-bold text-white">📝 Post New Job</h2>
@@ -282,7 +275,7 @@
         </div>
         <div>
           <label class="text-xs label-light block mb-1.5 font-medium">Description & Instructions</label>
-          <textarea id="jobDescription" rows="3" placeholder="Provide full transcription guidelines or instructions (e.g. Listen to the audio and type exact words...)" required class="input-field"></textarea>
+          <textarea id="jobDescription" rows="3" placeholder="Provide full transcription guidelines..." required class="input-field"></textarea>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
           <div class="flex items-center gap-3 py-2">
@@ -290,7 +283,7 @@
             <label for="jobLocked" class="text-sm text-purple-100 font-medium">Locked / Premium Task</label>
           </div>
           <div id="lockFeeContainer" class="hidden">
-            <label class="text-xs label-light block mb-1.5 font-medium">Unlock Fee (USD) <span class="text-emerald-400 text-[10px]">(Adds to Net Profit)</span></label>
+            <label class="text-xs label-light block mb-1.5 font-medium">Unlock Fee (USD)</label>
             <input type="number" id="jobFee" placeholder="1.00" step="0.01" min="0" class="input-field" />
           </div>
         </div>
@@ -316,7 +309,6 @@
   </div>
 
   <script>
-    // ============ SUPABASE CONFIG ============
     const SUPABASE_URL = 'https://dwdtvasykhorrvmwmnhb.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3ZHR2YXN5a2hvcnJ2bXdtbmhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUzNzQsImV4cCI6MjEwNjUzMTM3NH0.vt_I7uvUqsjv5e8RTgREMoXJiZqq_80a9fVOqVyW6Lk';
     const { createClient } = supabase;
@@ -325,35 +317,34 @@
     let TASK_CACHE = [];
     let SUB_CACHE = [];
 
-    // ============ TEMPLATES ============
     const JOB_TEMPLATES = {
       transcription: {
         title: "Audio Transcription Task #01",
         category: "Transcription",
         payout: 0.75,
         time: 10,
-        description: "Listen to the provided audio clip and type out the complete dialogue verbatim. Maintain proper punctuation and capitalization."
+        description: "Listen to the provided audio clip and type out the complete dialogue verbatim."
       },
       safaricom: {
         title: "Safaricom M-Pesa Transaction Verification",
         category: "Verification",
         payout: 0.50,
         time: 5,
-        description: "Verify the Safaricom M-Pesa transaction code submitted in the proof field. Check against confirmation message format (e.g. QHX7... Confirmed) and approve if valid."
+        description: "Verify the Safaricom M-Pesa transaction code submitted in the proof field."
       },
       ai_eval: {
         title: "AI Chatbot Response Evaluation",
         category: "AI Evaluation",
         payout: 1.00,
         time: 12,
-        description: "Review the provided AI prompt and two model answers. Type your detailed evaluation comparing helpfulness, accuracy, and tone."
+        description: "Review the provided AI prompt and model answers. Type your detailed evaluation."
       },
       social: {
         title: "Social Media Engagement & Follow",
         category: "Microtask",
         payout: 0.30,
         time: 3,
-        description: "Follow our official channel, like the pinned post, and paste your username or profile link as proof."
+        description: "Follow our official channel, like the pinned post, and paste your username as proof."
       }
     };
 
@@ -368,7 +359,6 @@
       document.getElementById('jobDescription').value = t.description;
     }
 
-    // ============ HELPERS ============
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
     function showAlert(msg) {
@@ -391,7 +381,6 @@
       });
     });
 
-    // ============ TAB SWITCHING ============
     function setAdminTab(tab) {
       ['tasks', 'post', 'submissions'].forEach(t => {
         document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)).classList.remove('active');
@@ -403,19 +392,13 @@
       if (tab === 'submissions') loadSubmissions();
     }
 
-    // ============ LOAD STATS & NET PROFIT ============
-    async function calculateNetProfit(tasks, submissions) {
-      // Net Profit calculation:
-      // Income = Sum of lock_fees from unlocked/locked tasks where workers paid unlock fees (or estimate based on locked tasks count)
-      // Expenses = Sum of payouts for 'accepted' submissions
+    function calculateNetProfit(tasks, submissions) {
       let totalUnlockFeesCollected = 0;
       tasks.forEach(t => {
         if (t.is_locked && t.lock_fee) {
-          // If tasks have lock fees, estimate based on locked tasks or track if transactions exist
           totalUnlockFeesCollected += parseFloat(t.lock_fee || 0);
         }
       });
-
       let totalPayoutsGiven = 0;
       (submissions || []).forEach(s => {
         if ((s.status || '').toLowerCase() === 'accepted') {
@@ -425,13 +408,10 @@
           }
         }
       });
-
-      // Net profit = revenue from lock fees minus payouts distributed to workers
       const netProfit = totalUnlockFeesCollected - totalPayoutsGiven;
-      document.getElementById('statNetProfit').textContent = `$${netProfit.toFixed(2)}`;
+      document.getElementById('statNetProfit').textContent = '$' + netProfit.toFixed(2);
     }
 
-    // ============ LOAD TASKS ============
     async function loadTasks() {
       const container = document.getElementById('adminTaskList');
       container.innerHTML = '<div class="text-center py-12"><div class="loading-spinner"></div><p class="text-sm text-purple-300/60 mt-3">Loading tasks...</p></div>';
@@ -443,7 +423,6 @@
         document.getElementById('statTotalTasks').textContent = TASK_CACHE.length;
         document.getElementById('statLockedTasks').textContent = TASK_CACHE.filter(t => t.is_locked).length;
 
-        // Also refresh submissions to update net profit
         const { data: subs } = await db.from('submissions').select('*');
         SUB_CACHE = subs || [];
         calculateNetProfit(TASK_CACHE, SUB_CACHE);
@@ -452,40 +431,32 @@
           container.innerHTML = '<p class="text-center text-purple-300/60 py-8 text-sm">No tasks posted yet. Use the "Post New Job" tab or templates above.</p>';
           return;
         }
-        container.innerHTML = `
-          <div class="overflow-x-auto">
-            <table>
-              <thead>
-                <tr>
-                  <th>Title</th>
-                  <th>Category</th>
-                  <th>Payout</th>
-                  <th>Time</th>
-                  <th>Access</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${TASK_CACHE.map(t => `
-                  <tr>
-                    <td class="text-white font-medium">${escapeHtml(t.title) || '—'}</td>
-                    <td><span class="badge badge-purple">${escapeHtml(t.category) \vert{}\vert{} '—'}</span></td>                     <td class="text-emerald-400 font-bold">$${parseFloat(t.payout || 0).toFixed(2)}</td>
-                    <td class="text-purple-200/70">${t.time || '—'} min</td>
-                    <td>${t.is_locked ? `<span class="badge badge-locked">🔒 $${parseFloat(t.lock_fee || 0).toFixed(2)}</span>` : '<span class="text-purple-300/40 text-xs">Free</span>'}</td>
-                    <td><button onclick="deleteTask('${t.id}')" class="btn-reject px-3 py-1 rounded-md text-xs">Delete</button></td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          </div>
-        `;
+
+        let rowsHtml = '';
+        TASK_CACHE.forEach(t => {
+          const title = escapeHtml(t.title) || '—';
+          const cat = escapeHtml(t.category) || '—';
+          const payout = parseFloat(t.payout || 0).toFixed(2);
+          const time = t.time || '—';
+          const access = t.is_locked ? '<span class="badge badge-locked">🔒 $' + parseFloat(t.lock_fee || 0).toFixed(2) + '</span>' : '<span class="text-purple-300/40 text-xs">Free</span>';
+          
+          rowsHtml += '<tr>' +
+            '<td class="text-white font-medium">' + title + '</td>' +
+            '<td><span class="badge badge-purple">' + cat + '</span></td>' +
+            '<td class="text-emerald-400 font-bold">$' + payout + '</td>' +
+            '<td class="text-purple-200/70">' + time + ' min</td>' +
+            '<td>' + access + '</td>' +
+            '<td><button onclick="deleteTask(\'' + t.id + '\')" class="btn-reject px-3 py-1 rounded-md text-xs">Delete</button></td>' +
+          '</tr>';
+        });
+
+        container.innerHTML = '<div class="overflow-x-auto"><table><thead><tr><th>Title</th><th>Category</th><th>Payout</th><th>Time</th><th>Access</th><th>Actions</th></tr></thead><tbody>' + rowsHtml + '</tbody></table></div>';
       } catch (err) {
         console.error('Load tasks error:', err);
-        container.innerHTML = `<p class="text-center text-red-400 py-8 text-sm">Failed to load tasks.<br><span class="text-purple-300/40 text-xs">${escapeHtml(err.message)}</span></p>`;
+        container.innerHTML = '<p class="text-center text-red-400 py-8 text-sm">Failed to load tasks.<br><span class="text-purple-300/40 text-xs">' + escapeHtml(err.message) + '</span></p>';
       }
     }
 
-    // ============ POST JOB ============
     document.getElementById('postJobForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const title = document.getElementById('jobTitle').value.trim();
@@ -513,7 +484,6 @@
       }
     });
 
-    // ============ DELETE TASK ============
     function deleteTask(id) {
       document.getElementById('confirmMessage').textContent = 'Delete this task? Workers will no longer see it.';
       document.getElementById('confirmModal').classList.remove('hidden');
@@ -531,7 +501,6 @@
       };
     }
 
-    // ============ LOAD SUBMISSIONS ============
     async function loadSubmissions() {
       const container = document.getElementById('submissionsList');
       container.innerHTML = '<div class="text-center py-12"><div class="loading-spinner"></div><p class="text-sm text-purple-300/60 mt-3">Loading submissions...</p></div>';
@@ -543,7 +512,6 @@
         if (subErr) throw subErr;
         SUB_CACHE = subs || [];
 
-        // Ensure tasks are cached for lookups
         if (!TASK_CACHE.length) {
           const { data: tasks } = await db.from('tasks').select('*');
           TASK_CACHE = tasks || [];
@@ -568,97 +536,69 @@
           return;
         }
 
-        container.innerHTML = `
-          <div class="overflow-x-auto">
-            <table>
-              <thead>
-                <tr>
-                  <th>Worker</th>
-                  <th>Task Name</th>
-                  <th>Transcription / Proof Content</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${SUB_CACHE.map(s => {
-                  const status = (s.status || 'pending').toLowerCase();
-                  const badgeClass = status === 'accepted' ? 'badge-accepted' : status === 'rejected' ? 'badge-rejected' : 'badge-pending';
-                  const taskObj = taskMap[s.task_id] || {};
-                  const taskTitle = taskObj.title || s.task_title || 'Unknown Task';
-                  const proofText = s.proof || s.text || s.link || s.transcription || 'No text provided';
+        let rowsHtml = '';
+        SUB_CACHE.forEach(s => {
+          const status = (s.status || 'pending').toLowerCase();
+          const badgeClass = status === 'accepted' ? 'badge-accepted' : status === 'rejected' ? 'badge-rejected' : 'badge-pending';
+          const taskObj = taskMap[s.task_id] || {};
+          const taskTitle = escapeHtml(taskObj.title || s.task_title || 'Unknown Task');
+          const workerName = escapeHtml(s.worker_name || s.worker_id || 'Worker');
+          const proofText = escapeHtml(s.proof || s.text || s.link || s.transcription || 'No text provided');
+          const statusText = status.charAt(0).toUpperCase() + status.slice(1);
 
-                  return `
-                    <tr>
-                      <td class="text-white font-medium">${escapeHtml(s.worker_name || s.worker_id || 'Worker')}</td>
-                      <td class="text-purple-100 font-medium">${escapeHtml(taskTitle)}</td>
-                      <td>
-                        <div class="proof-box cursor-pointer hover:border-purple-400 transition" onclick="viewFullProof('${s.id}')" title="Click to view full transcription/proof">
-                          ${escapeHtml(proofText)}
-                        </div>
-                      </td>
-                      <td><span class="badge ${badgeClass}">${status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
-                      <td>
-                        ${status === 'pending' ? `
-                          <div class="flex gap-1.5">
-                            <button onclick="updateSubmission('${s.id}', 'accepted')" class="btn-accept px-2.5 py-1 rounded-md text-xs">✓ Accept</button>
-                            <button onclick="updateSubmission('${s.id}', 'rejected')" class="btn-reject px-2.5 py-1 rounded-md text-xs">✕ Reject</button>
-                          </div>
-                        ` : `
-                          <span class="text-xs text-purple-300/40">Reviewed</span>
-                        `}
-                      </td>
-                    </tr>
-                  `;
-                }).join('')}
-              </tbody>
-            </table>
-          </div>
-        `;
+          let actionButtons = '<span class="text-xs text-purple-300/40">Reviewed</span>';
+          if (status === 'pending') {
+            actionButtons = '<div class="flex gap-1.5">' +
+              '<button onclick="updateSubmission(\'' + s.id + '\', \'accepted\')" class="btn-accept px-2.5 py-1 rounded-md text-xs">✓ Accept</button>' +
+              '<button onclick="updateSubmission(\'' + s.id + '\', \'rejected\')" class="btn-reject px-2.5 py-1 rounded-md text-xs">✕ Reject</button>' +
+            '</div>';
+          }
+
+          rowsHtml += '<tr>' +
+            '<td class="text-white font-medium">' + workerName + '</td>' +
+            '<td class="text-purple-100 font-medium">' + taskTitle + '</td>' +
+            '<td><div class="proof-box cursor-pointer hover:border-purple-400 transition" onclick="viewFullProof(\'' + s.id + '\')" title="Click to view full transcription/proof">' + proofText + '</div></td>' +
+            '<td><span class="badge ' + badgeClass + '">' + statusText + '</span></td>' +
+            '<td>' + actionButtons + '</td>' +
+          '</tr>';
+        });
+
+        container.innerHTML = '<div class="overflow-x-auto"><table><thead><tr><th>Worker</th><th>Task Name</th><th>Transcription / Proof Content</th><th>Status</th><th>Actions</th></tr></thead><tbody>' + rowsHtml + '</tbody></table></div>';
       } catch (err) {
         console.error('Load submissions error:', err);
-        container.innerHTML = `<p class="text-center text-red-400 py-8 text-sm">Failed to load submissions.<br><span class="text-purple-300/40 text-xs">${escapeHtml(err.message)}</span></p>`;
+        container.innerHTML = '<p class="text-center text-red-400 py-8 text-sm">Failed to load submissions.<br><span class="text-purple-300/40 text-xs">' + escapeHtml(err.message) + '</span></p>';
       }
     }
 
-    // ============ VIEW FULL PROOF MODAL ============
     function viewFullProof(id) {
       const sub = SUB_CACHE.find(s => s.id === id);
       if (!sub) return;
-      
       const taskObj = TASK_CACHE.find(t => t.id === sub.task_id) || {};
-      document.getElementById('modalWorkerInfo').textContent = `Worker: ${sub.worker_name || sub.worker_id || 'Anonymous'} | Task: ${taskObj.title || 'Task'}`;
+      document.getElementById('modalWorkerInfo').textContent = 'Worker: ' + (sub.worker_name || sub.worker_id || 'Anonymous') + ' | Task: ' + (taskObj.title || 'Task');
       document.getElementById('modalProofText').textContent = sub.proof || sub.text || sub.link || sub.transcription || 'No details given.';
-      
       document.getElementById('modalAcceptBtn').onclick = () => { closeModal('proofModal'); updateSubmission(id, 'accepted'); };
       document.getElementById('modalRejectBtn').onclick = () => { closeModal('proofModal'); updateSubmission(id, 'rejected'); };
-
       openModal('proofModal');
     }
 
-    // ============ UPDATE SUBMISSION STATUS ============
     async function updateSubmission(id, newStatus) {
       const actionLabel = newStatus === 'accepted' ? 'accept' : 'reject';
-      document.getElementById('confirmMessage').textContent = `Are you sure you want to ${actionLabel} this transcription/proof?`;
+      document.getElementById('confirmMessage').textContent = 'Are you sure you want to ' + actionLabel + ' this transcription/proof?';
       document.getElementById('confirmModal').classList.remove('hidden');
       document.getElementById('confirmYes').onclick = async () => {
         closeModal('confirmModal');
         try {
-          const { error } = await db
-            .from('submissions')
-            .update({ status: newStatus })
-            .eq('id', id);
+          const { error } = await db.from('submissions').update({ status: newStatus }).eq('id', id);
           if (error) throw error;
-          showAlert(`✅ Submission ${newStatus} successfully.`);
+          showAlert('✅ Submission ' + newStatus + ' successfully.');
           loadSubmissions();
         } catch (err) {
           console.error('Update submission error:', err);
-          showAlert(`❌ Failed to update submission: ` + err.message);
+          showAlert('❌ Failed to update submission: ' + err.message);
         }
       };
     }
 
-    // ============ INIT ============
     document.addEventListener('DOMContentLoaded', () => {
       loadTasks();
       loadSubmissions();

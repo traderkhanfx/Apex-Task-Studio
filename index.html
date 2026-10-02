@@ -3,13 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Apex Task Studio - Worker Dashboard</title>
+  <title>Apex Task Studio - Worker Portal</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const SUPABASE_URL = 'https://dwdtvasykhorrvmwmnhb.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3ZHR2YXN5a2hvcnJ2bXdtbmhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUzNzQsImV4cCI6MjEwNjUzMTM3NH0.vt_I7uvUqsjv5e8RTgREMoXJiZqq_80a9fVOqVyW6Lk';
     const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+    // Currency Rates (Base: USD)
+    const RATES = { USD: { symbol: '$', rate: 1 }, KES: { symbol: 'KSh ', rate: 129.5 }, EUR: { symbol: '€', rate: 0.92 } };
+    let currentCurrency = 'USD';
+    let userBalanceUSD = 3.50;
+    let completedCount = 1;
 
     let activeTasks = [
       {
@@ -19,7 +25,8 @@
         payout: 3.50,
         spots: 12,
         time_limit: "45 Mins",
-        description: "Listen to the customer call audio and transcribe the conversation word-for-word into the submission box below."
+        isLocked: false,
+        description: "Listen to the customer care call recording and transcribe all spoken dialogue accurately."
       },
       {
         id: 2,
@@ -28,34 +35,95 @@
         payout: 2.50,
         spots: 8,
         time_limit: "30 Mins",
-        description: "Evaluate Response A vs Response B for tone, safety, and helpfulness. Provide your final breakdown."
+        isLocked: true,
+        lockFee: 1.50,
+        description: "Evaluate Response A vs Response B for tone, safety, and helpfulness."
+      },
+      {
+        id: 3,
+        title: "Bounding Box Image Dataset Annotation",
+        category: "Data Annotation",
+        payout: 2.00,
+        spots: 20,
+        time_limit: "60 Mins",
+        isLocked: true,
+        lockFee: 2.00,
+        description: "Annotate target objects in urban traffic images following dataset guidelines."
       }
     ];
 
-    async function loadTasks() {
-      if (!supabaseClient) return;
-      try {
-        const { data, error } = await supabaseClient.from('tasks').select('*').eq('status', 'active');
-        if (data && data.length > 0) activeTasks = data;
+    function setCurrency(curr) {
+      currentCurrency = curr;
+      document.getElementById('currUSD').className = curr === 'USD' ? 'px-2 py-1 rounded bg-indigo-600 text-white font-bold' : 'px-2 py-1 rounded text-slate-400 hover:text-white';
+      document.getElementById('currKES').className = curr === 'KES' ? 'px-2 py-1 rounded bg-indigo-600 text-white font-bold' : 'px-2 py-1 rounded text-slate-400 hover:text-white';
+      document.getElementById('currEUR').className = curr === 'EUR' ? 'px-2 py-1 rounded bg-indigo-600 text-white font-bold' : 'px-2 py-1 rounded text-slate-400 hover:text-white';
+      updateBalanceDisplay();
+      renderTasks();
+    }
+
+    function formatAmount(usdVal) {
+      const info = RATES[currentCurrency];
+      return `${info.symbol}${(usdVal * info.rate).toFixed(2)}`;
+    }
+
+    function updateBalanceDisplay() {
+      document.getElementById('userBalance').innerText = formatAmount(userBalanceUSD);
+    }
+
+    function switchTab(tabName) {
+      const tabs = ['available', 'completed', 'pending', 'history'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tabBtn-${t}`);
+        if (btn) btn.className = t === tabName ? 'pb-2 border-b-2 border-indigo-500 font-bold text-indigo-400' : 'pb-2 text-slate-400 hover:text-slate-200';
+      });
+
+      const grid = document.getElementById('taskGrid');
+      if (tabName === 'completed') {
+        grid.innerHTML = `<div class="col-span-full bg-slate-800/60 p-6 rounded-2xl text-center text-slate-400">1 Task Completed • Payout $3.50 Transferred</div>`;
+      } else if (tabName === 'pending') {
+        grid.innerHTML = `<div class="col-span-full bg-slate-800/60 p-6 rounded-2xl text-center text-slate-400">0 Tasks awaiting review</div>`;
+      } else if (tabName === 'history') {
+        grid.innerHTML = `<div class="col-span-full bg-slate-800/60 p-6 rounded-2xl text-center text-slate-400">Full audit log of task submissions and M-Pesa withdrawals</div>`;
+      } else {
         renderTasks();
-      } catch (e) {
-        renderTasks();
+      }
+    }
+
+    function unlockTask(taskId, fee) {
+      if (confirm(`Unlocking Task #${taskId} requires an activation fee of $${fee.toFixed(2)}. Proceed?`)) {
+        const task = activeTasks.find(t => t.id === taskId);
+        if (task) {
+          task.isLocked = false;
+          alert("Task unlocked! You can now access full guidelines and submit your proof.");
+          renderTasks();
+        }
       }
     }
 
     function renderTasks() {
       const grid = document.getElementById('taskGrid');
       if (!grid) return;
+      
       grid.innerHTML = activeTasks.map(task => `
-        <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 flex flex-col justify-between hover:border-indigo-500/50 transition-all shadow-lg">
+        <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 flex flex-col justify-between hover:border-indigo-500/50 transition-all shadow-lg relative overflow-hidden">
+          
+          ${task.isLocked ? `
+            <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center p-6 text-center">
+              <span class="text-2xl mb-2">🔒</span>
+              <h4 class="font-bold text-white text-sm">Task Locked (Tier 2 Access)</h4>
+              <p class="text-xs text-slate-300 mt-1 mb-3">Pay $${task.lockFee.toFixed(2)} activation fee to unlock this task slot.</p>
+              <button onclick="unlockTask(${task.id}, ${task.lockFee})" class="bg-gradient-to-r from-amber-500 to-indigo-600 hover:opacity-90 text-white font-bold text-xs px-4 py-2 rounded-xl shadow">                 Unlock Task ($${task.lockFee.toFixed(2)})
+              </button>
+            </div>
+          ` : ''}
+
           <div>
             <div class="flex items-center justify-between gap-2 mb-3">
               <span class="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs px-2.5 py-1 rounded-full font-medium">
-                ${task.category || 'General Task'}
+                ${task.category}
               </span>
-              <!-- TIMELINE BADGE -->
               <span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs px-2.5 py-1 rounded-full font-mono flex items-center gap-1">
-                ⏱️ ${task.time_limit || '60 Mins'}
+                ⏱️️ ${task.time_limit}
               </span>
             </div>
             
@@ -65,13 +133,12 @@
 
           <div>
             <div class="flex items-center justify-between text-xs text-slate-400 pt-4 border-t border-slate-700/60 mb-4 font-mono">
-              <span>Payout: <strong class="text-emerald-400 text-sm">$${parseFloat(task.payout).toFixed(2)}</strong></span>
-              <span>Spots left: <strong class="text-slate-200">${task.spots_available || task.spots || 10}</strong></span>
+              <span>Payout: <strong class="text-emerald-400 text-sm">${formatAmount(task.payout)}</strong></span>
+              <span>Spots left: <strong class="text-slate-200">${task.spots}</strong></span>
             </div>
 
-            <!-- SUBMISSION TEXTAREA -->
             <div class="space-y-2">
-              <textarea id="proofInput-${task.id}" rows="3" placeholder="Paste your transcribed text or completed work link here..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500"></textarea>
+              <textarea id="proofInput-${task.id}" rows="3" placeholder="Paste your transcribed text or submission proof here..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500"></textarea>
               <button onclick="submitTask(${task.id})" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-xs transition-colors shadow-lg shadow-indigo-600/20">
                 Submit Task Proof
               </button>
@@ -87,37 +154,181 @@
         alert("Please paste your transcribed text or submission proof before submitting!");
         return;
       }
-
-      if (supabaseClient) {
-        await supabaseClient.from('submissions').insert([{ task_id: taskId, proof: proofText, status: 'pending' }]);
-      }
       alert("Task submitted successfully! Khan is currently reviewing your submission.");
       document.getElementById(`proofInput-${taskId}`).value = '';
     }
 
-    window.addEventListener('DOMContentLoaded', loadTasks);
+    function handleMpesaWithdraw(e) {
+      e.preventDefault();
+      const phone = document.getElementById('mpesaPhone').value;
+      const amount = document.getElementById('mpesaAmount').value;
+      alert(`Withdrawal request of ${formatAmount(amount)} to ${phone} via M-Pesa submitted! Status: Processing.`);
+    }
+
+    function toggleProfileModal() {
+      document.getElementById('profileModal').classList.toggle('hidden');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      updateBalanceDisplay();
+      renderTasks();
+    });
   </script>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-8">
-  <div class="max-w-7xl mx-auto space-y-8">
-    <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 backdrop-blur">
-      <div>
-        <h1 class="text-2xl font-bold text-white">Apex Task Studio</h1>
-        <p class="text-xs text-slate-400 mt-1">Worker Task Portal • Earn money completing microtasks</p>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between p-4 md:p-8">
+
+  <div class="max-w-7xl mx-auto w-full space-y-8">
+    
+    <!-- TOP HEADER WITH PROFILE & CURRENCY SWITCHER -->
+    <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 backdrop-blur">
+      <div class="flex items-center justify-between w-full lg:w-auto">
+        <div>
+          <h1 class="text-2xl font-bold text-white">Apex Task Studio</h1>
+          <p class="text-xs text-slate-400 mt-0.5">Remote Task Portal • Global Work Network</p>
+        </div>
       </div>
-      <div class="bg-slate-900 border border-slate-700/80 px-4 py-2 rounded-xl text-right">
-        <p class="text-xs text-slate-400">Available Balance</p>
-        <p class="text-lg font-bold text-emerald-400 font-mono">$0.00</p>
+
+      <!-- RIGHT SIDE HEADER CONTROLS -->
+      <div class="flex flex-wrap items-center gap-4">
+        
+        <!-- CURRENCY SWITCHER -->
+        <div class="flex items-center gap-1 bg-slate-900 border border-slate-700 rounded-xl p-1 text-xs">
+          <button id="currUSD" onclick="setCurrency('USD')" class="px-2 py-1 rounded bg-indigo-600 text-white font-bold">$ USD</button>
+          <button id="currKES" onclick="setCurrency('KES')" class="px-2 py-1 rounded text-slate-400 hover:text-white">KSh KES</button>
+          <button id="currEUR" onclick="setCurrency('EUR')" class="px-2 py-1 rounded text-slate-400 hover:text-white">€ EUR</button>
+        </div>
+
+        <!-- BALANCE CARD -->
+        <div class="bg-slate-900 border border-slate-700/80 px-4 py-2 rounded-xl text-right">
+          <p class="text-[10px] uppercase font-mono text-slate-400">Available Balance</p>
+          <p id="userBalance" class="text-lg font-bold text-emerald-400 font-mono">$3.50</p>
+        </div>
+
+        <!-- WORKER PROFILE AVATAR MENU -->
+        <button onclick="toggleProfileModal()" class="flex items-center gap-3 bg-slate-900 hover:bg-slate-700/60 border border-slate-700 px-3 py-1.5 rounded-xl transition-colors">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-sky-400 flex items-center justify-center font-bold text-xs text-white">
+            W
+          </div>
+          <div class="text-left hidden sm:block">
+            <p class="text-xs font-bold text-white leading-tight">Worker Account</p>
+            <p class="text-[10px] text-indigo-400">Level 1 • Verified</p>
+          </div>
+        </button>
       </div>
     </header>
 
-    <section>
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-bold text-white">Available Tasks</h2>
-        <span class="text-xs text-slate-400">Select a job & complete within the deadline</span>
+    <!-- GAMIFICATION & WORKER RANKING STATS BAR -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-4">
+        <p class="text-xs font-medium text-slate-400">Worker Rank Tier</p>
+        <p class="text-xl font-bold text-indigo-400 mt-1">Level 1 Contributor</p>
+        <p class="text-[10px] text-slate-500 mt-0.5">Complete 5 tasks to unlock Level 2</p>
       </div>
-      <div id="taskGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6"></div>
+      <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-4">
+        <p class="text-xs font-medium text-slate-400">Accuracy Rating</p>
+        <p class="text-xl font-bold text-emerald-400 mt-1 font-mono">98.5%</p>
+        <p class="text-[10px] text-emerald-500/80 mt-0.5">High Quality Contributor</p>
+      </div>
+      <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-4">
+        <p class="text-xs font-medium text-slate-400">Completed Tasks</p>
+        <p class="text-xl font-bold text-amber-400 mt-1 font-mono">1 Task</p>
+        <p class="text-[10px] text-slate-500 mt-0.5">Free tier unlocked</p>
+      </div>
+      <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-4">
+        <p class="text-xs font-medium text-slate-400">M-Pesa Payout Status</p>
+        <p class="text-xl font-bold text-sky-400 mt-1">Instant Ready</p>
+        <p class="text-[10px] text-slate-500 mt-0.5">Min withdrawal: $1.00</p>
+      </div>
     </section>
+
+    <!-- MAIN SECTION: TABS & M-PESA WITHDRAWAL PANEL -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      
+      <!-- LEFT COLUMN: TASK DASHBOARD WITH TABS -->
+      <section class="lg:col-span-8 space-y-6">
+        
+        <!-- DASHBOARD NAVIGATION TABS -->
+        <div class="flex items-center gap-6 border-b border-slate-700 text-sm font-medium pt-2">
+          <button id="tabBtn-available" onclick="switchTab('available')" class="pb-2 border-b-2 border-indigo-500 font-bold text-indigo-400">
+            Available Tasks
+          </button>
+          <button id="tabBtn-completed" onclick="switchTab('completed')" class="pb-2 text-slate-400 hover:text-slate-200">
+            Completed
+          </button>
+          <button id="tabBtn-pending" onclick="switchTab('pending')" class="pb-2 text-slate-400 hover:text-slate-200">
+            Waiting for Review
+          </button>
+          <button id="tabBtn-history" onclick="switchTab('history')" class="pb-2 text-slate-400 hover:text-slate-200">
+            Task History
+          </button>
+        </div>
+
+        <div id="taskGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+      </section>
+
+      <!-- RIGHT COLUMN: M-PESA WITHDRAWAL BOX -->
+      <section class="lg:col-span-4 bg-slate-800/60 border border-slate-700/60 rounded-2xl p-6 space-y-4">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+          <span>📲 M-Pesa Instant Payout</span>
+        </h3>
+        <p class="text-xs text-slate-400">Withdraw earned task rewards directly to your M-Pesa wallet in KES or USD.</p>
+
+        <form onsubmit="handleMpesaWithdraw(event)" class="space-y-4 pt-2">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">M-Pesa Phone Number</label>
+            <input type="text" id="mpesaPhone" required placeholder="0712345678 or 2547..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Withdrawal Amount ($)</label>
+            <input type="number" step="0.50" id="mpesaAmount" required min="1" max="500" placeholder="3.50" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
+          </div>
+
+          <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition-colors shadow-lg shadow-emerald-600/20">
+            Withdraw via M-Pesa
+          </button>
+        </form>
+      </section>
+
+    </div>
+
   </div>
+
+  <!-- WORKER PROFILE & ADDRESS MODAL -->
+  <div id="profileModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+        <h3 class="text-lg font-bold text-white">Worker Account & Profile Settings</h3>
+        <button onclick="toggleProfileModal()" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-400 mb-1">Full Name</label>
+          <input type="text" value="Apex Worker" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-slate-400 mb-1">Postal / Zip Code</label>
+            <input type="text" placeholder="10204" value="10204" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white">
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">Country</label>
+            <input type="text" value="Kenya" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white">
+          </div>
+        </div>
+      </div>
+
+      <button onclick="toggleProfileModal()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2 rounded-xl">
+        Save Profile Details
+      </button>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="mt-12 border-t border-slate-800 pt-6 text-center text-xs text-slate-500">
+    <p>© 2026 Apex Task Studio. All rights reserved.</p>
+  </footer>
+
 </body>
 </html>

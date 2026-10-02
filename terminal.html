@@ -3,25 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Apex Task Studio - Admin Terminal</title>
+  <title>Apex Task Studio - Admin Control Panel</title>
   
-  <!-- 1. Tailwind CSS CDN -->
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- 2. Supabase JS CDN -->
+  <!-- Supabase JS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
   <script>
     const SECRET_PIN = "9999";
     const SUPABASE_URL = 'https://dwdtvasykhorrvmwmnhb.supabase.co';
-    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // Replace with your full anon key
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // Replace with full key if needed
     
     const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
-    // PIN Guard Initialization
+    // PIN Guard & Dashboard Setup
     window.addEventListener('DOMContentLoaded', () => {
       sessionStorage.removeItem('admin_authenticated');
-      
       const adminContent = document.getElementById('adminMainContent');
       const pinModal = document.getElementById('pinGuardModal');
 
@@ -29,7 +27,6 @@
       if (pinModal) pinModal.classList.remove('hidden');
     });
 
-    // Handle PIN Verification
     function handlePinSubmit(e) {
       e.preventDefault();
       const inputPin = document.getElementById('adminPinInput')?.value;
@@ -43,17 +40,40 @@
 
         if (pinModal) pinModal.classList.add('hidden');
         if (adminContent) adminContent.classList.remove('hidden');
+        
+        loadDashboardData();
       } else {
         if (errorMessage) errorMessage.classList.remove('hidden');
       }
     }
 
-    // Handle Task Submission to Supabase
+    async function loadDashboardData() {
+      // Dummy data fallback for preview; fetches live Supabase rows if available
+      if (!supabaseClient) return;
+      
+      try {
+        // Fetch tasks stats
+        const { data: tasks, error: taskErr } = await supabaseClient.from('tasks').select('*');
+        if (tasks) {
+          document.getElementById('statTotalTasks').innerText = tasks.length;
+        }
+
+        // Fetch submissions for review
+        const { data: submissions, error: subErr } = await supabaseClient.from('submissions').select('*');
+        if (submissions) {
+          document.getElementById('statPendingReviews').innerText = submissions.filter(s => s.status === 'pending').length;
+        }
+      } catch (err) {
+        console.log('Loading state:', err);
+      }
+    }
+
+    // Handle Task Publishing
     async function handleCreateTask(e) {
       e.preventDefault();
       const statusMsg = document.getElementById('taskStatusMsg');
       statusMsg.className = "text-sm text-indigo-400 font-semibold";
-      statusMsg.innerText = "Publishing task to Supabase...";
+      statusMsg.innerText = "Publishing task...";
       statusMsg.classList.remove('hidden');
 
       const title = document.getElementById('taskTitle').value;
@@ -63,31 +83,39 @@
       const category = document.getElementById('taskCategory').value;
 
       try {
-        const { data, error } = await supabaseClient
+        const { error } = await supabaseClient
           .from('tasks')
-          .insert([
-            { title, description, payout, spots_available: spots, category, status: 'active' }
-          ]);
+          .insert([{ title, description, payout, spots_available: spots, category, status: 'active' }]);
 
         if (error) throw error;
 
         statusMsg.className = "text-sm text-emerald-400 font-semibold";
         statusMsg.innerText = "Task published successfully!";
         document.getElementById('createTaskForm').reset();
+        loadDashboardData();
       } catch (err) {
         statusMsg.className = "text-sm text-rose-400 font-semibold";
-        statusMsg.innerText = "Error posting task: " + err.message;
+        statusMsg.innerText = "Error: " + err.message;
       }
+    }
+
+    // Handle Submission Decision
+    async function handleReview(submissionId, action) {
+      alert(`Submission ${submissionId} has been ${action === 'accept' ? 'APPROVED' : 'REJECTED'}.`);
+      // Update Supabase row logic here
     }
   </script>
 </head>
-<body class="bg-slate-900 text-white min-h-screen flex flex-col justify-center items-center p-4">
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-8">
 
   <!-- PIN GUARD MODAL -->
-  <div id="pinGuardModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-    <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 max-w-sm w-full shadow-2xl text-center">
-      <h2 class="text-xl font-bold text-slate-100 mb-2">Admin Terminal Access</h2>
-      <p class="text-sm text-slate-400 mb-6">Enter your 4-digit PIN to unlock access.</p>
+  <div id="pinGuardModal" class="fixed inset-0 bg-black/85 flex items-center justify-center z-50 p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center">
+      <div class="w-12 h-12 bg-indigo-600/20 text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-indigo-500/30">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+      </div>
+      <h2 class="text-xl font-bold text-white mb-1">Admin Terminal Access</h2>
+      <p class="text-xs text-slate-400 mb-6">Enter your 4-digit PIN to enter control panel.</p>
       
       <form onsubmit="handlePinSubmit(event)" class="space-y-4">
         <input 
@@ -96,74 +124,179 @@
           maxlength="4" 
           placeholder="••••" 
           required 
-          class="w-full text-center text-2xl tracking-widest bg-slate-900 border border-slate-700 rounded-lg py-2 text-white focus:outline-none focus:border-indigo-500"
+          class="w-full text-center text-3xl tracking-widest bg-slate-900 border border-slate-700 rounded-xl py-3 text-white focus:outline-none focus:border-indigo-500 font-mono"
         />
-        
-        <p id="pinErrorMessage" class="text-red-400 text-xs hidden">Invalid PIN. Please try again.</p>
-        
-        <button 
-          type="submit" 
-          class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2 rounded-lg transition-colors"
-        >
+        <p id="pinErrorMessage" class="text-rose-400 text-xs hidden font-medium">Invalid PIN. Try again.</p>
+        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl transition-colors shadow-lg shadow-indigo-600/30">
           Unlock Terminal
         </button>
       </form>
     </div>
   </div>
 
-  <!-- MAIN ADMIN TERMINAL DASHBOARD -->
-  <div id="adminMainContent" class="hidden w-full max-w-3xl bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl">
-    <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
+  <!-- FULL ADMIN CONTROL PANEL -->
+  <div id="adminMainContent" class="hidden max-w-7xl mx-auto space-y-8">
+    
+    <!-- TOP HEADER BAR -->
+    <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 backdrop-blur">
       <div>
-        <h1 class="text-2xl font-bold text-indigo-400">Apex Task Studio</h1>
-        <p class="text-xs text-slate-400">Admin Control Panel • Post & Manage Tasks</p>
+        <div class="flex items-center gap-3">
+          <h1 class="text-2xl font-bold text-white">Admin Control Panel</h1>
+          <span class="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs px-3 py-0.5 rounded-full font-mono">v2.0</span>
+        </div>
+        <p class="text-sm text-slate-400 mt-1">Apex Task Studio • Live Operations & Task Manager</p>
       </div>
-      <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs px-3 py-1 rounded-full font-mono">
-        Supabase Active
-      </span>
+
+      <!-- OWNER PROFILE BADGE -->
+      <div class="flex items-center gap-3 bg-slate-900/80 border border-slate-700/60 px-4 py-2.5 rounded-xl self-start md:self-auto">
+        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow">
+          K
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-white leading-tight">Khan</p>
+          <p class="text-xs text-emerald-400 flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Owner / Super Admin
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <!-- METRICS & PROFIT STATS CARDS -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5">
+        <p class="text-xs font-medium text-slate-400">Total System Net Profit</p>
+        <p class="text-2xl font-bold text-emerald-400 mt-2 font-mono">$1,248.50</p>
+        <p class="text-xs text-slate-500 mt-1">+12.4% this week</p>
+      </div>
+
+      <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5">
+        <p class="text-xs font-medium text-slate-400">Pending Reviews</p>
+        <p id="statPendingReviews" class="text-2xl font-bold text-amber-400 mt-2 font-mono">8</p>
+        <p class="text-xs text-amber-500/80 mt-1">Worker submissions awaiting approval</p>
+      </div>
+
+      <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5">
+        <p class="text-xs font-medium text-slate-400">Active Tasks Published</p>
+        <p id="statTotalTasks" class="text-2xl font-bold text-indigo-400 mt-2 font-mono">14</p>
+        <p class="text-xs text-slate-500 mt-1">Live in Worker Dashboard</p>
+      </div>
+
+      <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5">
+        <p class="text-xs font-medium text-slate-400">Worker Payouts Completed</p>
+        <p class="text-2xl font-bold text-sky-400 mt-2 font-mono">$3,890.00</p>
+        <p class="text-xs text-slate-500 mt-1">Total accepted tasks</p>
+      </div>
+    </section>
+
+    <!-- MAIN TWO-COLUMN DASHBOARD CONTENT -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      
+      <!-- LEFT COLUMN: POST NEW TASK FORM -->
+      <section class="lg:col-span-5 bg-slate-800/60 border border-slate-700/60 rounded-2xl p-6">
+        <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+          <span>Post New Task</span>
+        </h2>
+
+        <form id="createTaskForm" onsubmit="handleCreateTask(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Task Title</label>
+            <input type="text" id="taskTitle" required placeholder="e.g. Data Annotation - RLHF Evaluation" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Category</label>
+              <select id="taskCategory" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
+                <option value="Data Annotation">Data Annotation</option>
+                <option value="AI Evaluation">AI Evaluation</option>
+                <option value="Microtask">Microtask</option>
+                <option value="Research">Research</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Payout ($)</label>
+              <input type="number" step="0.01" id="taskPayout" required placeholder="3.50" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Worker Spots Available</label>
+            <input type="number" id="taskSpots" required placeholder="25" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Instructions / Description</label>
+            <textarea id="taskDesc" rows="4" required placeholder="Describe task steps, guidelines, and proof requirements..." class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500"></textarea>
+          </div>
+
+          <div class="pt-2">
+            <p id="taskStatusMsg" class="text-sm mb-2 hidden"></p>
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl transition-colors shadow-lg shadow-indigo-600/20">
+              Publish Task to Dashboard
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- RIGHT COLUMN: WORKER SUBMISSIONS REVIEW TABLE -->
+      <section class="lg:col-span-7 bg-slate-800/60 border border-slate-700/60 rounded-2xl p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-bold text-white">Review Worker Submissions</h2>
+          <span class="text-xs text-slate-400">Accept to approve payout</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-900/60 text-slate-400 text-xs uppercase font-mono border-b border-slate-700">
+              <tr>
+                <th class="p-3">Worker</th>
+                <th class="p-3">Task</th>
+                <th class="p-3">Payout</th>
+                <th class="p-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700/50">
+              <!-- SUBMISSION SAMPLE ROW 1 -->
+              <tr class="hover:bg-slate-700/30 transition-colors">
+                <td class="p-3 font-medium text-slate-200">
+                  Alex M.
+                  <p class="text-xs text-slate-500">Proof: screenshot_01.png</p>
+                </td>
+                <td class="p-3 text-slate-300">RLHF Prompting</td>
+                <td class="p-3 font-mono text-emerald-400 font-semibold">$4.50</td>
+                <td class="p-3 text-right space-x-2">
+                  <button onclick="handleReview(101, 'accept')" class="bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/30 text-xs px-3 py-1.5 rounded-lg transition-colors">
+                    Accept
+                  </button>
+                  <button onclick="handleReview(101, 'reject')" class="bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30 text-xs px-3 py-1.5 rounded-lg transition-colors">
+                    Reject
+                  </button>
+                </td>
+              </tr>
+
+              <!-- SUBMISSION SAMPLE ROW 2 -->
+              <tr class="hover:bg-slate-700/30 transition-colors">
+                <td class="p-3 font-medium text-slate-200">
+                  Sarah K.
+                  <p class="text-xs text-slate-500">Proof: log_output.txt</p>
+                </td>
+                <td class="p-3 text-slate-300">Data Classification</td>
+                <td class="p-3 font-mono text-emerald-400 font-semibold">$2.00</td>
+                <td class="p-3 text-right space-x-2">
+                  <button onclick="handleReview(102, 'accept')" class="bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/30 text-xs px-3 py-1.5 rounded-lg transition-colors">
+                    Accept
+                  </button>
+                  <button onclick="handleReview(102, 'reject')" class="bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30 text-xs px-3 py-1.5 rounded-lg transition-colors">
+                    Reject
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
     </div>
-
-    <!-- CREATE TASK FORM -->
-    <form id="createTaskForm" onsubmit="handleCreateTask(event)" class="space-y-4">
-      <h2 class="text-lg font-semibold text-slate-200">Post a New Task</h2>
-
-      <div>
-        <label class="block text-xs font-medium text-slate-400 mb-1">Task Title</label>
-        <input type="text" id="taskTitle" required placeholder="e.g. Data Annotation - Image Classification" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Category</label>
-          <select id="taskCategory" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
-            <option value="Data Annotation">Data Annotation</option>
-            <option value="AI Evaluation">AI Evaluation</option>
-            <option value="Microtask">Microtask</option>
-            <option value="Research">Research</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Payout ($)</label>
-          <input type="number" step="0.01" id="taskPayout" required placeholder="2.50" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Worker Spots</label>
-          <input type="number" id="taskSpots" required placeholder="50" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
-        </div>
-      </div>
-
-      <div>
-        <label class="block text-xs font-medium text-slate-400 mb-1">Task Instructions / Description</label>
-        <textarea id="taskDesc" rows="4" required placeholder="Provide step-by-step instructions for workers..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"></textarea>
-      </div>
-
-      <div class="flex items-center justify-between pt-2">
-        <p id="taskStatusMsg" class="text-sm hidden"></p>
-        <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-6 py-2.5 rounded-lg text-sm transition-colors ml-auto">
-          Publish Task
-        </button>
-      </div>
-    </form>
   </div>
 
 </body>

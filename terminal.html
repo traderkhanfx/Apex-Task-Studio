@@ -108,7 +108,7 @@
     }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     .stat-gradient-1 { background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); }
-    .stat-gradient-2 { background: linear-gradient(135deg, #6366f1 0%, #3b82f6 100%); }
+    .stat-gradient-2 { background: linear-gradient(135deg, #6366f1 100%, #3b82f6 100%); }
     .stat-gradient-3 { background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%); }
     .tab-btn {
       padding: 0.65rem 1.25rem;
@@ -359,8 +359,7 @@
                 ${TASK_CACHE.map(t => `
                   <tr>
                     <td class="text-white font-medium">${escapeHtml(t.title) || '—'}</td>
-                    <td><span class="badge badge-purple">${escapeHtml(t.category) || '—'}</span></td>
-                    <td class="text-emerald-400 font-bold">$${parseFloat(t.payout || 0).toFixed(2)}</td>
+                    <td><span class="badge badge-purple">${escapeHtml(t.category) \vert{}\vert{} '—'}</span></td>                     <td class="text-emerald-400 font-bold">$${parseFloat(t.payout || 0).toFixed(2)}</td>
                     <td class="text-purple-200/70">${t.time || '—'} min</td>
                     <td>${t.is_locked ? `<span class="badge badge-locked">🔒 $${parseFloat(t.lock_fee || 0).toFixed(2)}</span>` : '<span class="text-purple-300/40 text-xs">Free</span>'}</td>
                     <td><button onclick="deleteTask('${t.id}')" class="btn-reject px-3 py-1 rounded-md text-xs">Delete</button></td>
@@ -428,14 +427,12 @@
       const container = document.getElementById('submissionsList');
       container.innerHTML = '<div class="text-center py-12"><div class="loading-spinner"></div><p class="text-sm text-purple-300/60 mt-3">Loading submissions...</p></div>';
       try {
-        // Fetch submissions and join task titles manually
         const { data: subs, error: subErr } = await db
           .from('submissions')
           .select('*')
           .order('created_at', { ascending: false });
         if (subErr) throw subErr;
 
-        // Fetch tasks to map titles
         const { data: tasks } = await db.from('tasks').select('id, title');
         const taskMap = {};
         (tasks || []).forEach(t => { taskMap[t.id] = t.title; });
@@ -527,7 +524,7 @@
     // ============ INIT ============
     document.addEventListener('DOMContentLoaded', () => {
       loadTasks();
-      loadSubmissions(); // Loads pending count for the badge
+      loadSubmissions();
     });
   </script>
 </body>

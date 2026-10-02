@@ -6,6 +6,7 @@
     <title>Apex Task Studio - Worker Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-[#050914] text-slate-100 min-h-screen font-sans flex flex-col justify-between">
         <!-- AUTHENTICATION MODAL -->
@@ -311,6 +312,10 @@
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
+        const SUPABASE_URL = 'https://dwdtvasykhorrvmwmnhb.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3ZHR2YXN5a2hvcnJ2bXdtbmhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUzNzQsImV4cCI6MjEwNjUzMTM3NH0.vt_I7uvUqsjv5e8RTgREMoXJiZqq_80a9fVOqVyW6Lk';
+
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         // Exchange rates relative to KES
         const rates = {
             KES: { rate: 1, symbol: 'KES ' },
@@ -464,17 +469,34 @@
         });
 
             // Handle Submit & Save
-        function handleAuthSubmit(e) {
-            e.preventDefault();
-            const fullName = document.getElementById('authFullName').value.trim();
-            const email = document.getElementById('authEmail').value.trim();
-            const phone = document.getElementById('authPhone').value.trim();
+        async function handleAuthSubmit(e) {
+    e.preventDefault();
+    const fullName = document.getElementById('authFullName').value;
+    const email = document.getElementById('authEmail').value;
+    const phone = document.getElementById('authPhone').value;
 
-            if (!fullName) return;
+    if (!fullName) return;
 
-            const userData = { fullName, email, phone };
-            localStorage.setItem('apex_user', JSON.stringify(userData));
+    // Send user data directly to Supabase
+    const { data, error } = await supabaseClient
+        .from('users')
+        .insert([
+            { full_name: fullName, email: email, phone: phone }
+        ]);
 
+    if (error) {
+        console.error('Supabase Error:', error.message);
+        alert('Failed to save profile to database: ' + error.message);
+        return;
+    }
+
+    // Save locally too so the UI updates smoothly without extra fetches
+    const userData = { fullName, email, phone };
+    localStorage.setItem('apex_user', JSON.stringify(userData));
+
+    updateUserHeader(fullName);
+    document.getElementById('authModal').classList.add('hidden');
+}
             updateUserHeader(fullName);
             document.getElementById('authModal').classList.add('hidden');
         }

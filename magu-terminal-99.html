@@ -1,174 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apex Task Studio - Admin Terminal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body class="bg-[#050914] text-slate-100 min-h-screen font-sans flex flex-col justify-between">
-
-    <!-- ADMIN PIN PASSCODE MODAL GUARD -->
-    <div id="pinGuardModal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4 z-50">
-        <div class="bg-[#0b1329] border border-amber-500/30 w-full max-w-sm rounded-2xl p-6 space-y-6 shadow-2xl text-center">
-            <div class="w-14 h-14 bg-amber-500/10 text-amber-400 rounded-full flex items-center justify-center mx-auto text-2xl border border-amber-500/20">
-                <i class="fa-solid fa-lock"></i>
-            </div>
-
-            <div class="space-y-1">
-                <h3 class="text-xl font-bold text-white">Admin Authentication</h3>
-                <p class="text-xs text-slate-400">Enter your secure terminal access PIN</p>
-            </div>
-
-            <form onsubmit="handlePinSubmit(event)" class="space-y-4">
-                <div>
-                    <input type="password" id="adminPinInput" maxlength="10" required placeholder="Enter Secret PIN" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-center text-lg tracking-widest text-white outline-none focus:border-amber-500 transition">
-                    <p id="pinError" class="text-xs text-red-400 hidden mt-2">Incorrect PIN passcode. Try again.</p>
-                </div>
-
-                <button type="submit" class="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition">
-                    Unlock Admin Terminal &rarr;
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- MAIN ADMIN INTERFACE (HIDDEN UNTIL UNLOCKED) -->
-    <div id="adminMainContent" class="hidden min-h-screen flex flex-col justify-between">
-        
-        <!-- HEADER -->
-        <header class="border-b border-slate-800 bg-[#0b1329]/80 backdrop-blur-md sticky top-0 z-40 px-4 py-3">
-            <div class="max-w-6xl mx-auto flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-amber-600/20 text-amber-400 flex items-center justify-center font-bold text-xl border border-amber-500/30">
-                        <i class="fa-solid fa-user-shield"></i>
-                    </div>
-                    <div>
-                        <h1 class="font-bold text-white leading-tight">Magu Admin Terminal</h1>
-                        <p class="text-xs text-slate-400">Apex Task Studio Management Portal</p>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-3">
-                    <button onclick="openPostModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg text-xs transition flex items-center gap-2">
-                        <i class="fa-solid fa-plus"></i> Post Client Task Batch
-                    </button>
-                    <button onclick="lockTerminal()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold">
-                        <i class="fa-solid fa-key"></i> Lock
-                    </button>
-                </div>
-            </div>
-        </header>
-
-        <!-- MAIN DASHBOARD CONTENT -->
-        <main class="max-w-6xl mx-auto w-full p-4 md:p-6 flex-grow space-y-8">
-
-            <!-- ADMIN METRICS -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="bg-[#0b1329] border border-slate-800 p-5 rounded-xl space-y-1">
-                    <p class="text-xs text-slate-400">Total Live Tasks Published</p>
-                    <h3 id="statTotalTasks" class="text-2xl font-bold text-white">...</h3>
-                </div>
-                <div class="bg-[#0b1329] border border-slate-800 p-5 rounded-xl space-y-1">
-                    <p class="text-xs text-slate-400">Database Connection</p>
-                    <h3 class="text-2xl font-bold text-emerald-400 flex items-center gap-2">
-                        <i class="fa-solid fa-signal text-sm"></i> Active (Supabase)
-                    </h3>
-                </div>
-                <div class="bg-[#0b1329] border border-slate-800 p-5 rounded-xl space-y-1">
-                    <p class="text-xs text-slate-400">Security Guard</p>
-                    <h3 class="text-2xl font-bold text-amber-400">Protected</h3>
-                </div>
-            </div>
-
-            <!-- PUBLISHED TASKS LIST -->
-            <section class="space-y-4">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-list-check text-indigo-400"></i> Active Published Tasks
-                    </h3>
-                    <button onclick="fetchAdminTasks()" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1">
-                        <i class="fa-solid fa-rotate"></i> Refresh List
-                    </button>
-                </div>
-
-                <div id="adminTasksList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="col-span-full text-center py-8 text-slate-400 text-xs">
-                        <i class="fa-solid fa-spinner fa-spin text-lg text-indigo-400 mb-2"></i>
-                        <p>Loading database tasks...</p>
-                    </div>
-                </div>
-            </section>
-        </main>
-
-        <!-- POST NEW CLIENT TASK BATCH MODAL -->
-        <div id="postTaskModal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
-            <div class="bg-[#0b1329] border border-slate-700/80 w-full max-w-lg rounded-2xl p-6 space-y-6 shadow-2xl relative">
-                <button onclick="closePostModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-
-                <div class="border-b border-slate-800 pb-3">
-                    <h3 class="text-lg font-bold text-white">Post New Client Task Batch</h3>
-                    <p class="text-xs text-slate-400">Publish new worker jobs directly to the live dashboard</p>
-                </div>
-
-                <form onsubmit="handlePostTaskSubmit(event)" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">Task Title</label>
-                        <input type="text" id="adminTaskTitle" required placeholder="e.g. Audio Annotation" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500">
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Category</label>
-                            <select id="adminTaskCategory" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500 cursor-pointer">
-                                <option value="Audio Transcription">Audio Transcription</option>
-                                <option value="Data Annotation">Data Annotation</option>
-                                <option value="Search Relevance">Search Relevance</option>
-                                <option value="Computer Vision">Computer Vision</option>
-                                <option value="Text Quality Rating">Text Quality Rating</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Worker Payout (KES)</label>
-                            <input type="number" id="adminTaskPayout" required placeholder="e.g. 130" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">Instructions for Workers</label>
-                        <textarea id="adminTaskInstructions" rows="3" required placeholder="Transcribe the audio snippets accurately..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500"></textarea>
-                    </div>
-
-                    <div class="flex justify-end gap-3 pt-2">
-                        <button type="button" onclick="closePostModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold">
-                            Cancel
-                        </button>
-                        <button type="submit" id="publishBtn" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold flex items-center gap-2">
-                            Publish Batch to Workers
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- FOOTER -->
-        <footer class="border-t border-slate-800 bg-[#050914] py-6 px-4 text-center text-xs text-slate-500">
-            <p>&copy; 2026 Apex Task Studio Admin Terminal.</p>
-        </footer>
-    </div>
-
-    <!-- SCRIPT -->
+<!-- SCRIPT -->
     <script>
-        const SECRET_PIN = "9999"; // Change this to your preferred PIN code
+        const SECRET_PIN = "9999"; // Your admin PIN
 
         const SUPABASE_URL = 'https://dwdtvasykhorrvmwmnhb.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3ZHR2YXN5a2hvcnJ2bXdtbmhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUzNzQsImV4cCI6MjEwNjUzMTM3NH0.vt_I7uvUqsjv5e8RTgREMoXJiZqq_80a9fVOqVyW6Lk';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // FORCE PIN GUARD ON EVERY PAGE LOAD
+        window.addEventListener('DOMContentLoaded', () => {
+            sessionStorage.removeItem('admin_authenticated');
+            document.getElementById('adminMainContent').classList.add('hidden');
+            document.getElementById('pinGuardModal').classList.remove('hidden');
+        });
 
         function handlePinSubmit(e) {
             e.preventDefault();
@@ -176,6 +19,7 @@
             const errEl = document.getElementById('pinError');
 
             if (inputPin === SECRET_PIN) {
+                sessionStorage.setItem('admin_authenticated', 'true');
                 document.getElementById('pinGuardModal').classList.add('hidden');
                 document.getElementById('adminMainContent').classList.remove('hidden');
                 fetchAdminTasks();
@@ -186,6 +30,7 @@
         }
 
         function lockTerminal() {
+            sessionStorage.removeItem('admin_authenticated');
             document.getElementById('adminMainContent').classList.add('hidden');
             document.getElementById('pinGuardModal').classList.remove('hidden');
             document.getElementById('adminPinInput').value = '';
@@ -273,12 +118,10 @@
                 alert('New task batch successfully published to Worker Dashboard!');
                 closePostModal();
 
-                // Reset form inputs
                 document.getElementById('adminTaskTitle').value = '';
                 document.getElementById('adminTaskPayout').value = '';
                 document.getElementById('adminTaskInstructions').value = '';
 
-                // Refresh admin list
                 fetchAdminTasks();
 
             } catch (err) {
@@ -311,5 +154,3 @@
             }
         }
     </script>
-</body>
-</html>

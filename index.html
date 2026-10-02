@@ -1,572 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apex Task Studio - Worker Portal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body class="bg-[#050914] text-slate-100 min-h-screen font-sans flex flex-col justify-between">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apex Task Studio - Worker Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://dwdtvasykhorrvmwmnhb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3ZHR2YXN5a2hvcnJ2bXdtbmhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUzNzQsImV4cCI6MjEwNjUzMTM3NH0.vt_I7uvUqsjv5e8RTgREMoXJiZqq_80a9fVOqVyW6Lk';
+    const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
-    <!-- NAVIGATION HEADER -->
-    <header class="border-b border-slate-800 bg-[#0b1329]/80 backdrop-blur-md sticky top-0 z-40 px-4 py-3">
-        <div class="max-w-6xl mx-auto flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-bold text-xl border border-indigo-500/30">
-                    A
-                </div>
-                <div>
-                    <h1 class="font-bold text-white leading-tight">Apex Task Studio</h1>
-                    <p class="text-xs text-slate-400">Worker Dashboard</p>
-                </div>
+    let activeTasks = [
+      {
+        id: 1,
+        title: "Safaricom Customer Care Call Transcription",
+        category: "Data Annotation",
+        payout: 3.50,
+        spots: 12,
+        time_limit: "45 Mins",
+        description: "Listen to the customer call audio and transcribe the conversation word-for-word into the submission box below."
+      },
+      {
+        id: 2,
+        title: "AI Chatbot Response Quality Evaluation",
+        category: "AI Evaluation",
+        payout: 2.50,
+        spots: 8,
+        time_limit: "30 Mins",
+        description: "Evaluate Response A vs Response B for tone, safety, and helpfulness. Provide your final breakdown."
+      }
+    ];
+
+    async function loadTasks() {
+      if (!supabaseClient) return;
+      try {
+        const { data, error } = await supabaseClient.from('tasks').select('*').eq('status', 'active');
+        if (data && data.length > 0) activeTasks = data;
+        renderTasks();
+      } catch (e) {
+        renderTasks();
+      }
+    }
+
+    function renderTasks() {
+      const grid = document.getElementById('taskGrid');
+      if (!grid) return;
+      grid.innerHTML = activeTasks.map(task => `
+        <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 flex flex-col justify-between hover:border-indigo-500/50 transition-all shadow-lg">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <span class="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs px-2.5 py-1 rounded-full font-medium">
+                ${task.category || 'General Task'}
+              </span>
+              <!-- TIMELINE BADGE -->
+              <span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs px-2.5 py-1 rounded-full font-mono flex items-center gap-1">
+                ⏱️ ${task.time_limit || '60 Mins'}
+              </span>
+            </div>
+            
+            <h3 class="text-lg font-bold text-white mb-2">${task.title}</h3>
+            <p class="text-xs text-slate-300 leading-relaxed mb-4">${task.description}</p>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between text-xs text-slate-400 pt-4 border-t border-slate-700/60 mb-4 font-mono">
+              <span>Payout: <strong class="text-emerald-400 text-sm">$${parseFloat(task.payout).toFixed(2)}</strong></span>
+              <span>Spots left: <strong class="text-slate-200">${task.spots_available || task.spots || 10}</strong></span>
             </div>
 
-            <div class="flex items-center gap-4">
-                <!-- Currency Selector -->
-                <div class="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs">
-                    <i class="fa-solid fa-coins text-amber-400"></i>
-                    <select id="currencySelector" onchange="changeCurrency(this.value)" class="bg-transparent text-slate-200 outline-none cursor-pointer">
-                        <option value="KES" class="bg-slate-900 text-white">KES (KSh)</option>
-                        <option value="USD" class="bg-slate-900 text-white">USD ($)</option>
-                    </select>
-                </div>
-
-                <!-- Profile Avatar / Header -->
-                <div id="userHeader" class="flex items-center gap-3 bg-slate-900/80 border border-slate-800 px-3 py-1.5 rounded-full cursor-pointer hover:border-slate-700 transition" onclick="openProfileModal()">
-                    <div id="headerAvatar" class="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold text-white overflow-hidden">
-                        ?
-                    </div>
-                    <span id="headerName" class="text-xs font-medium text-slate-300">Guest User</span>
-                </div>
+            <!-- SUBMISSION TEXTAREA -->
+            <div class="space-y-2">
+              <textarea id="proofInput-${task.id}" rows="3" placeholder="Paste your transcribed text or completed work link here..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500"></textarea>
+              <button onclick="submitTask(${task.id})" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-xs transition-colors shadow-lg shadow-indigo-600/20">
+                Submit Task Proof
+              </button>
             </div>
+          </div>
         </div>
+      `).join('');
+    }
+
+    async function submitTask(taskId) {
+      const proofText = document.getElementById(`proofInput-${taskId}`).value;
+      if (!proofText.trim()) {
+        alert("Please paste your transcribed text or submission proof before submitting!");
+        return;
+      }
+
+      if (supabaseClient) {
+        await supabaseClient.from('submissions').insert([{ task_id: taskId, proof: proofText, status: 'pending' }]);
+      }
+      alert("Task submitted successfully! Khan is currently reviewing your submission.");
+      document.getElementById(`proofInput-${taskId}`).value = '';
+    }
+
+    window.addEventListener('DOMContentLoaded', loadTasks);
+  </script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-8">
+  <div class="max-w-7xl mx-auto space-y-8">
+    <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 backdrop-blur">
+      <div>
+        <h1 class="text-2xl font-bold text-white">Apex Task Studio</h1>
+        <p class="text-xs text-slate-400 mt-1">Worker Task Portal • Earn money completing microtasks</p>
+      </div>
+      <div class="bg-slate-900 border border-slate-700/80 px-4 py-2 rounded-xl text-right">
+        <p class="text-xs text-slate-400">Available Balance</p>
+        <p class="text-lg font-bold text-emerald-400 font-mono">$0.00</p>
+      </div>
     </header>
 
-    <!-- MAIN DASHBOARD -->
-    <main class="max-w-6xl mx-auto w-full p-4 md:p-6 flex-grow space-y-8">
-
-        <!-- WELCOME BANNER -->
-        <div class="bg-gradient-to-r from-indigo-900/40 via-slate-900 to-slate-900 border border-indigo-500/20 rounded-2xl p-6 md:p-8 relative overflow-hidden">
-            <div class="max-w-2xl relative z-10 space-y-3">
-                <span class="inline-block px-3 py-1 bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-semibold rounded-full">
-                    Remote Task Workspace
-                </span>
-                <h2 class="text-2xl md:text-3xl font-bold text-white">
-                    Earn Real Money Right From Home
-                </h2>
-                <p class="text-sm text-slate-300 leading-relaxed">
-                    Apex Studio delivers remote work and data evaluation tasks straight to your dashboard. Complete microtasks, receive immediate quality assurance, and cash out straight to M-Pesa or Bank.
-                </p>
-            </div>
-        </div>
-
-        <!-- STATS GRID -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <!-- Earnings Card with Withdraw Button -->
-            <div class="bg-[#0b1329] border border-slate-800 p-5 rounded-xl space-y-3">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl font-bold">
-                        KSh
-                    </div>
-                    <div>
-                        <p class="text-xs text-slate-400">Total Earnings</p>
-                        <h3 id="statEarnings" class="text-xl font-bold text-white">KSh 0.00</h3>
-                    </div>
-                </div>
-                <button onclick="openWithdrawModal()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg text-xs transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-money-bill-transfer"></i> Withdraw to M-Pesa
-                </button>
-            </div>
-
-            <div class="bg-[#0b1329] border border-slate-800 p-5 rounded-xl flex items-center gap-4">
-                <div class="w-12 h-12 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xl">
-                    <i class="fa-solid fa-list-check"></i>
-                </div>
-                <div>
-                    <p class="text-xs text-slate-400">Completed Tasks</p>
-                    <h3 id="statTasks" class="text-xl font-bold text-white">0</h3>
-                </div>
-            </div>
-
-            <div class="bg-[#0b1329] border border-slate-800 p-5 rounded-xl flex items-center gap-4">
-                <div class="w-12 h-12 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center text-xl">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                </div>
-                <div>
-                    <p class="text-xs text-slate-400">Tasks Under Review</p>
-                    <h3 id="statReview" class="text-xl font-bold text-white">0</h3>
-                </div>
-            </div>
-        </div>
-
-        <!-- TASK WORKSPACE WITH TABS -->
-        <section class="space-y-6">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-                <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-briefcase text-indigo-400"></i> Task Dashboard
-                </h3>
-
-                <!-- Category Filter Tabs -->
-                <div class="flex items-center gap-2 bg-slate-900/80 p-1 rounded-xl border border-slate-800 text-xs">
-                    <button id="tabAll" onclick="switchTab('all')" class="px-4 py-2 rounded-lg font-semibold bg-indigo-600 text-white transition">
-                        All Tasks
-                    </button>
-                    <button id="tabReview" onclick="switchTab('review')" class="px-4 py-2 rounded-lg font-semibold text-slate-400 hover:text-white transition">
-                        Under Review
-                    </button>
-                    <button id="tabHistory" onclick="switchTab('history')" class="px-4 py-2 rounded-lg font-semibold text-slate-400 hover:text-white transition">
-                        History
-                    </button>
-                </div>
-            </div>
-
-            <!-- ALL TASKS VIEW (DYNAMIC FROM SUPABASE) -->
-            <div id="viewAllTasks" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="col-span-full text-center py-8 text-slate-400 text-xs">
-                    <i class="fa-solid fa-spinner fa-spin text-lg text-indigo-400 mb-2"></i>
-                    <p>Loading active tasks from database...</p>
-                </div>
-            </div>
-
-            <!-- UNDER REVIEW VIEW -->
-            <div id="viewReviewTasks" class="hidden bg-[#0b1329] border border-slate-800 rounded-xl p-8 text-center space-y-3">
-                <div class="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-full flex items-center justify-center mx-auto text-xl">
-                    <i class="fa-solid fa-hourglass-half"></i>
-                </div>
-                <h4 class="font-bold text-white">No Submissions Currently Under Review</h4>
-                <p class="text-xs text-slate-400 max-w-sm mx-auto">When you submit tasks, they will appear here while undergoing quality verification.</p>
-            </div>
-
-            <!-- HISTORY VIEW -->
-            <div id="viewHistoryTasks" class="hidden bg-[#0b1329] border border-slate-800 rounded-xl p-8 text-center space-y-3">
-                <div class="w-12 h-12 bg-indigo-500/10 text-indigo-400 rounded-full flex items-center justify-center mx-auto text-xl">
-                    <i class="fa-solid fa-folder-open"></i>
-                </div>
-                <h4 class="font-bold text-white">No Completed Task History</h4>
-                <p class="text-xs text-slate-400 max-w-sm mx-auto">Your verified task log and completed payout records will display here.</p>
-            </div>
-        </section>
-    </main>
-
-    <!-- WITHDRAWAL MODAL -->
-    <div id="withdrawModal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
-        <div class="bg-[#0b1329] border border-slate-700/80 w-full max-w-md rounded-2xl p-6 space-y-6 shadow-2xl relative">
-            <button onclick="closeWithdrawModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-
-            <div class="text-center space-y-2">
-                <div class="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center mx-auto text-xl border border-emerald-500/20">
-                    <i class="fa-solid fa-mobile-screen-button"></i>
-                </div>
-                <h3 class="text-xl font-bold text-white">M-Pesa Payout Request</h3>
-                <p class="text-xs text-slate-300">Enter details to initiate immediate withdrawal</p>
-            </div>
-
-            <form onsubmit="handleWithdrawSubmit(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">M-Pesa Phone Number</label>
-                    <input type="text" id="withdrawPhone" required placeholder="0712345678" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-emerald-500">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Amount to Withdraw (KSh)</label>
-                    <input type="number" id="withdrawAmount" min="50" required placeholder="e.g. 500" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-emerald-500">
-                </div>
-
-                <button type="submit" id="withdrawBtn" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg text-xs transition">
-                    Submit Withdrawal Request &rarr;
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- INITIAL AUTHENTICATION MODAL -->
-    <div id="authModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
-        <div class="bg-[#0b1329] border border-slate-700/80 w-full max-w-md rounded-2xl p-6 space-y-6 shadow-2xl">
-            <div class="text-center space-y-2">
-                <div class="w-12 h-12 bg-indigo-500/10 text-indigo-400 rounded-full flex items-center justify-center mx-auto text-xl">
-                    <i class="fa-solid fa-user-plus"></i>
-                </div>
-                <h3 class="text-xl font-bold text-white">Welcome to Apex Studio</h3>
-                <p class="text-xs text-slate-300 leading-relaxed">
-                    Earn money convenient from home! Enter your details below to activate your worker profile and access immediate payouts.
-                </p>
-            </div>
-
-            <form onsubmit="handleAuthSubmit(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Full Name</label>
-                    <input type="text" id="authFullName" required placeholder="e.g. Collins Magu" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Email Address</label>
-                    <input type="email" id="authEmail" required placeholder="name@example.com" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Phone Number (M-Pesa)</label>
-                    <input type="text" id="authPhone" required placeholder="0712345678" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500">
-                </div>
-
-                <button type="submit" id="submitBtn" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg text-xs transition">
-                    Start Earning Now &rarr;
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- PROFILE MANAGEMENT MODAL (DRAWER) -->
-    <div id="profileModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
-        <div class="bg-[#0b1329] border border-slate-700/80 w-full max-w-lg rounded-2xl p-6 space-y-6 shadow-2xl relative">
-            <button onclick="closeProfileModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-
-            <div class="flex items-center gap-4 border-b border-slate-800 pb-4">
-                <div id="profileImagePreview" class="w-14 h-14 rounded-full bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-xl font-bold text-indigo-400 overflow-hidden">
-                    ?
-                </div>
-                <div>
-                    <h3 id="profileModalTitle" class="text-lg font-bold text-white">Worker Profile</h3>
-                    <p class="text-xs text-slate-400">Update your account & payout details</p>
-                </div>
-            </div>
-
-            <form onsubmit="handleProfileUpdate(event)" class="space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">Country</label>
-                        <input type="text" id="profCountry" placeholder="e.g. Kenya" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">M-Pesa Number</label>
-                        <input type="text" id="profPhone" placeholder="0712345678" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">P.O. Box Address</label>
-                    <input type="text" id="profPoBox" placeholder="e.g. P.O. Box 123-10204, Kiriaini" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Photo URL (Optional)</label>
-                    <input type="text" id="profPhotoUrl" placeholder="https://example.com/avatar.jpg" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500">
-                </div>
-
-                <div class="flex justify-end gap-3 pt-2">
-                    <button type="button" onclick="closeProfileModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold">
-                        Cancel
-                    </button>
-                    <button type="submit" id="saveProfBtn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold">
-                        Save Changes
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- TASK PAYWALL MODAL ($2 UNLOCK) -->
-    <div id="paywallModal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
-        <div class="bg-[#0b1329] border border-indigo-500/30 w-full max-w-md rounded-2xl p-6 space-y-6 shadow-2xl text-center relative">
-            <button onclick="closePaywallModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-
-            <div class="w-14 h-14 bg-amber-500/10 text-amber-400 rounded-full flex items-center justify-center mx-auto text-2xl border border-amber-500/20">
-                <i class="fa-solid fa-lock"></i>
-            </div>
-
-            <div class="space-y-2">
-                <h3 class="text-xl font-bold text-white">Free Task Limit Reached</h3>
-                <p class="text-xs text-slate-300 leading-relaxed">
-                    Your phone number has already used its <span class="text-amber-400 font-semibold">1 free task</span> trial.
-                </p>
-                <p class="text-xs text-slate-400 leading-relaxed">
-                    To access unlimited task queues and continue earning, activate your full worker status for <span class="text-emerald-400 font-bold">$2.00 (KSh 260)</span>.
-                </p>
-            </div>
-
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-left space-y-2 text-xs">
-                <div class="flex justify-between text-slate-300">
-                    <span>Activation Fee:</span>
-                    <span class="font-bold text-white">$2.00 / KSh 260</span>
-                </div>
-                <div class="flex justify-between text-slate-300">
-                    <span>M-Pesa Express:</span>
-                    <span class="font-bold text-emerald-400">Instant Activation</span>
-                </div>
-            </div>
-
-            <button onclick="alert('Redirecting to M-Pesa payment gateway...')" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2">
-                <i class="fa-solid fa-bolt"></i> Unlock Premium Tasks ($2.00)
-            </button>
-        </div>
-    </div>
-
-    <!-- FOOTER -->
-    <footer class="border-t border-slate-800 bg-[#050914] py-6 px-4 text-center text-xs text-slate-500">
-        <p>&copy; 2026 Apex Task Studio. All rights reserved.</p>
-    </footer>
-
-    <!-- LOGIC SCRIPT -->
-    <script>
-        const SUPABASE_URL = 'https://dwdtvasykhorrvmwmnhb.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3ZHR2YXN5a2hvcnJ2bXdtbmhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUzNzQsImV4cCI6MjEwNjUzMTM3NH0.vt_I7uvUqsjv5e8RTgREMoXJiZqq_80a9fVOqVyW6Lk';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        let currentUser = null;
-
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedUser = localStorage.getItem('apex_user');
-            if (savedUser) {
-                currentUser = JSON.parse(savedUser);
-                if (currentUser.fullName) {
-                    updateUserHeader(currentUser.fullName, currentUser.photoUrl);
-                    populateProfileFields(currentUser);
-                    document.getElementById('authModal').classList.add('hidden');
-                }
-            }
-            fetchTasksFromSupabase();
-        });
-
-        // FETCH ALL TASKS DYNAMICALLY FROM SUPABASE
-        async function fetchTasksFromSupabase() {
-            const viewAll = document.getElementById('viewAllTasks');
-
-            try {
-                const { data: tasks, error } = await supabaseClient
-                    .from('tasks')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                if (error || !tasks || tasks.length === 0) {
-                    // Fallback to sample view if table is empty
-                    renderFallbackTasks();
-                    return;
-                }
-
-                viewAll.innerHTML = tasks.map(t => `
-                    <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition space-y-4">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <span class="text-[10px] uppercase tracking-wider font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">${t.category || 'General'}</span>
-                                <h4 class="font-bold text-white mt-1">${t.title}</h4>
-                            </div>
-                            <span class="text-sm font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg">KSh ${t.payout_kes || 300} / task</span>
-                        </div>
-                        <p class="text-xs text-slate-400">${t.description || 'Complete evaluation task to earn earnings.'}</p>
-                        <button onclick="handleStartTask('${t.title}')" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition">
-                            Start Working
-                        </button>
-                    </div>
-                `).join('');
-            } catch (err) {
-                renderFallbackTasks();
-            }
-        }
-
-        function renderFallbackTasks() {
-            const viewAll = document.getElementById('viewAllTasks');
-            viewAll.innerHTML = `
-                <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-5 space-y-4">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <span class="text-[10px] uppercase tracking-wider font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">Data Annotation</span>
-                            <h4 class="font-bold text-white mt-1">AI Response Evaluation</h4>
-                        </div>
-                        <span class="text-sm font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg">KSh 450 / task</span>
-                    </div>
-                    <p class="text-xs text-slate-400">Review model output quality and mark factual errors or accuracy scores.</p>
-                    <button onclick="handleStartTask('AI Response Evaluation')" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition">
-                        Start Working
-                    </button>
-                </div>
-            `;
-        }
-
-        function updateUserHeader(name, photoUrl) {
-            const headerName = document.getElementById('headerName');
-            const headerAvatar = document.getElementById('headerAvatar');
-            if (headerName) headerName.textContent = name;
-            
-            if (headerAvatar) {
-                if (photoUrl) {
-                    headerAvatar.innerHTML = `<img src="${photoUrl}" class="w-full h-full object-cover">`;
-                } else {
-                    headerAvatar.textContent = name.charAt(0).toUpperCase();
-                }
-            }
-        }
-
-        function populateProfileFields(user) {
-            if (!user) return;
-            document.getElementById('profCountry').value = user.country || '';
-            document.getElementById('profPhone').value = user.phone || '';
-            document.getElementById('profPoBox').value = user.poBox || '';
-            document.getElementById('profPhotoUrl').value = user.photoUrl || '';
-            document.getElementById('profileModalTitle').textContent = user.fullName || 'Worker Profile';
-            document.getElementById('withdrawPhone').value = user.phone || '';
-        }
-
-        function openWithdrawModal() {
-            if (!currentUser) {
-                document.getElementById('authModal').classList.remove('hidden');
-                return;
-            }
-            document.getElementById('withdrawPhone').value = currentUser.phone || '';
-            document.getElementById('withdrawModal').classList.remove('hidden');
-        }
-
-        function closeWithdrawModal() {
-            document.getElementById('withdrawModal').classList.add('hidden');
-        }
-
-        function openProfileModal() {
-            if (!currentUser) {
-                document.getElementById('authModal').classList.remove('hidden');
-                return;
-            }
-            populateProfileFields(currentUser);
-            document.getElementById('profileModal').classList.remove('hidden');
-        }
-
-        function closeProfileModal() {
-            document.getElementById('profileModal').classList.add('hidden');
-        }
-
-        function closePaywallModal() {
-            document.getElementById('paywallModal').classList.add('hidden');
-        }
-
-        // WITHDRAWAL HANDLER
-        function handleWithdrawSubmit(e) {
-            e.preventDefault();
-            const phone = document.getElementById('withdrawPhone').value;
-            const amount = document.getElementById('withdrawAmount').value;
-            alert(`Withdrawal request of KSh ${amount} submitted for M-Pesa number: ${phone}. Processing payout...`);
-            closeWithdrawModal();
-        }
-
-        async function handleAuthSubmit(e) {
-            e.preventDefault();
-
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.textContent = "Connecting to database...";
-            submitBtn.disabled = true;
-
-            const fullName = document.getElementById('authFullName').value.trim();
-            const email = document.getElementById('authEmail').value.trim();
-            const phone = document.getElementById('authPhone').value.trim();
-
-            try {
-                const { data, error } = await supabaseClient
-                    .from('users')
-                    .insert([{ full_name: fullName, email: email, phone: phone }]);
-
-                if (error) {
-                    alert('Supabase DB Error: ' + error.message);
-                    return;
-                }
-
-                currentUser = { fullName, email, phone, freeTaskUsed: false };
-                localStorage.setItem('apex_user', JSON.stringify(currentUser));
-
-                updateUserHeader(fullName);
-                document.getElementById('authModal').classList.add('hidden');
-                alert('Welcome ' + fullName + '! Profile successfully saved.');
-            } catch (err) {
-                alert('Unexpected Error: ' + err.message);
-            } finally {
-                submitBtn.textContent = "Start Earning Now →";
-                submitBtn.disabled = false;
-            }
-        }
-
-        async function handleProfileUpdate(e) {
-            e.preventDefault();
-
-            const saveBtn = document.getElementById('saveProfBtn');
-            saveBtn.textContent = "Saving...";
-
-            const country = document.getElementById('profCountry').value.trim();
-            const phone = document.getElementById('profPhone').value.trim();
-            const poBox = document.getElementById('profPoBox').value.trim();
-            const photoUrl = document.getElementById('profPhotoUrl').value.trim();
-
-            if (!currentUser) currentUser = {};
-
-            currentUser.country = country;
-            currentUser.phone = phone;
-            currentUser.poBox = poBox;
-            currentUser.photoUrl = photoUrl;
-
-            localStorage.setItem('apex_user', JSON.stringify(currentUser));
-            updateUserHeader(currentUser.fullName, photoUrl);
-            closeProfileModal();
-            alert('Profile updated successfully!');
-            saveBtn.textContent = "Save Changes";
-        }
-
-        function handleStartTask(taskTitle) {
-            if (!currentUser) {
-                document.getElementById('authModal').classList.remove('hidden');
-                return;
-            }
-
-            const usedTaskPhone = localStorage.getItem('apex_free_task_used_' + currentUser.phone);
-
-            if (usedTaskPhone || currentUser.freeTaskUsed) {
-                document.getElementById('paywallModal').classList.remove('hidden');
-            } else {
-                alert('Opening FREE trial workspace for: ' + taskTitle + '\nNote: This is your 1 free trial task!');
-                currentUser.freeTaskUsed = true;
-                localStorage.setItem('apex_user', JSON.stringify(currentUser));
-                localStorage.setItem('apex_free_task_used_' + currentUser.phone, 'true');
-            }
-        }
-
-        function switchTab(tab) {
-            const viewAll = document.getElementById('viewAllTasks');
-            const viewReview = document.getElementById('viewReviewTasks');
-            const viewHistory = document.getElementById('viewHistoryTasks');
-
-            const tabAll = document.getElementById('tabAll');
-            const tabReview = document.getElementById('tabReview');
-            const tabHistory = document.getElementById('tabHistory');
-
-            viewAll.classList.add('hidden');
-            viewReview.classList.add('hidden');
-            viewHistory.classList.add('hidden');
-
-            [tabAll, tabReview, tabHistory].forEach(t => {
-                t.className = "px-4 py-2 rounded-lg font-semibold text-slate-400 hover:text-white transition";
-            });
-
-            if (tab === 'all') {
-                viewAll.classList.remove('hidden');
-                tabAll.className = "px-4 py-2 rounded-lg font-semibold bg-indigo-600 text-white transition";
-            } else if (tab === 'review') {
-                viewReview.classList.remove('hidden');
-                tabReview.className = "px-4 py-2 rounded-lg font-semibold bg-indigo-600 text-white transition";
-            } else if (tab === 'history') {
-                viewHistory.classList.remove('hidden');
-                tabHistory.className = "px-4 py-2 rounded-lg font-semibold bg-indigo-600 text-white transition";
-            }
-        }
-
-        function changeCurrency(val) {
-            const statEarnings = document.getElementById('statEarnings');
-            if (val === 'USD') {
-                statEarnings.textContent = "$ 0.00";
-            } else {
-                statEarnings.textContent = "KSh 0.00";
-            }
-        }
-    </script>
+    <section>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-white">Available Tasks</h2>
+        <span class="text-xs text-slate-400">Select a job & complete within the deadline</span>
+      </div>
+      <div id="taskGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6"></div>
+    </section>
+  </div>
 </body>
 </html>

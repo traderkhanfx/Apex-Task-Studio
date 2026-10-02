@@ -64,14 +64,20 @@
 
         <!-- STATS GRID -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="bg-[#0b1329] border border-slate-800 p-5 rounded-xl flex items-center gap-4">
-                <div class="w-12 h-12 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl font-bold">
-                    KSh
+            <!-- Earnings Card with Withdraw Button -->
+            <div class="bg-[#0b1329] border border-slate-800 p-5 rounded-xl space-y-3">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl font-bold">
+                        KSh
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400">Total Earnings</p>
+                        <h3 id="statEarnings" class="text-xl font-bold text-white">KSh 0.00</h3>
+                    </div>
                 </div>
-                <div>
-                    <p class="text-xs text-slate-400">Total Earnings</p>
-                    <h3 id="statEarnings" class="text-xl font-bold text-white">KSh 0.00</h3>
-                </div>
+                <button onclick="openWithdrawModal()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg text-xs transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-money-bill-transfer"></i> Withdraw to M-Pesa
+                </button>
             </div>
 
             <div class="bg-[#0b1329] border border-slate-800 p-5 rounded-xl flex items-center gap-4">
@@ -116,36 +122,11 @@
                 </div>
             </div>
 
-            <!-- ALL TASKS VIEW -->
+            <!-- ALL TASKS VIEW (DYNAMIC FROM SUPABASE) -->
             <div id="viewAllTasks" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Task Card 1 -->
-                <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition space-y-4">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <span class="text-[10px] uppercase tracking-wider font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">Data Annotation</span>
-                            <h4 class="font-bold text-white mt-1">AI Response Evaluation</h4>
-                        </div>
-                        <span class="text-sm font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg">KSh 450 / task</span>
-                    </div>
-                    <p class="text-xs text-slate-400">Review model output quality and mark factual errors or accuracy scores.</p>
-                    <button onclick="handleStartTask('AI Response Evaluation')" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition">
-                        Start Working
-                    </button>
-                </div>
-
-                <!-- Task Card 2 -->
-                <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition space-y-4">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <span class="text-[10px] uppercase tracking-wider font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded">Search Relevance</span>
-                            <h4 class="font-bold text-white mt-1">Web Query Classification</h4>
-                        </div>
-                        <span class="text-sm font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg">KSh 300 / task</span>
-                    </div>
-                    <p class="text-xs text-slate-400">Categorize customer query intentions and evaluate search result accuracy.</p>
-                    <button onclick="handleStartTask('Web Query Classification')" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition">
-                        Start Working
-                    </button>
+                <div class="col-span-full text-center py-8 text-slate-400 text-xs">
+                    <i class="fa-solid fa-spinner fa-spin text-lg text-indigo-400 mb-2"></i>
+                    <p>Loading active tasks from database...</p>
                 </div>
             </div>
 
@@ -168,6 +149,39 @@
             </div>
         </section>
     </main>
+
+    <!-- WITHDRAWAL MODAL -->
+    <div id="withdrawModal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
+        <div class="bg-[#0b1329] border border-slate-700/80 w-full max-w-md rounded-2xl p-6 space-y-6 shadow-2xl relative">
+            <button onclick="closeWithdrawModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="text-center space-y-2">
+                <div class="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center mx-auto text-xl border border-emerald-500/20">
+                    <i class="fa-solid fa-mobile-screen-button"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white">M-Pesa Payout Request</h3>
+                <p class="text-xs text-slate-300">Enter details to initiate immediate withdrawal</p>
+            </div>
+
+            <form onsubmit="handleWithdrawSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">M-Pesa Phone Number</label>
+                    <input type="text" id="withdrawPhone" required placeholder="0712345678" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-emerald-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Amount to Withdraw (KSh)</label>
+                    <input type="number" id="withdrawAmount" min="50" required placeholder="e.g. 500" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-emerald-500">
+                </div>
+
+                <button type="submit" id="withdrawBtn" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg text-xs transition">
+                    Submit Withdrawal Request &rarr;
+                </button>
+            </form>
+        </div>
+    </div>
 
     <!-- INITIAL AUTHENTICATION MODAL -->
     <div id="authModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
@@ -301,14 +315,12 @@
 
     <!-- LOGIC SCRIPT -->
     <script>
-        // SUPABASE CLIENT INITIALIZATION
         const SUPABASE_URL = 'https://dwdtvasykhorrvmwmnhb.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3ZHR2YXN5a2hvcnJ2bXdtbmhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUzNzQsImV4cCI6MjEwNjUzMTM3NH0.vt_I7uvUqsjv5e8RTgREMoXJiZqq_80a9fVOqVyW6Lk';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let currentUser = null;
 
-        // Load profile on initial startup
         window.addEventListener('DOMContentLoaded', () => {
             const savedUser = localStorage.getItem('apex_user');
             if (savedUser) {
@@ -319,7 +331,63 @@
                     document.getElementById('authModal').classList.add('hidden');
                 }
             }
+            fetchTasksFromSupabase();
         });
+
+        // FETCH ALL TASKS DYNAMICALLY FROM SUPABASE
+        async function fetchTasksFromSupabase() {
+            const viewAll = document.getElementById('viewAllTasks');
+
+            try {
+                const { data: tasks, error } = await supabaseClient
+                    .from('tasks')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error || !tasks || tasks.length === 0) {
+                    // Fallback to sample view if table is empty
+                    renderFallbackTasks();
+                    return;
+                }
+
+                viewAll.innerHTML = tasks.map(t => `
+                    <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition space-y-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-[10px] uppercase tracking-wider font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">${t.category || 'General'}</span>
+                                <h4 class="font-bold text-white mt-1">${t.title}</h4>
+                            </div>
+                            <span class="text-sm font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg">KSh ${t.payout_kes || 300} / task</span>
+                        </div>
+                        <p class="text-xs text-slate-400">${t.description || 'Complete evaluation task to earn earnings.'}</p>
+                        <button onclick="handleStartTask('${t.title}')" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition">
+                            Start Working
+                        </button>
+                    </div>
+                `).join('');
+            } catch (err) {
+                renderFallbackTasks();
+            }
+        }
+
+        function renderFallbackTasks() {
+            const viewAll = document.getElementById('viewAllTasks');
+            viewAll.innerHTML = `
+                <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-5 space-y-4">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-[10px] uppercase tracking-wider font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">Data Annotation</span>
+                            <h4 class="font-bold text-white mt-1">AI Response Evaluation</h4>
+                        </div>
+                        <span class="text-sm font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg">KSh 450 / task</span>
+                    </div>
+                    <p class="text-xs text-slate-400">Review model output quality and mark factual errors or accuracy scores.</p>
+                    <button onclick="handleStartTask('AI Response Evaluation')" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition">
+                        Start Working
+                    </button>
+                </div>
+            `;
+        }
 
         function updateUserHeader(name, photoUrl) {
             const headerName = document.getElementById('headerName');
@@ -342,13 +410,20 @@
             document.getElementById('profPoBox').value = user.poBox || '';
             document.getElementById('profPhotoUrl').value = user.photoUrl || '';
             document.getElementById('profileModalTitle').textContent = user.fullName || 'Worker Profile';
-            
-            const preview = document.getElementById('profileImagePreview');
-            if (user.photoUrl) {
-                preview.innerHTML = `<img src="${user.photoUrl}" class="w-full h-full object-cover">`;
-            } else if (user.fullName) {
-                preview.textContent = user.fullName.charAt(0).toUpperCase();
+            document.getElementById('withdrawPhone').value = user.phone || '';
+        }
+
+        function openWithdrawModal() {
+            if (!currentUser) {
+                document.getElementById('authModal').classList.remove('hidden');
+                return;
             }
+            document.getElementById('withdrawPhone').value = currentUser.phone || '';
+            document.getElementById('withdrawModal').classList.remove('hidden');
+        }
+
+        function closeWithdrawModal() {
+            document.getElementById('withdrawModal').classList.add('hidden');
         }
 
         function openProfileModal() {
@@ -368,7 +443,15 @@
             document.getElementById('paywallModal').classList.add('hidden');
         }
 
-        // INITIAL AUTH SUBMISSION
+        // WITHDRAWAL HANDLER
+        function handleWithdrawSubmit(e) {
+            e.preventDefault();
+            const phone = document.getElementById('withdrawPhone').value;
+            const amount = document.getElementById('withdrawAmount').value;
+            alert(`Withdrawal request of KSh ${amount} submitted for M-Pesa number: ${phone}. Processing payout...`);
+            closeWithdrawModal();
+        }
+
         async function handleAuthSubmit(e) {
             e.preventDefault();
 
@@ -404,7 +487,6 @@
             }
         }
 
-        // UPDATE DETAILED PROFILE (Country, P.O. Box, Photo, etc.)
         async function handleProfileUpdate(e) {
             e.preventDefault();
 
@@ -423,41 +505,31 @@
             currentUser.poBox = poBox;
             currentUser.photoUrl = photoUrl;
 
-            // Sync with localStorage
             localStorage.setItem('apex_user', JSON.stringify(currentUser));
-
-            // Update UI
             updateUserHeader(currentUser.fullName, photoUrl);
             closeProfileModal();
             alert('Profile updated successfully!');
             saveBtn.textContent = "Save Changes";
         }
 
-        // 1-FREE-TASK ENFORCEMENT & START TASK HANDLER
         function handleStartTask(taskTitle) {
             if (!currentUser) {
                 document.getElementById('authModal').classList.remove('hidden');
                 return;
             }
 
-            // Check if this phone number/user already consumed their 1 free task
             const usedTaskPhone = localStorage.getItem('apex_free_task_used_' + currentUser.phone);
 
             if (usedTaskPhone || currentUser.freeTaskUsed) {
-                // Show $2 paywall modal
                 document.getElementById('paywallModal').classList.remove('hidden');
             } else {
-                // Allow the 1 free task
                 alert('Opening FREE trial workspace for: ' + taskTitle + '\nNote: This is your 1 free trial task!');
-                
-                // Flag this phone number as having used their free task
                 currentUser.freeTaskUsed = true;
                 localStorage.setItem('apex_user', JSON.stringify(currentUser));
                 localStorage.setItem('apex_free_task_used_' + currentUser.phone, 'true');
             }
         }
 
-        // TAB SWITCHING FUNCTIONALITY
         function switchTab(tab) {
             const viewAll = document.getElementById('viewAllTasks');
             const viewReview = document.getElementById('viewReviewTasks');

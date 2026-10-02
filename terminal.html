@@ -1,357 +1,288 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Apex Task Studio - Admin Control Panel</title>
-  
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apex Task Studio — Admin Panel</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
-  <script>
-    const SECRET_PIN = "9999";
-    const SUPABASE_URL = 'https://dwdtvasykhorrvmwmnhb.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3ZHR2YXN5a2hvcnJ2bXdtbmhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUzNzQsImV4cCI6MjEwNjUzMTM3NH0.vt_I7uvUqsjv5e8RTgREMoXJiZqq_80a9fVOqVyW6Lk';
-    
-    const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-
-    const TASK_TEMPLATES = {
-      transcription: {
-        category: "Data Annotation",
-        payout: "3.50",
-        spots: "1",
-        timeLimit: "45 Mins",
-        desc: "Listen to the Safaricom audio recording and transcribe all dialogue accurately into the box."
-      },
-      evaluation: {
-        category: "AI Evaluation",
-        payout: "2.50",
-        spots: "10",
-        timeLimit: "30 Mins",
-        desc: "Compare AI response outputs and submit your reasoning."
-      },
-      annotation: {
-        category: "Data Annotation",
-        payout: "1.80",
-        spots: "25",
-        timeLimit: "30 Mins",
-        desc: "Draw bounding boxes on images and paste your completion code."
-      },
-      microtask: {
-        category: "Microtask",
-        payout: "1.00",
-        spots: "50",
-        timeLimit: "15 Mins",
-        desc: "Complete the short task and submit your completion proof link."
-      }
-    };
-
-    window.addEventListener('DOMContentLoaded', () => {
-      sessionStorage.removeItem('admin_authenticated');
-      const adminContent = document.getElementById('adminMainContent');
-      const pinModal = document.getElementById('pinGuardModal');
-
-      if (adminContent) adminContent.classList.add('hidden');
-      if (pinModal) pinModal.classList.remove('hidden');
-    });
-
-    function handlePinSubmit(e) {
-      e.preventDefault();
-      const inputPin = document.getElementById('adminPinInput')?.value;
-      const errorMessage = document.getElementById('pinErrorMessage');
-
-      if (inputPin === SECRET_PIN) {
-        sessionStorage.setItem('admin_authenticated', 'true');
-        document.getElementById('pinGuardModal')?.classList.add('hidden');
-        document.getElementById('adminMainContent')?.classList.remove('hidden');
-        loadDashboardData();
-      } else {
-        if (errorMessage) errorMessage.classList.remove('hidden');
-      }
-    }
-
-    function applyTemplate(type) {
-      const template = TASK_TEMPLATES[type];
-      if (!template) return;
-
-      document.getElementById('taskCategory').value = template.category;
-      document.getElementById('taskPayout').value = template.payout;
-      document.getElementById('taskSpots').value = template.spots;
-      document.getElementById('taskTimeLimit').value = template.timeLimit;
-      document.getElementById('taskDesc').value = template.desc;
-    }
-
-    async function loadDashboardData() {
-      if (!supabaseClient) return;
-      try {
-        const { data: tasks } = await supabaseClient.from('tasks').select('*');
-        if (tasks) document.getElementById('statTotalTasks').innerText = tasks.length;
-
-        const { data: submissions } = await supabaseClient.from('submissions').select('*');
-        if (submissions) document.getElementById('statPendingReviews').innerText = submissions.filter(s => s.status === 'pending').length;
-      } catch (err) {
-        console.log('Loading state:', err);
-      }
-    }
-
-    async function handleCreateTask(e) {
-      e.preventDefault();
-      const statusMsg = document.getElementById('taskStatusMsg');
-      statusMsg.className = "text-sm text-indigo-400 font-semibold";
-      statusMsg.innerText = "Publishing task...";
-      statusMsg.classList.remove('hidden');
-
-      const title = document.getElementById('taskTitle').value;
-      const description = document.getElementById('taskDesc').value;
-      const payout = parseFloat(document.getElementById('taskPayout').value);
-      const spots = parseInt(document.getElementById('taskSpots').value);
-      const time_limit = document.getElementById('taskTimeLimit').value;
-      const category = document.getElementById('taskCategory').value;
-
-      try {
-        const { error } = await supabaseClient
-          .from('tasks')
-          .insert([{ title, description, payout, spots_available: spots, time_limit, category, status: 'active' }]);
-
-        if (error) throw error;
-
-        statusMsg.className = "text-sm text-emerald-400 font-semibold";
-        statusMsg.innerText = "Task published successfully!";
-        document.getElementById('createTaskForm').reset();
-        loadDashboardData();
-      } catch (err) {
-        statusMsg.className = "text-sm text-rose-400 font-semibold";
-        statusMsg.innerText = "Error: " + err.message;
-      }
-    }
-
-    function toggleProofView(id) {
-      const el = document.getElementById(`proofBox-${id}`);
-      if (el) el.classList.toggle('hidden');
-    }
-
-    async function handleReview(submissionId, action) {
-      alert(`Submission #${submissionId} ${action === 'accept' ? 'APPROVED ($ payout released)' : 'REJECTED'}.`);
-    }
-  </script>
+  <style>
+    body { background: #0a0f1a; color: #e5e7eb; font-family: system-ui, -apple-system, sans-serif; }
+    .glass { background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.06); }
+    .card-glow { box-shadow: 0 4px 24px rgba(0,0,0,0.4); }
+    .btn-primary { background: #10b981; color: #022c22; font-weight: 600; transition: all 0.2s; }
+    .btn-primary:hover { background: #059669; transform: translateY(-1px); }
+    .btn-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); transition: all 0.2s; }
+    .btn-danger:hover { background: rgba(239, 68, 68, 0.25); }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 1rem; }
+    .modal-content { background: #111827; border: 1px solid rgba(255,255,255,0.08); border-radius: 1rem; max-width: 480px; width: 100%; padding: 1.5rem; max-height: 90vh; overflow-y: auto; }
+    .hidden { display: none !important; }
+    .input-field { width: 100%; padding: 0.75rem; border-radius: 0.5rem; background: rgba(0,0,0,0.3); border: 1px solid #374151; color: white; font-size: 0.875rem; outline: none; transition: border-color 0.2s; }
+    .input-field:focus { border-color: #10b981; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    th, td { padding: 0.75rem 0.5rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    th { color: #9ca3af; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.65rem; }
+    .badge { font-size: 0.65rem; padding: 0.2rem 0.6rem; border-radius: 9999px; font-weight: 600; }
+    .loading-spinner { border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid #10b981; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; margin: 0 auto; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-8">
+<body>
 
-  <!-- PIN GUARD MODAL -->
-  <div id="pinGuardModal" class="fixed inset-0 bg-black/85 flex items-center justify-center z-50 p-4">
-    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center">
-      <div class="w-12 h-12 bg-indigo-600/20 text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-indigo-500/30">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-      </div>
-      <h2 class="text-xl font-bold text-white mb-1">Admin Terminal Access</h2>
-      <p class="text-xs text-slate-400 mb-6">Enter PIN to access owner control panel.</p>
-      
-      <form onsubmit="handlePinSubmit(event)" class="space-y-4">
-        <input 
-          type="password" 
-          id="adminPinInput" 
-          maxlength="4" 
-          placeholder="••••" 
-          required 
-          class="w-full text-center text-3xl tracking-widest bg-slate-900 border border-slate-700 rounded-xl py-3 text-white focus:outline-none focus:border-indigo-500 font-mono"
-        />
-        <p id="pinErrorMessage" class="text-rose-400 text-xs hidden font-medium">Invalid PIN. Try again.</p>
-        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl transition-colors shadow-lg shadow-indigo-600/30">
-          Unlock Terminal
-        </button>
-      </form>
+  <!-- ============ ALERT MODAL ============ -->
+  <div id="alertModal" class="modal-overlay hidden">
+    <div class="modal-content text-center">
+      <p id="alertMessage" class="text-base mb-4">Done!</p>
+      <button onclick="closeModal('alertModal')" class="btn-primary w-full py-2 rounded-lg text-sm">OK</button>
     </div>
   </div>
 
-  <!-- MAIN ADMIN DASHBOARD -->
-  <div id="adminMainContent" class="hidden max-w-7xl mx-auto space-y-8">
-    
-    <!-- HEADER -->
-    <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 backdrop-blur">
-      <div>
-        <div class="flex items-center gap-3">
-          <h1 class="text-2xl font-bold text-white">Admin Control Panel</h1>
-          <span class="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs px-3 py-0.5 rounded-full font-mono">v2.2</span>
-        </div>
-        <p class="text-sm text-slate-400 mt-1">Apex Task Studio • Live Operations</p>
+  <!-- ============ CONFIRM MODAL ============ -->
+  <div id="confirmModal" class="modal-overlay hidden">
+    <div class="modal-content text-center">
+      <p id="confirmMessage" class="text-base mb-4">Are you sure?</p>
+      <div class="flex gap-3">
+        <button id="confirmYes" class="btn-primary flex-1 py-2 rounded-lg text-sm">Yes</button>
+        <button onclick="closeModal('confirmModal')" class="btn-ghost flex-1 py-2 rounded-lg text-sm">Cancel</button>
       </div>
+    </div>
+  </div>
 
-      <div class="flex items-center gap-3 bg-slate-900/80 border border-slate-700/60 px-4 py-2.5 rounded-xl">
-        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow">
-          K
+  <!-- ============ MAIN ============ -->
+  <div class="max-w-5xl mx-auto p-4 pb-16">
+
+    <!-- HEADER -->
+    <header class="flex flex-wrap items-center justify-between gap-3 mb-6">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">⚡</span>
+          <h1 class="text-xl font-bold tracking-tight">APEX TASK STUDIO</h1>
+          <span class="badge bg-emerald-900/50 text-emerald-400">ADMIN</span>
         </div>
-        <div>
-          <p class="text-sm font-semibold text-white leading-tight">Khan</p>
-          <p class="text-xs text-emerald-400 flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Owner / Super Admin
-          </p>
-        </div>
+        <p class="text-xs text-gray-500">Manage tasks, workers, and payouts</p>
       </div>
+      <a href="index.html" class="btn-ghost px-4 py-2 rounded-lg text-xs">← Back to Worker Portal</a>
     </header>
 
-    <!-- METRICS CARDS -->
-    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5">
-        <p class="text-xs font-medium text-slate-400">Total System Net Profit</p>
-        <p class="text-2xl font-bold text-emerald-400 mt-2 font-mono">$1,248.50</p>
+    <!-- STATS ROW -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+      <div class="glass rounded-xl p-4 card-glow">
+        <p class="text-xs text-gray-500 uppercase tracking-wider">Total Tasks Posted</p>
+        <p class="text-3xl font-bold mt-1" id="statTotalTasks">—</p>
       </div>
-      <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5">
-        <p class="text-xs font-medium text-slate-400">Pending Reviews</p>
-        <p id="statPendingReviews" class="text-2xl font-bold text-amber-400 mt-2 font-mono">2</p>
+      <div class="glass rounded-xl p-4 card-glow">
+        <p class="text-xs text-gray-500 uppercase tracking-wider">Active Tasks</p>
+        <p class="text-3xl font-bold mt-1 text-emerald-400" id="statActiveTasks">—</p>
       </div>
-      <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5">
-        <p class="text-xs font-medium text-slate-400">Active Tasks Published</p>
-        <p id="statTotalTasks" class="text-2xl font-bold text-indigo-400 mt-2 font-mono">14</p>
+      <div class="glass rounded-xl p-4 card-glow">
+        <p class="text-xs text-gray-500 uppercase tracking-wider">Locked Tasks</p>
+        <p class="text-3xl font-bold mt-1 text-amber-400" id="statLockedTasks">—</p>
       </div>
-      <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5">
-        <p class="text-xs font-medium text-slate-400">Worker Payouts Completed</p>
-        <p class="text-2xl font-bold text-sky-400 mt-2 font-mono">$3,890.00</p>
-      </div>
-    </section>
-
-    <!-- DASHBOARD CONTENT GRID -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      
-      <!-- LEFT: CREATE TASK FORM -->
-      <section class="lg:col-span-5 bg-slate-800/60 border border-slate-700/60 rounded-2xl p-6 space-y-4">
-        <h2 class="text-lg font-bold text-white">Post New Task</h2>
-        
-        <div class="grid grid-cols-2 gap-2">
-          <button type="button" onclick="applyTemplate('transcription')" class="bg-slate-900 hover:bg-slate-700 border border-slate-700 text-xs text-indigo-300 py-2 px-3 rounded-xl font-medium">
-            🎙️ Transcription
-          </button>
-          <button type="button" onclick="applyTemplate('evaluation')" class="bg-slate-900 hover:bg-slate-700 border border-slate-700 text-xs text-amber-300 py-2 px-3 rounded-xl font-medium">
-            🤖 AI Evaluation
-          </button>
-        </div>
-
-        <form id="createTaskForm" onsubmit="handleCreateTask(event)" class="space-y-4 pt-2">
-          <div>
-            <label class="block text-xs text-slate-400 mb-1">Task Title</label>
-            <input type="text" id="taskTitle" required placeholder="e.g. Safaricom Call Transcription #014" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs text-slate-400 mb-1">Category</label>
-              <select id="taskCategory" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
-                <option value="Data Annotation">Data Annotation</option>
-                <option value="AI Evaluation">AI Evaluation</option>
-                <option value="Microtask">Microtask</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs text-slate-400 mb-1">Payout ($)</label>
-              <input type="number" step="0.01" id="taskPayout" required placeholder="3.50" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs text-slate-400 mb-1">Spots Available</label>
-              <input type="number" id="taskSpots" required placeholder="25" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
-            </div>
-            <div>
-              <label class="block text-xs text-slate-400 mb-1">Timeline Deadline</label>
-              <select id="taskTimeLimit" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
-                <option value="15 Mins">15 Mins</option>
-                <option value="30 Mins">30 Mins</option>
-                <option value="45 Mins">45 Mins</option>
-                <option value="60 Mins">1 Hour</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs text-slate-400 mb-1">Instructions</label>
-            <textarea id="taskDesc" rows="3" required placeholder="Describe steps..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500"></textarea>
-          </div>
-
-          <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl transition-colors">
-            Publish Task
-          </button>
-        </form>
-      </section>
-
-      <!-- RIGHT: SUBMISSION REVIEW WITH INLINE TRANSCRIPT/WORK TEXT BOX -->
-      <section class="lg:col-span-7 bg-slate-800/60 border border-slate-700/60 rounded-2xl p-6">
-        <h2 class="text-lg font-bold text-white mb-4">Review Worker Submissions</h2>
-
-        <div class="space-y-4">
-          
-          <!-- SUBMISSION ITEM 1 (Safaricom Transcription Example) -->
-          <div class="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-4 space-y-3">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="font-bold text-white text-sm">Alex M. <span class="text-xs font-normal text-slate-400">(Worker)</span></p>
-                <p class="text-xs text-indigo-400">Safaricom Customer Care Call Transcription</p>
-              </div>
-              <div class="text-right">
-                <span class="text-emerald-400 font-mono font-bold">$3.50</span>
-                <p class="text-xs text-slate-500">Submitted 10m ago</p>
-              </div>
-            </div>
-
-            <!-- BUTTON TO TOGGLE/READ FULL WORK TRANSCRIPT -->
-            <button onclick="toggleProofView('101')" class="text-xs text-indigo-300 hover:text-indigo-200 underline font-medium flex items-center gap-1">
-              🔍 View / Read Transcribed Submission Text
-            </button>
-
-            <!-- SUBMISSION TEXT BOX (INSPECT TRANSCRIPT HERE) -->
-            <div id="proofBox-101" class="hidden bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-300 font-mono space-y-1">
-              <p class="text-slate-500 text-[10px] uppercase font-sans font-bold border-b border-slate-800 pb-1 mb-1">Submitted Text Content:</p>
-              <p><strong>Agent:</strong> Habari, karibu Safaricom customer care, naitwa Mercy. Ningekusaidia vipi leo?</p>
-              <p><strong>Customer:</strong> Mambo, nilikuwa nataka kujua balance ya M-PESA yangu au kwanini statement haijaingia kwa email.</p>
-              <p><strong>Agent:</strong> Pole sana kwa hiyo changamoto. Nipe namba yako ya kitambulisho nikuangalie mtandao...</p>
-            </div>
-
-            <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
-              <button onclick="handleReview(101, 'reject')" class="bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30 text-xs px-3 py-1.5 rounded-xl font-medium transition-colors">
-                Reject
-              </button>
-              <button onclick="handleReview(101, 'accept')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-4 py-1.5 rounded-xl font-medium transition-colors shadow">
-                Accept & Pay Worker
-              </button>
-            </div>
-          </div>
-
-          <!-- SUBMISSION ITEM 2 -->
-          <div class="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-4 space-y-3">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="font-bold text-white text-sm">Sarah K. <span class="text-xs font-normal text-slate-400">(Worker)</span></p>
-                <p class="text-xs text-amber-400">AI Chatbot Response Evaluation</p>
-              </div>
-              <div class="text-right">
-                <span class="text-emerald-400 font-mono font-bold">$2.50</span>
-                <p class="text-xs text-slate-500">Submitted 25m ago</p>
-              </div>
-            </div>
-
-            <button onclick="toggleProofView('102')" class="text-xs text-indigo-300 hover:text-indigo-200 underline font-medium flex items-center gap-1">
-              🔍 View / Read Transcribed Submission Text
-            </button>
-
-            <div id="proofBox-102" class="hidden bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-300 font-mono space-y-1">
-              <p class="text-slate-500 text-[10px] uppercase font-sans font-bold border-b border-slate-800 pb-1 mb-1">Submitted Text Content:</p>
-              <p>Model A provided a clearer step-by-step resolution without repeating irrelevant background info. Model B was overly robotic and missed the security guideline query.</p>
-            </div>
-
-            <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
-              <button onclick="handleReview(102, 'reject')" class="bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30 text-xs px-3 py-1.5 rounded-lg font-medium transition-colors">
-                Reject
-              </button>
-              <button onclick="handleReview(102, 'accept')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-4 py-1.5 rounded-lg font-medium transition-colors shadow">
-                Accept & Pay Worker
-              </button>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
     </div>
+
+    <!-- POST NEW JOB FORM -->
+    <div class="glass rounded-xl p-5 card-glow mb-6">
+      <h2 class="text-lg font-bold mb-4">📝 Post New Job</h2>
+      <form id="postJobForm" class="space-y-3">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Task Title</label>
+            <input type="text" id="jobTitle" placeholder="e.g. Rate AI Chatbot Response" required class="input-field" />
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Category</label>
+            <select id="jobCategory" class="input-field">
+              <option value="Data Annotation">Data Annotation</option>
+              <option value="Transcription">Transcription</option>
+              <option value="AI Evaluation">AI Evaluation</option>
+              <option value="Microtask">Microtask</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Payout (USD)</label>
+            <input type="number" id="jobPayout" placeholder="1.50" step="0.01" min="0.10" required class="input-field" />
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Estimated Time (minutes)</label>
+            <input type="number" id="jobTime" placeholder="10" min="1" required class="input-field" />
+          </div>
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">Description</label>
+          <textarea id="jobDescription" rows="3" placeholder="Describe what the worker needs to do..." required class="input-field"></textarea>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
+          <div class="flex items-center gap-3">
+            <input type="checkbox" id="jobLocked" class="w-4 h-4 accent-emerald-500" onchange="toggleLockFee()" />
+            <label for="jobLocked" class="text-sm text-gray-300">Locked / Premium Task</label>
+          </div>
+          <div id="lockFeeContainer" class="hidden">
+            <label class="text-xs text-gray-400 block mb-1">Unlock Fee (USD)</label>
+            <input type="number" id="jobFee" placeholder="1.50" step="0.01" min="0" class="input-field" />
+          </div>
+        </div>
+        <button type="submit" class="btn-primary w-full py-3 rounded-lg text-sm mt-2">🚀 Post Job to Workers</button>
+      </form>
+    </div>
+
+    <!-- TASK LIST TABLE -->
+    <div class="glass rounded-xl p-5 card-glow">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-bold">📋 All Tasks</h2>
+        <button onclick="loadTasks()" class="btn-ghost px-3 py-1.5 rounded-lg text-xs">🔄 Refresh</button>
+      </div>
+      <div id="adminTaskList">
+        <div class="text-center py-12"><div class="loading-spinner"></div><p class="text-sm text-gray-500 mt-3">Loading tasks...</p></div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="text-center text-xs text-gray-600 border-t border-gray-800 pt-6 mt-8">
+      <p>© 2026 Apex Task Studio — Admin Panel</p>
+    </footer>
   </div>
 
+  <script>
+    const SUPABASE_URL = 'https://dwdtvasykhorrvmwmnhb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3ZHR2YXN5a2hvcnJ2bXdtbmhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUzNzQsImV4cCI6MjEwNjUzMTM3NH0.vt_I7uvUqsjv5e8RTgREMoXJiZqq_80a9fVOqVyW6Lk';
+    const { createClient } = supabase;
+    const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    function showAlert(msg) {
+      document.getElementById('alertMessage').textContent = msg;
+      openModal('alertModal');
+    }
+    function toggleLockFee() {
+      const locked = document.getElementById('jobLocked').checked;
+      const container = document.getElementById('lockFeeContainer');
+      if (locked) container.classList.remove('hidden');
+      else container.classList.add('hidden');
+    }
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.classList.add('hidden');
+      });
+    });
+
+    async function loadTasks() {
+      const container = document.getElementById('adminTaskList');
+      container.innerHTML = '<div class="text-center py-12"><div class="loading-spinner"></div><p class="text-sm text-gray-500 mt-3">Loading tasks...</p></div>';
+      try {
+        const { data, error } = await db
+          .from('tasks')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+
+        document.getElementById('statTotalTasks').textContent = data.length;
+        document.getElementById('statActiveTasks').textContent = data.filter(t => t.status === 'active').length;
+        document.getElementById('statLockedTasks').textContent = data.filter(t => t.is_locked).length;
+
+        if (!data || data.length === 0) {
+          container.innerHTML = '<p class="text-center text-gray-500 py-8 text-sm">No tasks posted yet. Use the form above to add your first job.</p>';
+          return;
+        }
+        container.innerHTML = `
+          <div class="overflow-x-auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Category</th>
+                  <th>Payout</th>
+                  <th>Time</th>
+                  <th>Locked</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${data.map(t => `
+                  <tr>
+                    <td class="text-gray-200 font-medium">${t.title || '—'}</td>
+                    <td><span class="badge bg-emerald-900/40 text-emerald-400">${t.category || '—'}</span></td>
+                    <td class="text-emerald-400 font-bold">$${parseFloat(t.payout || 0).toFixed(2)}</td>
+                    <td class="text-gray-400">${t.time || '—'} min</td>
+                    <td>${t.is_locked ? `<span class="badge bg-amber-900/40 text-amber-400">🔒 $${parseFloat(t.lock_fee || 0).toFixed(2)}</span>` : '<span class="text-gray-500 text-xs">Free</span>'}</td>
+                    <td><button onclick="deleteTask('${t.id}')" class="btn-danger px-3 py-1 rounded-md text-xs">Delete</button></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      } catch (err) {
+        console.error('Load tasks error:', err);
+        container.innerHTML = `<p class="text-center text-red-400 py-8 text-sm">Failed to load tasks.<br><span class="text-gray-500 text-xs">${err.message}</span></p>`;
+      }
+    }
+
+    document.getElementById('postJobForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('jobTitle').value.trim();
+      const category = document.getElementById('jobCategory').value;
+      const payout = parseFloat(document.getElementById('jobPayout').value);
+      const time = parseInt(document.getElementById('jobTime').value);
+      const description = document.getElementById('jobDescription').value.trim();
+      const is_locked = document.getElementById('jobLocked').checked;
+      const lock_fee = is_locked ? parseFloat(document.getElementById('jobFee').value) || 0 : 0;
+
+      if (!title || !description || !payout || !time) {
+        showAlert('Please fill in all required fields.');
+        return;
+      }
+      if (is_locked && lock_fee <= 0) {
+        showAlert('Please enter a valid unlock fee for locked tasks.');
+        return;
+      }
+
+      const payload = {
+        title,
+        category,
+        payout,
+        time,
+        description,
+        is_locked,
+        lock_fee,
+        status: 'active'
+      };
+
+      try {
+        const { error } = await db.from('tasks').insert([payload]);
+        if (error) throw error;
+        showAlert('✅ Job posted successfully! It will now appear on the worker portal.');
+        document.getElementById('postJobForm').reset();
+        toggleLockFee();
+        loadTasks();
+      } catch (err) {
+        console.error('Post job error:', err);
+        showAlert('❌ Failed to post job: ' + err.message);
+      }
+    });
+
+    function deleteTask(id) {
+      document.getElementById('confirmMessage').textContent = 'Delete this task? Workers will no longer see it.';
+      document.getElementById('confirmModal').classList.remove('hidden');
+      document.getElementById('confirmYes').onclick = async () => {
+        closeModal('confirmModal');
+        try {
+          const { error } = await db.from('tasks').delete().eq('id', id);
+          if (error) throw error;
+          showAlert('✅ Task deleted successfully.');
+          loadTasks();
+        } catch (err) {
+          console.error('Delete error:', err);
+          showAlert('❌ Failed to delete task: ' + err.message);
+        }
+      };
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadTasks();
+    });
+  </script>
 </body>
 </html>

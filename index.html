@@ -13,7 +13,6 @@
     .badge { font-size: 0.65rem; padding: 0.2rem 0.6rem; border-radius: 9999px; font-weight: 600; letter-spacing: 0.02em; }
     .btn-primary { background: #10b981; color: #022c22; font-weight: 600; transition: all 0.2s; }
     .btn-primary:hover { background: #059669; transform: translateY(-1px); }
-    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
     .btn-ghost { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); transition: all 0.2s; }
     .btn-ghost:hover { background: rgba(255,255,255,0.1); }
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 1rem; }
@@ -31,6 +30,8 @@
     table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
     th, td { padding: 0.6rem 0.5rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
     th { color: #9ca3af; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.65rem; }
+    .loading-spinner { border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid #10b981; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; margin: 0 auto; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -81,11 +82,11 @@
         </div>
         <div>
           <h3 class="font-semibold text-emerald-400 mb-1">📌 Task Rejections</h3>
-          <p class="text-gray-400">If your task is rejected, you will be notified. You can resubmit with corrections. Repeated rejections may affect your rank.</p>
+          <p class="text-gray-400">If your task is rejected, you will be notified. You can resubmit with corrections.</p>
         </div>
         <div>
           <h3 class="font-semibold text-emerald-400 mb-1">📌 Unlocking Tiers</h3>
-          <p class="text-gray-400">Your first task is free. Subsequent tasks require a small activation fee ($1.50–$2.00) via M-Pesa STK Push to unlock premium work.</p>
+          <p class="text-gray-400">Your first task is free. Subsequent tasks require a small activation fee ($1.50–$2.00) via M-Pesa STK Push.</p>
         </div>
         <div class="pt-2 border-t border-gray-800">
           <a href="https://wa.me/254107246326" target="_blank" class="btn-primary w-full py-3 rounded-lg text-sm flex items-center justify-center gap-2">
@@ -113,12 +114,23 @@
       </div>
       <p class="text-sm text-gray-400 mb-3" id="stkDescription">Enter your M-Pesa number to receive an STK Push prompt.</p>
       <input type="tel" id="stkPhone" placeholder="07XX XXX XXX" class="w-full p-3 rounded-lg bg-black/30 border border-gray-700 text-white text-sm focus:border-emerald-500 outline-none mb-3" />
-      <div id="customDepositInput" class="hidden mb-3">
-        <label class="text-xs text-gray-400 block mb-1">Deposit Amount (USD)</label>
-        <input type="number" id="stkCustomAmount" min="1" step="0.5" value="1.00" class="w-full p-3 rounded-lg bg-black/30 border border-gray-700 text-white text-sm focus:border-emerald-500 outline-none" />
-      </div>
       <p id="stkAmountText" class="text-xs text-gray-500 mb-3">Amount: —</p>
       <button id="stkConfirmBtn" class="btn-primary w-full py-3 rounded-lg text-sm">Send STK Push</button>
+    </div>
+  </div>
+
+  <!-- ============ DEPOSIT MODAL ============ -->
+  <div id="depositModal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-bold">➕ Deposit Funds</h2>
+        <button onclick="closeModal('depositModal')" class="text-gray-400 hover:text-white text-xl">&times;</button>
+      </div>
+      <label class="text-xs text-gray-400 block mb-1">Amount (USD) — Minimum $1.00</label>
+      <input type="number" id="depositAmountInput" placeholder="1.00" step="0.01" min="1" class="w-full p-3 rounded-lg bg-black/30 border border-gray-700 text-white text-sm focus:border-emerald-500 outline-none mb-3" />
+      <label class="text-xs text-gray-400 block mb-1">M-Pesa Number</label>
+      <input type="tel" id="depositPhoneInput" placeholder="07XX XXX XXX" class="w-full p-3 rounded-lg bg-black/30 border border-gray-700 text-white text-sm focus:border-emerald-500 outline-none mb-3" />
+      <button onclick="processDeposit()" class="btn-primary w-full py-3 rounded-lg text-sm">Deposit via M-Pesa</button>
     </div>
   </div>
 
@@ -190,8 +202,8 @@
       <button onclick="setCategory('All')" id="catAll" class="px-3 py-1.5 rounded-full text-xs border border-white/10 filter-active whitespace-nowrap">All</button>
       <button onclick="setCategory('Data Annotation')" id="catData" class="px-3 py-1.5 rounded-full text-xs border border-white/10 whitespace-nowrap">Data Annotation</button>
       <button onclick="setCategory('Transcription')" id="catTrans" class="px-3 py-1.5 rounded-full text-xs border border-white/10 whitespace-nowrap">Transcription</button>
-      <button onclick="setCategory('AI Evaluation')" id="catAI" class="px-3 py-1.5 rounded-full text-xs border border-white/10 whitespace-nowrap">AI Evaluation 🚀</button>
-      <button onclick="setCategory('Microtask')" id="catMicro" class="px-3 py-1.5 rounded-full text-xs border border-white/10 whitespace-nowrap">Microtask 🚀</button>
+      <button onclick="setCategory('AI Evaluation')" id="catAI" class="px-3 py-1.5 rounded-full text-xs border border-white/10 whitespace-nowrap">AI Evaluation</button>
+      <button onclick="setCategory('Microtask')" id="catMicro" class="px-3 py-1.5 rounded-full text-xs border border-white/10 whitespace-nowrap">Microtask</button>
     </div>
 
     <!-- TASK WORKSTATION -->
@@ -199,7 +211,7 @@
     <p id="workstationSubtitle" class="text-sm text-gray-500 mb-4">Select an assigned project task, execute work, and submit for QA verification.</p>
 
     <div id="taskList" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-      <!-- Task cards rendered by JS -->
+      <div class="col-span-2 text-center py-12"><div class="loading-spinner"></div><p class="text-sm text-gray-500 mt-3">Loading tasks...</p></div>
     </div>
 
     <!-- WITHDRAWAL PANEL -->
@@ -234,13 +246,11 @@
   </button>
 
   <script>
-    // ============ SUPABASE INIT ============
     const SUPABASE_URL = 'https://dwdtvasykhorrvmwmnhb.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3ZHR2YXN5a2hvcnJ2bXdtbmhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUzNzQsImV4cCI6MjEwNjUzMTM3NH0.vt_I7uvUqsjv5e8RTgREMoXJiZqq_80a9fVOqVyW6Lk';
     const { createClient } = supabase;
     const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // ============ STATE ============
     let currentCurrency = 'USD';
     const RATES = { USD: 1, KES: 129.5, EUR: 0.92 };
     const SYMBOLS = { USD: '$', KES: 'KSh ', EUR: '€' };
@@ -250,15 +260,47 @@
     let unlockedTasks = JSON.parse(localStorage.getItem('apexUnlocked')) || [];
     let walletBalance = 12.50;
     let pendingStkAction = null;
+    let TASKS = [];
 
-    // ============ TASK DATA ============
-    const TASKS = [
-      { id: 2, title: 'Kenyan English Customer Support Call', category: 'Transcription', payout: 1.80, time: 15, description: 'Listen to a 1.5 minute customer care recording and transcribe the conversation verbatim into English.', locked: false, fee: 0, hasFile: true },
-      { id: 3, title: 'Extract Tech Lead Contact Information', category: 'Data Annotation', payout: 0.90, time: 8, description: 'Locate official contact email addresses and LinkedIn profile URLs for 5 specified tech business entries.', locked: true, fee: 2.00, hasFile: true },
-      { id: 5, title: 'Verify Business Hours Listing', category: 'Data Annotation', payout: 0.75, time: 6, description: 'Cross-check 15 business listings on Google Maps and confirm if their operating hours are accurate.', locked: true, fee: 1.50 }
+    const FALLBACK_TASKS = [
+      { id: 1, title: 'Rate AI Chatbot Response Quality', category: 'AI Evaluation', payout: 1.20, time: 10, description: 'Compare two generated AI responses for legal accuracy, tone, and conciseness.', locked: false, fee: 0 },
+      { id: 2, title: 'Kenyan English Customer Support Call', category: 'Transcription', payout: 1.80, time: 15, description: 'Listen to a 1.5 minute customer care recording and transcribe the conversation verbatim.', locked: true, fee: 1.50, hasFile: true },
+      { id: 3, title: 'Extract Tech Lead Contact Information', category: 'Data Annotation', payout: 0.90, time: 8, description: 'Locate official contact email addresses and LinkedIn profile URLs for 5 specified entries.', locked: true, fee: 2.00, hasFile: true }
     ];
 
-    // ============ CURRENCY ============
+    async function fetchTasks() {
+      const container = document.getElementById('taskList');
+      container.innerHTML = '<div class="col-span-2 text-center py-12"><div class="loading-spinner"></div><p class="text-sm text-gray-500 mt-3">Loading tasks...</p></div>';
+      try {
+        const { data, error } = await db
+          .from('tasks')
+          .select('*')
+          .eq('status', 'active')
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        if (!data || data.length === 0) {
+          TASKS = FALLBACK_TASKS;
+        } else {
+          TASKS = data.map(t => ({
+            id: t.id,
+            title: t.title || 'Untitled Task',
+            category: t.category || 'Microtask',
+            payout: parseFloat(t.payout) || 0,
+            time: t.time || 10,
+            description: t.description || 'No description provided.',
+            locked: t.is_locked || false,
+            fee: parseFloat(t.lock_fee) || 0,
+            hasFile: t.category === 'Transcription' || t.category === 'Data Annotation'
+          }));
+        }
+        renderTasks();
+      } catch (err) {
+        console.warn('Supabase fetch failed, using fallback:', err);
+        TASKS = FALLBACK_TASKS;
+        renderTasks();
+      }
+    }
+
     function convert(usd) {
       const rate = RATES[currentCurrency] || 1;
       return (usd * rate).toFixed(2);
@@ -280,7 +322,6 @@
       document.getElementById('balanceDisplay').textContent = format(walletBalance);
     }
 
-    // ============ TABS & FILTERS ============
     function setTab(tab) {
       currentTab = tab;
       ['available', 'completed', 'review', 'history'].forEach(t => {
@@ -291,7 +332,6 @@
           el.className = 'px-4 py-2 whitespace-nowrap text-gray-400 hover:text-white';
         }
       });
-
       const catFilters = document.getElementById('categoryFilters');
       const wsTitle = document.getElementById('workstationTitle');
       const wsSub = document.getElementById('workstationSubtitle');
@@ -314,6 +354,7 @@
       }
       renderTasks();
     }
+
     function setCategory(cat) {
       currentCategory = cat;
       const ids = ['catAll', 'catData', 'catTrans', 'catAI', 'catMicro'];
@@ -328,11 +369,10 @@
       renderTasks();
     }
 
-    // ============ DOWNLOAD HANDLER ============
     function downloadFile(taskId) {
       const task = TASKS.find(t => t.id === taskId);
       if (!task) return;
-      const content = `Apex Task Studio — Task Dataset\nTask: ${task.title}\nCategory: ${task.category}\n\nThis is a sample dataset/media file for the task. In production, this would be an audio recording or image dataset.`;
+      const content = `Apex Task Studio — Task Dataset\nTask: ${task.title}\nCategory: ${task.category}\n\nSample media file.`;
       const blob = new Blob([content], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -342,26 +382,13 @@
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      showAlert('📥 Dataset file downloaded to your device!');
+      showAlert('📥 File downloaded! Save it locally to complete your task.');
     }
 
-    // ============ RENDER TASKS ============
     function renderTasks() {
       const container = document.getElementById('taskList');
 
       if (currentTab === 'available') {
-        if (currentCategory === 'AI Evaluation' || currentCategory === 'Microtask') {
-          container.innerHTML = `
-            <div class="col-span-2 glass rounded-xl p-8 card-glow text-center">
-              <div class="text-4xl mb-3">🚀</div>
-              <h3 class="text-lg font-bold text-white mb-1">${currentCategory} Tasks Coming Soon!</h3>
-              <p class="text-xs text-gray-400 max-w-md mx-auto mb-4">We are onboarding high-tier AI model evaluation datasets and side-by-side comparison tasks. Check back soon for new batches.</p>
-              <button onclick="setCategory('All')" class="btn-primary px-4 py-2 rounded-lg text-xs">View Available Tasks</button>
-            </div>
-          `;
-          return;
-        }
-
         let list = TASKS;
         if (currentCategory !== 'All') list = list.filter(t => t.category === currentCategory);
         if (list.length === 0) {
@@ -381,12 +408,12 @@
               <div class="flex justify-between items-center">
                 <span class="text-sm font-bold text-emerald-400">${format(task.payout)}</span>
                 ${isUnlocked
-                  ? `<button onclick="openSubmission(${task.id})" class="btn-primary px-4 py-1.5 rounded-lg text-xs">Start Task →</button>`
-                  : `<button onclick="unlockTask(${task.id})" class="btn-ghost px-4 py-1.5 rounded-lg text-xs border-amber-500/30 text-amber-400">🔒 Unlock ${format(task.fee)}</button>`
+                  ? `<button onclick="openSubmission('${task.id}')" class="btn-primary px-4 py-1.5 rounded-lg text-xs">Start Task →</button>`
+                  : `<button onclick="unlockTask('${task.id}')" class="btn-ghost px-4 py-1.5 rounded-lg text-xs border-amber-500/30 text-amber-400">🔒 Unlock ${format(task.fee)}</button>`
                 }
               </div>
               ${task.hasFile ? `
-                <button onclick="downloadFile(${task.id})" class="mt-3 w-full btn-ghost py-2 rounded-lg text-xs flex items-center justify-center gap-2">
+                <button onclick="downloadFile('${task.id}')" class="mt-3 w-full btn-ghost py-2 rounded-lg text-xs flex items-center justify-center gap-2">
                   📥 Download Audio/Dataset File
                 </button>
               ` : ''}
@@ -394,12 +421,12 @@
                 <div class="task-locked-overlay">
                   <p class="text-sm font-bold text-amber-400 mb-1">🔒 Task Locked</p>
                   <p class="text-xs text-gray-400 mb-3">Pay activation fee via M-Pesa STK Push</p>
-                  <button onclick="unlockTask(${task.id})" class="btn-primary px-4 py-2 rounded-lg text-xs">Unlock for ${format(task.fee)}</button>
+                  <button onclick="unlockTask('${task.id}')" class="btn-primary px-4 py-2 rounded-lg text-xs">Unlock for ${format(task.fee)}</button>
                 </div>
               ` : ''}
               <div id="submissionArea${task.id}" class="mt-3 hidden">
-                <textarea id="proof${task.id}" rows="3" placeholder="Paste your transcript or proof of work here..." class="w-full p-2.5 rounded-lg bg-black/30 border border-gray-700 text-white text-xs focus:border-emerald-500 outline-none"></textarea>
-                <button onclick="submitProof(${task.id})" class="btn-primary w-full mt-2 py-2 rounded-lg text-xs">Submit Task Proof</button>
+                <textarea id="proof${task.id}" rows="3" placeholder="Paste your proof of work here..." class="w-full p-2.5 rounded-lg bg-black/30 border border-gray-700 text-white text-xs focus:border-emerald-500 outline-none"></textarea>
+                <button onclick="submitProof('${task.id}')" class="btn-primary w-full mt-2 py-2 rounded-lg text-xs">Submit Task Proof</button>
               </div>
             </div>
           `;
@@ -408,11 +435,7 @@
       }
 
       if (currentTab === 'completed') {
-        const completed = TASKS.slice(0, 1).map(t => ({
-          ...t,
-          status: 'Approved',
-          earned: t.payout
-        }));
+        const completed = TASKS.slice(0, 3);
         container.innerHTML = completed.map(task => `
           <div class="glass rounded-xl p-4 card-glow">
             <div class="flex justify-between items-start mb-2">
@@ -423,19 +446,15 @@
             <p class="text-xs text-gray-400 mb-3">${task.description}</p>
             <div class="flex justify-between items-center">
               <span class="text-xs text-gray-500">Earned</span>
-              <span class="text-sm font-bold text-emerald-400">${format(task.earned)}</span>
+              <span class="text-sm font-bold text-emerald-400">${format(task.payout)}</span>
             </div>
           </div>
-        `).join('');
+        `).join('') || '<div class="col-span-2 text-center text-gray-500 py-12 text-sm">No completed tasks yet.</div>';
         return;
       }
 
       if (currentTab === 'review') {
-        const review = TASKS.slice(1, 2).map(t => ({
-          ...t,
-          status: 'Pending QA',
-          submitted: '1h ago'
-        }));
+        const review = TASKS.slice(0, 2);
         container.innerHTML = review.map(task => `
           <div class="glass rounded-xl p-4 card-glow">
             <div class="flex justify-between items-start mb-2">
@@ -445,19 +464,19 @@
             <h3 class="font-semibold text-sm mb-1">${task.title}</h3>
             <p class="text-xs text-gray-400 mb-3">${task.description}</p>
             <div class="flex justify-between items-center text-xs">
-              <span class="text-gray-500">Submitted ${task.submitted}</span>
+              <span class="text-gray-500">Submitted recently</span>
               <span class="text-emerald-400 font-bold">${format(task.payout)}</span>
             </div>
           </div>
-        `).join('');
+        `).join('') || '<div class="col-span-2 text-center text-gray-500 py-12 text-sm">No pending submissions.</div>';
         return;
       }
 
       if (currentTab === 'history') {
         const history = [
-          { id: 1, title: 'Kenyan Customer Call Transcription', status: 'Approved', payout: 1.80, date: 'Oct 2, 2026' },
-          { id: 2, title: 'Extract Contact Info', status: 'Pending', payout: 0.90, date: 'Oct 1, 2026' },
-          { id: 3, title: 'Verify Business Hours', status: 'Approved', payout: 0.75, date: 'Sep 30, 2026' }
+          { id: 1, title: 'Rate AI Chatbot Response', status: 'Approved', payout: 1.20, date: 'Oct 2, 2026' },
+          { id: 2, title: 'Transcribe Support Call', status: 'Approved', payout: 1.80, date: 'Oct 1, 2026' },
+          { id: 3, title: 'Tag Product Images', status: 'Approved', payout: 0.60, date: 'Sep 30, 2026' }
         ];
         container.innerHTML = `
           <div class="col-span-2 glass rounded-xl p-4 card-glow overflow-x-auto">
@@ -469,7 +488,7 @@
                 ${history.map(h => `
                   <tr>
                     <td class="text-gray-300">${h.title}</td>
-                    <td><span class="badge ${h.status === 'Approved' ? 'bg-emerald-900/40 text-emerald-400' : 'bg-amber-900/40 text-amber-400'}">${h.status}</span></td>
+                    <td><span class="badge ${h.status === 'Approved' ? 'bg-emerald-900/40 text-emerald-400' : h.status === 'Rejected' ? 'bg-red-900/40 text-red-400' : 'bg-amber-900/40 text-amber-400'}">${h.status}</span></td>
                     <td class="text-emerald-400 font-medium">${format(h.payout)}</td>
                     <td class="text-gray-500">${h.date}</td>
                   </tr>
@@ -482,7 +501,6 @@
       }
     }
 
-    // ============ STK PUSH / UNLOCK FLOW ============
     function unlockTask(id) {
       const task = TASKS.find(t => t.id === id);
       if (!task) return;
@@ -490,41 +508,38 @@
       document.getElementById('stkTitle').textContent = '🔒 Unlock Task';
       document.getElementById('stkDescription').textContent = `Pay ${format(task.fee)} via M-Pesa STK Push to unlock "${task.title}".`;
       document.getElementById('stkAmountText').textContent = `Amount: ${format(task.fee)}`;
-      document.getElementById('customDepositInput').classList.add('hidden');
       document.getElementById('stkPhone').value = workerProfile?.mpesa_phone || '';
       openModal('stkModal');
     }
 
     function openDeposit() {
-      pendingStkAction = { type: 'deposit', amount: 1.00 };
-      document.getElementById('stkTitle').textContent = '➕ Deposit Funds';
-      document.getElementById('stkDescription').textContent = 'Enter your M-Pesa number and deposit amount (Minimum $1.00):';
-      document.getElementById('customDepositInput').classList.remove('hidden');
-      document.getElementById('stkAmountText').textContent = `Minimum Deposit: $1.00`;
-      document.getElementById('stkPhone').value = workerProfile?.mpesa_phone || '';
-      openModal('stkModal');
+      document.getElementById('depositAmountInput').value = '';
+      document.getElementById('depositPhoneInput').value = workerProfile?.mpesa_phone || '';
+      openModal('depositModal');
+    }
+
+    function processDeposit() {
+      const amount = parseFloat(document.getElementById('depositAmountInput').value);
+      const phone = document.getElementById('depositPhoneInput').value.trim();
+      if (!phone || phone.length < 9) { showAlert('Please enter a valid M-Pesa phone number.'); return; }
+      if (!amount || amount < 1.00) { showAlert('Minimum deposit is $1.00.'); return; }
+      closeModal('depositModal');
+      pendingStkAction = { type: 'deposit', amount: amount };
+      showAlert(`📲 STK Push sent to ${phone}. Please enter your PIN to deposit $${amount.toFixed(2)}.`);
+      setTimeout(() => {
+        walletBalance += amount;
+        renderBalance();
+        showAlert(`✅ Deposit successful! $${amount.toFixed(2)} added to your wallet.`);
+        pendingStkAction = null;
+      }, 2000);
     }
 
     document.getElementById('stkConfirmBtn').addEventListener('click', () => {
       const phone = document.getElementById('stkPhone').value.trim();
-      if (!phone || phone.length < 9) {
-        showAlert('Please enter a valid M-Pesa phone number.');
-        return;
-      }
+      if (!phone || phone.length < 9) { showAlert('Please enter a valid M-Pesa phone number.'); return; }
       if (!pendingStkAction) return;
-
-      let depAmount = pendingStkAction.amount;
-      if (pendingStkAction.type === 'deposit') {
-        const val = parseFloat(document.getElementById('stkCustomAmount').value);
-        if (isNaN(val) || val < 1.00) {
-          showAlert('Minimum deposit amount is $1.00');
-          return;
-        }
-        depAmount = val;
-      }
-
       closeModal('stkModal');
-      showAlert(`📲 STK Push sent to ${phone}. Please enter your PIN on your phone to confirm ${format(depAmount)}.`);
+      showAlert(`📲 STK Push sent to ${phone}. Please enter your PIN on your phone to confirm ${format(pendingStkAction.amount)}.`);
       setTimeout(() => {
         if (pendingStkAction.type === 'unlock') {
           if (!unlockedTasks.includes(pendingStkAction.taskId)) unlockedTasks.push(pendingStkAction.taskId);
@@ -532,15 +547,14 @@
           renderTasks();
           showAlert('✅ Payment received! Task unlocked.');
         } else if (pendingStkAction.type === 'deposit') {
-          walletBalance += depAmount;
+          walletBalance += pendingStkAction.amount;
           renderBalance();
-          showAlert(`✅ Deposit successful! ${format(depAmount)} added to your wallet.`);
+          showAlert(`✅ Deposit successful! ${format(pendingStkAction.amount)} added to your wallet.`);
         }
         pendingStkAction = null;
       }, 2000);
     });
 
-    // ============ SUBMIT PROOF ============
     function openSubmission(id) {
       const area = document.getElementById('submissionArea' + id);
       if (area) area.classList.toggle('hidden');
@@ -562,13 +576,12 @@
         proofEl.value = '';
         showAlert('✅ Task submitted successfully! Your work is now pending QA review.');
       } catch (err) {
-        console.warn('Submission fallback:', err);
-        showAlert('✅ Task submitted (demo mode). Pending QA review.');
+        console.error('Submission error:', err);
         proofEl.value = '';
+        showAlert('✅ Task submitted (demo mode). Pending QA review.');
       }
     }
 
-    // ============ WITHDRAWAL ============
     function submitWithdrawal() {
       const phone = document.getElementById('withdrawPhone').value.trim();
       const amount = parseFloat(document.getElementById('withdrawAmount').value);
@@ -577,7 +590,7 @@
         return;
       }
       if (amount > walletBalance) {
-        showAlert('Insufficient balance! Your available balance is ' + format(walletBalance) + '.');
+        showAlert('Insufficient balance. Your available balance is ' + format(walletBalance) + '.');
         return;
       }
       walletBalance -= amount;
@@ -586,21 +599,18 @@
       document.getElementById('withdrawAmount').value = '';
     }
 
-    // ============ MODAL HELPERS ============
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
     function showAlert(msg) {
       document.getElementById('alertMessage').textContent = msg;
       openModal('alertModal');
     }
-
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
       overlay.addEventListener('click', (e) => {
         if (e.target === overlay) overlay.classList.add('hidden');
       });
     });
 
-    // ============ ONBOARDING ============
     function checkOnboarding() {
       if (!workerProfile) {
         openModal('onboardingModal');
@@ -628,20 +638,19 @@
       localStorage.setItem('apexWorker', JSON.stringify(workerProfile));
       try {
         const { error } = await db.from('profiles').insert([{ full_name, email, mpesa_phone }]);
-        if (error) console.warn('Profile save error:', error);
-      } catch (err) { console.warn('Profile save error:', err); }
+        if (error) console.warn('Profile save error (demo):', error);
+      } catch (err) { console.warn('Profile save error (demo):', err); }
       applyProfile();
       closeModal('onboardingModal');
       showAlert('Profile created! Welcome to Apex Task Studio.');
     });
 
-    // ============ INIT ============
     document.addEventListener('DOMContentLoaded', () => {
       checkOnboarding();
       setCurrency('USD');
       setTab('available');
       setCategory('All');
-      renderTasks();
+      fetchTasks();
     });
   </script>
 </body>

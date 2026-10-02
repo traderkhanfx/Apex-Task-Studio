@@ -34,7 +34,6 @@
       box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
     }
     .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5); }
-    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
     .btn-accept {
       background: linear-gradient(135deg, #10b981 0%, #059669 100%);
       color: #ffffff;
@@ -69,7 +68,7 @@
       background: #ffffff;
       color: #1e1b4b;
       border-radius: 1rem;
-      max-width: 480px; width: 100%;
+      max-width: 520px; width: 100%;
       padding: 1.5rem;
       max-height: 90vh; overflow-y: auto;
       border: 1px solid rgba(139, 92, 246, 0.2);
@@ -109,7 +108,7 @@
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     .stat-gradient-1 { background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); }
     .stat-gradient-2 { background: linear-gradient(135deg, #6366f1 100%, #3b82f6 100%); }
-    .stat-gradient-3 { background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%); }
+    .stat-gradient-3 { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
     .tab-btn {
       padding: 0.65rem 1.25rem;
       font-weight: 600;
@@ -121,21 +120,23 @@
     }
     .tab-btn:hover { color: #ffffff; }
     .tab-btn.active { color: #ffffff; border-bottom-color: #8b5cf6; }
-    .proof-cell {
-      max-width: 280px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      color: #cbd5e1;
-      font-size: 0.78rem;
-    }
-    .scrollbar-hide::-webkit-scrollbar { display: none; }
-    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     .header-title {
       background: linear-gradient(135deg, #ffffff 0%, #c4b5fd 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+    }
+    .proof-box {
+      background: rgba(15, 10, 46, 0.5);
+      border: 1px solid rgba(139, 92, 246, 0.2);
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+      font-size: 0.8rem;
+      color: #e2e8f0;
+      max-height: 120px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
     }
   </style>
 </head>
@@ -160,7 +161,29 @@
     </div>
   </div>
 
-  <!-- ============ MAIN ============ -->
+  <!-- ============ VIEW FULL PROOF MODAL ============ -->
+  <div id="proofModal" class="modal-overlay hidden">
+    <div class="modal-content text-left">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="text-base font-bold text-slate-900">📄 Submission Detail / Transcription</h3>
+        <button onclick="closeModal('proofModal')" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+      </div>
+      <div class="mb-4">
+        <p class="text-xs text-slate-500 mb-1 font-semibold uppercase">Worker / Details:</p>
+        <p id="modalWorkerInfo" class="text-sm font-medium text-slate-800 bg-slate-100 p-2 rounded"></p>
+      </div>
+      <div class="mb-5">
+        <p class="text-xs text-slate-500 mb-1 font-semibold uppercase">Submitted Text / Transcription / Proof:</p>
+        <div id="modalProofText" class="p-3 bg-slate-900 text-slate-100 rounded-lg text-xs max-h-48 overflow-y-auto whitespace-pre-wrap"></div>
+      </div>
+      <div class="flex gap-2">
+        <button id="modalAcceptBtn" class="btn-accept flex-1 py-2.5 rounded-lg text-xs">✓ Accept</button>
+        <button id="modalRejectBtn" class="btn-reject flex-1 py-2.5 rounded-lg text-xs">✕ Reject</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MAIN CONTAINER ============ -->
   <div class="max-w-6xl mx-auto p-4 pb-16">
 
     <!-- HEADER -->
@@ -169,26 +192,26 @@
         <div class="flex items-center gap-2">
           <span class="text-2xl">⚡</span>
           <h1 class="text-xl font-bold tracking-tight header-title">APEX TASK STUDIO</h1>
-          <span class="badge badge-purple">ADMIN</span>
+          <span class="badge badge-purple">ADMIN PANEL</span>
         </div>
-        <p class="text-xs text-purple-300/60 mt-0.5">Manage tasks, submissions & payouts</p>
+        <p class="text-xs text-purple-300/60 mt-0.5">Manage tasks, review transcriptions & monitor net profit</p>
       </div>
       <a href="index.html" class="btn-ghost px-4 py-2 rounded-lg text-xs font-medium">← Worker Portal</a>
     </header>
 
-    <!-- STATS ROW -->
+    <!-- STATS ROW (INCLUDING NET PROFIT) -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
       <div class="stat-gradient-1 rounded-xl p-4 shadow-lg">
         <p class="text-xs text-white/70 uppercase tracking-wider font-medium">Total Tasks</p>
         <p class="text-3xl font-bold mt-1 text-white" id="statTotalTasks">—</p>
       </div>
       <div class="stat-gradient-2 rounded-xl p-4 shadow-lg">
-        <p class="text-xs text-white/70 uppercase tracking-wider font-medium">Active Tasks</p>
-        <p class="text-3xl font-bold mt-1 text-white" id="statActiveTasks">—</p>
-      </div>
-      <div class="stat-gradient-3 rounded-xl p-4 shadow-lg">
         <p class="text-xs text-white/70 uppercase tracking-wider font-medium">Pending Reviews</p>
         <p class="text-3xl font-bold mt-1 text-white" id="statPendingSubs">—</p>
+      </div>
+      <div class="stat-gradient-3 rounded-xl p-4 shadow-lg">
+        <p class="text-xs text-white/70 uppercase tracking-wider font-medium">Net Profit (Est.)</p>
+        <p class="text-3xl font-bold mt-1 text-white" id="statNetProfit">$0.00</p>
       </div>
       <div class="glass rounded-xl p-4">
         <p class="text-xs text-purple-300/70 uppercase tracking-wider font-medium">Locked Tasks</p>
@@ -208,7 +231,7 @@
     <!-- ============ TAB: MANAGE TASKS ============ -->
     <div id="panelTasks" class="glass rounded-xl p-5">
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-bold text-white">📋 All Tasks</h2>
+        <h2 class="text-lg font-bold text-white">📋 All Posted Tasks</h2>
         <button onclick="loadTasks()" class="btn-ghost px-3 py-1.5 rounded-lg text-xs font-medium">🔄 Refresh</button>
       </div>
       <div id="adminTaskList">
@@ -216,20 +239,32 @@
       </div>
     </div>
 
-    <!-- ============ TAB: POST NEW JOB ============ -->
+    <!-- ============ TAB: POST NEW JOB (WITH TEMPLATES) ============ -->
     <div id="panelPost" class="glass rounded-xl p-5 hidden">
-      <h2 class="text-lg font-bold mb-5 text-white">📝 Post New Job</h2>
+      <div class="flex flex-wrap justify-between items-center mb-4 gap-2">
+        <h2 class="text-lg font-bold text-white">📝 Post New Job</h2>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-purple-300">Quick Template:</span>
+          <select id="jobTemplateSelect" onchange="applyTemplate()" class="input-field text-xs py-1.5 w-auto">
+            <option value="">Select a template...</option>
+            <option value="transcription">Transcription Task (Audio/Text)</option>
+            <option value="safaricom">Safaricom Verification / M-Pesa Check</option>
+            <option value="ai_eval">AI Response Evaluation</option>
+            <option value="social">Social Media Engagement</option>
+          </select>
+        </div>
+      </div>
       <form id="postJobForm" class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="text-xs label-light block mb-1.5 font-medium">Task Title</label>
-            <input type="text" id="jobTitle" placeholder="e.g. Rate AI Chatbot Response" required class="input-field" />
+            <input type="text" id="jobTitle" placeholder="e.g. Transcribe Audio Segment #402" required class="input-field" />
           </div>
           <div>
             <label class="text-xs label-light block mb-1.5 font-medium">Category</label>
             <select id="jobCategory" class="input-field">
-              <option value="Data Annotation">Data Annotation</option>
               <option value="Transcription">Transcription</option>
+              <option value="Verification">Verification (Safaricom/Other)</option>
               <option value="AI Evaluation">AI Evaluation</option>
               <option value="Microtask">Microtask</option>
             </select>
@@ -237,8 +272,8 @@
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="text-xs label-light block mb-1.5 font-medium">Payout (USD)</label>
-            <input type="number" id="jobPayout" placeholder="1.50" step="0.01" min="0.10" required class="input-field" />
+            <label class="text-xs label-light block mb-1.5 font-medium">Worker Payout (USD)</label>
+            <input type="number" id="jobPayout" placeholder="0.50" step="0.01" min="0.01" required class="input-field" />
           </div>
           <div>
             <label class="text-xs label-light block mb-1.5 font-medium">Estimated Time (minutes)</label>
@@ -246,8 +281,8 @@
           </div>
         </div>
         <div>
-          <label class="text-xs label-light block mb-1.5 font-medium">Description</label>
-          <textarea id="jobDescription" rows="3" placeholder="Describe what the worker needs to do..." required class="input-field"></textarea>
+          <label class="text-xs label-light block mb-1.5 font-medium">Description & Instructions</label>
+          <textarea id="jobDescription" rows="3" placeholder="Provide full transcription guidelines or instructions (e.g. Listen to the audio and type exact words...)" required class="input-field"></textarea>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
           <div class="flex items-center gap-3 py-2">
@@ -255,8 +290,8 @@
             <label for="jobLocked" class="text-sm text-purple-100 font-medium">Locked / Premium Task</label>
           </div>
           <div id="lockFeeContainer" class="hidden">
-            <label class="text-xs label-light block mb-1.5 font-medium">Unlock Fee (USD)</label>
-            <input type="number" id="jobFee" placeholder="1.50" step="0.01" min="0" class="input-field" />
+            <label class="text-xs label-light block mb-1.5 font-medium">Unlock Fee (USD) <span class="text-emerald-400 text-[10px]">(Adds to Net Profit)</span></label>
+            <input type="number" id="jobFee" placeholder="1.00" step="0.01" min="0" class="input-field" />
           </div>
         </div>
         <button type="submit" class="btn-primary w-full py-3 rounded-lg text-sm mt-2">🚀 Post Job to Workers</button>
@@ -266,7 +301,7 @@
     <!-- ============ TAB: SUBMISSIONS ============ -->
     <div id="panelSubmissions" class="glass rounded-xl p-5 hidden">
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-bold text-white">📥 Worker Submissions</h2>
+        <h2 class="text-lg font-bold text-white">📥 Worker Submissions & Transcriptions</h2>
         <button onclick="loadSubmissions()" class="btn-ghost px-3 py-1.5 rounded-lg text-xs font-medium">🔄 Refresh</button>
       </div>
       <div id="submissionsList">
@@ -276,18 +311,62 @@
 
     <!-- FOOTER -->
     <footer class="text-center text-xs text-purple-300/40 border-t border-purple-500/10 pt-6 mt-8">
-      <p>© 2026 Apex Task Studio — Admin Panel</p>
+      <p>© 2026 Apex Task Studio — Admin Dashboard</p>
     </footer>
   </div>
 
   <script>
-    // ============ SUPABASE INIT ============
+    // ============ SUPABASE CONFIG ============
     const SUPABASE_URL = 'https://dwdtvasykhorrvmwmnhb.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3ZHR2YXN5a2hvcnJ2bXdtbmhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUzNzQsImV4cCI6MjEwNjUzMTM3NH0.vt_I7uvUqsjv5e8RTgREMoXJiZqq_80a9fVOqVyW6Lk';
     const { createClient } = supabase;
     const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let TASK_CACHE = [];
+    let SUB_CACHE = [];
+
+    // ============ TEMPLATES ============
+    const JOB_TEMPLATES = {
+      transcription: {
+        title: "Audio Transcription Task #01",
+        category: "Transcription",
+        payout: 0.75,
+        time: 10,
+        description: "Listen to the provided audio clip and type out the complete dialogue verbatim. Maintain proper punctuation and capitalization."
+      },
+      safaricom: {
+        title: "Safaricom M-Pesa Transaction Verification",
+        category: "Verification",
+        payout: 0.50,
+        time: 5,
+        description: "Verify the Safaricom M-Pesa transaction code submitted in the proof field. Check against confirmation message format (e.g. QHX7... Confirmed) and approve if valid."
+      },
+      ai_eval: {
+        title: "AI Chatbot Response Evaluation",
+        category: "AI Evaluation",
+        payout: 1.00,
+        time: 12,
+        description: "Review the provided AI prompt and two model answers. Type your detailed evaluation comparing helpfulness, accuracy, and tone."
+      },
+      social: {
+        title: "Social Media Engagement & Follow",
+        category: "Microtask",
+        payout: 0.30,
+        time: 3,
+        description: "Follow our official channel, like the pinned post, and paste your username or profile link as proof."
+      }
+    };
+
+    function applyTemplate() {
+      const key = document.getElementById('jobTemplateSelect').value;
+      if (!key || !JOB_TEMPLATES[key]) return;
+      const t = JOB_TEMPLATES[key];
+      document.getElementById('jobTitle').value = t.title;
+      document.getElementById('jobCategory').value = t.category;
+      document.getElementById('jobPayout').value = t.payout;
+      document.getElementById('jobTime').value = t.time;
+      document.getElementById('jobDescription').value = t.description;
+    }
 
     // ============ HELPERS ============
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
@@ -324,6 +403,34 @@
       if (tab === 'submissions') loadSubmissions();
     }
 
+    // ============ LOAD STATS & NET PROFIT ============
+    async function calculateNetProfit(tasks, submissions) {
+      // Net Profit calculation:
+      // Income = Sum of lock_fees from unlocked/locked tasks where workers paid unlock fees (or estimate based on locked tasks count)
+      // Expenses = Sum of payouts for 'accepted' submissions
+      let totalUnlockFeesCollected = 0;
+      tasks.forEach(t => {
+        if (t.is_locked && t.lock_fee) {
+          // If tasks have lock fees, estimate based on locked tasks or track if transactions exist
+          totalUnlockFeesCollected += parseFloat(t.lock_fee || 0);
+        }
+      });
+
+      let totalPayoutsGiven = 0;
+      (submissions || []).forEach(s => {
+        if ((s.status || '').toLowerCase() === 'accepted') {
+          const matchingTask = tasks.find(t => t.id === s.task_id);
+          if (matchingTask) {
+            totalPayoutsGiven += parseFloat(matchingTask.payout || 0);
+          }
+        }
+      });
+
+      // Net profit = revenue from lock fees minus payouts distributed to workers
+      const netProfit = totalUnlockFeesCollected - totalPayoutsGiven;
+      document.getElementById('statNetProfit').textContent = `$${netProfit.toFixed(2)}`;
+    }
+
     // ============ LOAD TASKS ============
     async function loadTasks() {
       const container = document.getElementById('adminTaskList');
@@ -333,13 +440,16 @@
         if (error) throw error;
         TASK_CACHE = data || [];
 
-        // Update stats
         document.getElementById('statTotalTasks').textContent = TASK_CACHE.length;
-        document.getElementById('statActiveTasks').textContent = TASK_CACHE.filter(t => t.status === 'active').length;
         document.getElementById('statLockedTasks').textContent = TASK_CACHE.filter(t => t.is_locked).length;
 
+        // Also refresh submissions to update net profit
+        const { data: subs } = await db.from('submissions').select('*');
+        SUB_CACHE = subs || [];
+        calculateNetProfit(TASK_CACHE, SUB_CACHE);
+
         if (!TASK_CACHE.length) {
-          container.innerHTML = '<p class="text-center text-purple-300/60 py-8 text-sm">No tasks posted yet. Use the "Post New Job" tab to add your first job.</p>';
+          container.innerHTML = '<p class="text-center text-purple-300/60 py-8 text-sm">No tasks posted yet. Use the "Post New Job" tab or templates above.</p>';
           return;
         }
         container.innerHTML = `
@@ -351,7 +461,7 @@
                   <th>Category</th>
                   <th>Payout</th>
                   <th>Time</th>
-                  <th>Locked</th>
+                  <th>Access</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -387,14 +497,13 @@
       const lock_fee = is_locked ? parseFloat(document.getElementById('jobFee').value) || 0 : 0;
 
       if (!title || !description || !payout || !time) { showAlert('Please fill in all required fields.'); return; }
-      if (is_locked && lock_fee <= 0) { showAlert('Please enter a valid unlock fee for locked tasks.'); return; }
 
       const payload = { title, category, payout, time, description, is_locked, lock_fee, status: 'active' };
 
       try {
         const { error } = await db.from('tasks').insert([payload]);
         if (error) throw error;
-        showAlert('✅ Job posted successfully! It will now appear on the worker portal.');
+        showAlert('✅ Job posted successfully!');
         document.getElementById('postJobForm').reset();
         toggleLockFee();
         setAdminTab('tasks');
@@ -432,12 +541,17 @@
           .select('*')
           .order('created_at', { ascending: false });
         if (subErr) throw subErr;
+        SUB_CACHE = subs || [];
 
-        const { data: tasks } = await db.from('tasks').select('id, title');
+        // Ensure tasks are cached for lookups
+        if (!TASK_CACHE.length) {
+          const { data: tasks } = await db.from('tasks').select('*');
+          TASK_CACHE = tasks || [];
+        }
         const taskMap = {};
-        (tasks || []).forEach(t => { taskMap[t.id] = t.title; });
+        TASK_CACHE.forEach(t => { taskMap[t.id] = t; });
 
-        const pending = (subs || []).filter(s => (s.status || 'pending') === 'pending').length;
+        const pending = SUB_CACHE.filter(s => (s.status || 'pending') === 'pending').length;
         const badge = document.getElementById('pendingBadge');
         document.getElementById('statPendingSubs').textContent = pending;
         if (pending > 0) {
@@ -447,8 +561,10 @@
           badge.classList.add('hidden');
         }
 
-        if (!subs || !subs.length) {
-          container.innerHTML = '<p class="text-center text-purple-300/60 py-8 text-sm">No submissions yet. Workers haven\'t submitted any tasks.</p>';
+        calculateNetProfit(TASK_CACHE, SUB_CACHE);
+
+        if (!SUB_CACHE.length) {
+          container.innerHTML = '<p class="text-center text-purple-300/60 py-8 text-sm">No worker submissions or transcriptions received yet.</p>';
           return;
         }
 
@@ -458,32 +574,38 @@
               <thead>
                 <tr>
                   <th>Worker</th>
-                  <th>Task</th>
-                  <th>Proof / Submission</th>
+                  <th>Task Name</th>
+                  <th>Transcription / Proof Content</th>
                   <th>Status</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                ${subs.map(s => {
+                ${SUB_CACHE.map(s => {
                   const status = (s.status || 'pending').toLowerCase();
                   const badgeClass = status === 'accepted' ? 'badge-accepted' : status === 'rejected' ? 'badge-rejected' : 'badge-pending';
-                  const taskTitle = taskMap[s.task_id] || s.task_title || 'Unknown Task';
-                  const proof = s.proof || s.text || s.link || '—';
+                  const taskObj = taskMap[s.task_id] || {};
+                  const taskTitle = taskObj.title || s.task_title || 'Unknown Task';
+                  const proofText = s.proof || s.text || s.link || s.transcription || 'No text provided';
+
                   return `
                     <tr>
-                      <td class="text-white font-medium">${escapeHtml(s.worker_name || s.worker_id || 'Anonymous')}</td>
-                      <td class="text-purple-100">${escapeHtml(taskTitle)}</td>
-                      <td><div class="proof-cell" title="${escapeHtml(proof)}">${escapeHtml(proof)}</div></td>
+                      <td class="text-white font-medium">${escapeHtml(s.worker_name || s.worker_id || 'Worker')}</td>
+                      <td class="text-purple-100 font-medium">${escapeHtml(taskTitle)}</td>
+                      <td>
+                        <div class="proof-box cursor-pointer hover:border-purple-400 transition" onclick="viewFullProof('${s.id}')" title="Click to view full transcription/proof">
+                          ${escapeHtml(proofText)}
+                        </div>
+                      </td>
                       <td><span class="badge ${badgeClass}">${status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
                       <td>
                         ${status === 'pending' ? `
-                          <div class="flex gap-2">
-                            <button onclick="updateSubmission('${s.id}', 'accepted')" class="btn-accept px-3 py-1 rounded-md text-xs">✓ Accept</button>
-                            <button onclick="updateSubmission('${s.id}', 'rejected')" class="btn-reject px-3 py-1 rounded-md text-xs">✕ Reject</button>
+                          <div class="flex gap-1.5">
+                            <button onclick="updateSubmission('${s.id}', 'accepted')" class="btn-accept px-2.5 py-1 rounded-md text-xs">✓ Accept</button>
+                            <button onclick="updateSubmission('${s.id}', 'rejected')" class="btn-reject px-2.5 py-1 rounded-md text-xs">✕ Reject</button>
                           </div>
                         ` : `
-                          <span class="text-xs text-purple-300/40">No actions</span>
+                          <span class="text-xs text-purple-300/40">Reviewed</span>
                         `}
                       </td>
                     </tr>
@@ -499,10 +621,25 @@
       }
     }
 
+    // ============ VIEW FULL PROOF MODAL ============
+    function viewFullProof(id) {
+      const sub = SUB_CACHE.find(s => s.id === id);
+      if (!sub) return;
+      
+      const taskObj = TASK_CACHE.find(t => t.id === sub.task_id) || {};
+      document.getElementById('modalWorkerInfo').textContent = `Worker: ${sub.worker_name || sub.worker_id || 'Anonymous'} | Task: ${taskObj.title || 'Task'}`;
+      document.getElementById('modalProofText').textContent = sub.proof || sub.text || sub.link || sub.transcription || 'No details given.';
+      
+      document.getElementById('modalAcceptBtn').onclick = () => { closeModal('proofModal'); updateSubmission(id, 'accepted'); };
+      document.getElementById('modalRejectBtn').onclick = () => { closeModal('proofModal'); updateSubmission(id, 'rejected'); };
+
+      openModal('proofModal');
+    }
+
     // ============ UPDATE SUBMISSION STATUS ============
     async function updateSubmission(id, newStatus) {
       const actionLabel = newStatus === 'accepted' ? 'accept' : 'reject';
-      document.getElementById('confirmMessage').textContent = `Are you sure you want to ${actionLabel} this submission?`;
+      document.getElementById('confirmMessage').textContent = `Are you sure you want to ${actionLabel} this transcription/proof?`;
       document.getElementById('confirmModal').classList.remove('hidden');
       document.getElementById('confirmYes').onclick = async () => {
         closeModal('confirmModal');
@@ -516,7 +653,7 @@
           loadSubmissions();
         } catch (err) {
           console.error('Update submission error:', err);
-          showAlert(`❌ Failed to ${actionLabel} submission: ` + err.message);
+          showAlert(`❌ Failed to update submission: ` + err.message);
         }
       };
     }

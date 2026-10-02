@@ -13,11 +13,42 @@
   <script>
     const SECRET_PIN = "9999";
     const SUPABASE_URL = 'https://dwdtvasykhorrvmwmnhb.supabase.co';
-    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // Replace with full key if needed
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
     
     const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
-    // PIN Guard & Dashboard Setup
+    // Preset Templates
+    const TASK_TEMPLATES = {
+      transcription: {
+        category: "Data Annotation",
+        payout: "3.50",
+        spots: "1",
+        timeLimit: "120 Mins",
+        desc: "Listen to the provided audio link carefully. Transcribe all spoken dialogue word-for-word using clean verbatim guidelines. Ensure proper punctuation and speaker labels."
+      },
+      evaluation: {
+        category: "AI Evaluation",
+        payout: "2.50",
+        spots: "10",
+        timeLimit: "45 Mins",
+        desc: "Compare two AI model responses based on accuracy, helpfulness, and safety. Select the superior response and provide a detailed 2-sentence rationale explaining your choice."
+      },
+      annotation: {
+        category: "Data Annotation",
+        payout: "1.80",
+        spots: "25",
+        timeLimit: "30 Mins",
+        desc: "Review the target image set. Draw accurate bounding boxes around all specified objects (e.g. vehicles, pedestrians) following the bounding guidelines provided."
+      },
+      microtask: {
+        category: "Microtask",
+        payout: "1.00",
+        spots: "50",
+        timeLimit: "15 Mins",
+        desc: "Follow the submission instructions, complete the required short verification step, and submit a clear screenshot showing the final confirmation page as proof."
+      }
+    };
+
     window.addEventListener('DOMContentLoaded', () => {
       sessionStorage.removeItem('admin_authenticated');
       const adminContent = document.getElementById('adminMainContent');
@@ -47,28 +78,32 @@
       }
     }
 
-    async function loadDashboardData() {
-      // Dummy data fallback for preview; fetches live Supabase rows if available
-      if (!supabaseClient) return;
-      
-      try {
-        // Fetch tasks stats
-        const { data: tasks, error: taskErr } = await supabaseClient.from('tasks').select('*');
-        if (tasks) {
-          document.getElementById('statTotalTasks').innerText = tasks.length;
-        }
+    // Auto-fill template values into form
+    function applyTemplate(type) {
+      const template = TASK_TEMPLATES[type];
+      if (!template) return;
 
-        // Fetch submissions for review
-        const { data: submissions, error: subErr } = await supabaseClient.from('submissions').select('*');
-        if (submissions) {
-          document.getElementById('statPendingReviews').innerText = submissions.filter(s => s.status === 'pending').length;
-        }
+      document.getElementById('taskCategory').value = template.category;
+      document.getElementById('taskPayout').value = template.payout;
+      document.getElementById('taskSpots').value = template.spots;
+      document.getElementById('taskTimeLimit').value = template.timeLimit;
+      document.getElementById('taskDesc').value = template.desc;
+    }
+
+    async function loadDashboardData() {
+      if (!supabaseClient) return;
+      try {
+        const { data: tasks } = await supabaseClient.from('tasks').select('*');
+        if (tasks) document.getElementById('statTotalTasks').innerText = tasks.length;
+
+        const { data: submissions } = await supabaseClient.from('submissions').select('*');
+        if (submissions) document.getElementById('statPendingReviews').innerText = submissions.filter(s => s.status === 'pending').length;
       } catch (err) {
         console.log('Loading state:', err);
       }
     }
 
-    // Handle Task Publishing
+    // Publish Task to Supabase
     async function handleCreateTask(e) {
       e.preventDefault();
       const statusMsg = document.getElementById('taskStatusMsg');
@@ -80,17 +115,18 @@
       const description = document.getElementById('taskDesc').value;
       const payout = parseFloat(document.getElementById('taskPayout').value);
       const spots = parseInt(document.getElementById('taskSpots').value);
+      const time_limit = document.getElementById('taskTimeLimit').value;
       const category = document.getElementById('taskCategory').value;
 
       try {
         const { error } = await supabaseClient
           .from('tasks')
-          .insert([{ title, description, payout, spots_available: spots, category, status: 'active' }]);
+          .insert([{ title, description, payout, spots_available: spots, time_limit, category, status: 'active' }]);
 
         if (error) throw error;
 
         statusMsg.className = "text-sm text-emerald-400 font-semibold";
-        statusMsg.innerText = "Task published successfully!";
+        statusMsg.innerText = "Task published successfully with deadline!";
         document.getElementById('createTaskForm').reset();
         loadDashboardData();
       } catch (err) {
@@ -99,10 +135,8 @@
       }
     }
 
-    // Handle Submission Decision
     async function handleReview(submissionId, action) {
       alert(`Submission ${submissionId} has been ${action === 'accept' ? 'APPROVED' : 'REJECTED'}.`);
-      // Update Supabase row logic here
     }
   </script>
 </head>
@@ -142,7 +176,7 @@
       <div>
         <div class="flex items-center gap-3">
           <h1 class="text-2xl font-bold text-white">Admin Control Panel</h1>
-          <span class="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs px-3 py-0.5 rounded-full font-mono">v2.0</span>
+          <span class="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs px-3 py-0.5 rounded-full font-mono">v2.1</span>
         </div>
         <p class="text-sm text-slate-400 mt-1">Apex Task Studio • Live Operations & Task Manager</p>
       </div>
@@ -161,7 +195,7 @@
       </div>
     </header>
 
-    <!-- METRICS & PROFIT STATS CARDS -->
+    <!-- METRICS STATS CARDS -->
     <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5">
         <p class="text-xs font-medium text-slate-400">Total System Net Profit</p>
@@ -192,15 +226,32 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
       
       <!-- LEFT COLUMN: POST NEW TASK FORM -->
-      <section class="lg:col-span-5 bg-slate-800/60 border border-slate-700/60 rounded-2xl p-6">
-        <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <span>Post New Task</span>
-        </h2>
+      <section class="lg:col-span-5 bg-slate-800/60 border border-slate-700/60 rounded-2xl p-6 space-y-5">
+        <div>
+          <h2 class="text-lg font-bold text-white">Post New Task</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Click a quick template to auto-fill details:</p>
+        </div>
 
-        <form id="createTaskForm" onsubmit="handleCreateTask(event)" class="space-y-4">
+        <!-- QUICK TEMPLATE PRESET BUTTONS -->
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" onclick="applyTemplate('transcription')" class="bg-slate-900 hover:bg-slate-700 border border-slate-700 text-xs text-indigo-300 py-2 px-3 rounded-xl text-left font-medium transition-colors">
+            🎙️ Transcription
+          </button>
+          <button type="button" onclick="applyTemplate('evaluation')" class="bg-slate-900 hover:bg-slate-700 border border-slate-700 text-xs text-amber-300 py-2 px-3 rounded-xl text-left font-medium transition-colors">
+            🤖 AI Evaluation
+          </button>
+          <button type="button" onclick="applyTemplate('annotation')" class="bg-slate-900 hover:bg-slate-700 border border-slate-700 text-xs text-emerald-300 py-2 px-3 rounded-xl text-left font-medium transition-colors">
+            🏷️ Image Labeling
+          </button>
+          <button type="button" onclick="applyTemplate('microtask')" class="bg-slate-900 hover:bg-slate-700 border border-slate-700 text-xs text-sky-300 py-2 px-3 rounded-xl text-left font-medium transition-colors">
+            ⚡ Microtask
+          </button>
+        </div>
+
+        <form id="createTaskForm" onsubmit="handleCreateTask(event)" class="space-y-4 pt-2">
           <div>
             <label class="block text-xs font-medium text-slate-400 mb-1">Task Title</label>
-            <input type="text" id="taskTitle" required placeholder="e.g. Data Annotation - RLHF Evaluation" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
+            <input type="text" id="taskTitle" required placeholder="e.g. Transcribe Audio File #014" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
           </div>
 
           <div class="grid grid-cols-2 gap-3">
@@ -219,14 +270,27 @@
             </div>
           </div>
 
-          <div>
-            <label class="block text-xs font-medium text-slate-400 mb-1">Worker Spots Available</label>
-            <input type="number" id="taskSpots" required placeholder="25" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Worker Spots</label>
+              <input type="number" id="taskSpots" required placeholder="25" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Timeline / Deadline</label>
+              <select id="taskTimeLimit" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
+                <option value="15 Mins">15 Minutes</option>
+                <option value="30 Mins">30 Minutes</option>
+                <option value="45 Mins">45 Minutes</option>
+                <option value="60 Mins">1 Hour</option>
+                <option value="120 Mins">2 Hours</option>
+                <option value="24 Hours">24 Hours</option>
+              </select>
+            </div>
           </div>
 
           <div>
             <label class="block text-xs font-medium text-slate-400 mb-1">Instructions / Description</label>
-            <textarea id="taskDesc" rows="4" required placeholder="Describe task steps, guidelines, and proof requirements..." class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500"></textarea>
+            <textarea id="taskDesc" rows="4" required placeholder="Describe task steps and proof requirements..." class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500"></textarea>
           </div>
 
           <div class="pt-2">
@@ -256,37 +320,21 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-700/50">
-              <!-- SUBMISSION SAMPLE ROW 1 -->
               <tr class="hover:bg-slate-700/30 transition-colors">
                 <td class="p-3 font-medium text-slate-200">
                   Alex M.
-                  <p class="text-xs text-slate-500">Proof: screenshot_01.png</p>
+                  <p class="text-xs text-slate-500">Proof: transcript_v1.docx</p>
                 </td>
-                <td class="p-3 text-slate-300">RLHF Prompting</td>
-                <td class="p-3 font-mono text-emerald-400 font-semibold">$4.50</td>
+                <td class="p-3 text-slate-300">
+                  Audio Transcription #014
+                  <p class="text-xs text-indigo-400 font-mono">Completed in 35 mins</p>
+                </td>
+                <td class="p-3 font-mono text-emerald-400 font-semibold">$3.50</td>
                 <td class="p-3 text-right space-x-2">
                   <button onclick="handleReview(101, 'accept')" class="bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/30 text-xs px-3 py-1.5 rounded-lg transition-colors">
                     Accept
                   </button>
                   <button onclick="handleReview(101, 'reject')" class="bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30 text-xs px-3 py-1.5 rounded-lg transition-colors">
-                    Reject
-                  </button>
-                </td>
-              </tr>
-
-              <!-- SUBMISSION SAMPLE ROW 2 -->
-              <tr class="hover:bg-slate-700/30 transition-colors">
-                <td class="p-3 font-medium text-slate-200">
-                  Sarah K.
-                  <p class="text-xs text-slate-500">Proof: log_output.txt</p>
-                </td>
-                <td class="p-3 text-slate-300">Data Classification</td>
-                <td class="p-3 font-mono text-emerald-400 font-semibold">$2.00</td>
-                <td class="p-3 text-right space-x-2">
-                  <button onclick="handleReview(102, 'accept')" class="bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/30 text-xs px-3 py-1.5 rounded-lg transition-colors">
-                    Accept
-                  </button>
-                  <button onclick="handleReview(102, 'reject')" class="bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30 text-xs px-3 py-1.5 rounded-lg transition-colors">
                     Reject
                   </button>
                 </td>

@@ -14,6 +14,7 @@
     const RATES = { USD: { symbol: '$', rate: 1 }, KES: { symbol: 'KSh ', rate: 129.5 }, EUR: { symbol: '€', rate: 0.92 } };
     let currentCurrency = 'USD';
     let userBalanceUSD = 3.50;
+    let selectedCategory = 'All';
 
     let workerProfile = { fullName: '', email: '', mpesaPhone: '', postalCode: '10204', country: 'Kenya' };
     
@@ -21,12 +22,12 @@
       {
         id: 1,
         title: "Safaricom Customer Care Call Transcription",
-        category: "Data Annotation",
+        category: "Transcription",
         payout: 3.50,
         spots_available: 12,
         time_limit: "45 Mins",
         isLocked: false,
-        description: "Listen to the customer care call recording and transcribe all spoken dialogue accurately."
+        description: "Listen to the customer call recording and transcribe spoken dialogue accurately."
       },
       {
         id: 2,
@@ -38,6 +39,17 @@
         isLocked: true,
         lockFee: 1.50,
         description: "Evaluate Response A vs Response B for tone, safety, and helpfulness."
+      },
+      {
+        id: 3,
+        title: "Bounding Box Image Dataset Annotation",
+        category: "Data Annotation",
+        payout: 2.00,
+        spots_available: 20,
+        time_limit: "60 Mins",
+        isLocked: true,
+        lockFee: 2.00,
+        description: "Annotate target vehicles and pedestrians in traffic images following guidelines."
       }
     ];
 
@@ -57,7 +69,7 @@
           activeTasks = data;
         }
       } catch (err) {
-        console.log("Using local task list state:", err);
+        console.log("Using default task list state:", err);
       } finally {
         renderTasks();
       }
@@ -127,6 +139,22 @@
       document.getElementById('userBalance').innerText = formatAmount(userBalanceUSD);
     }
 
+    function filterCategory(cat) {
+      selectedCategory = cat;
+      const categories = ['All', 'Data Annotation', 'Transcription', 'AI Evaluation', 'Microtask'];
+      categories.forEach(c => {
+        const btn = document.getElementById(`catBtn-${c.replace(/\s+/g, '')}`);
+        if (btn) {
+          if (c === cat) {
+            btn.className = "px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold transition-colors";
+          } else {
+            btn.className = "px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 text-xs font-medium transition-colors";
+          }
+        }
+      });
+      renderTasks();
+    }
+
     function switchTab(tabName) {
       const tabs = ['available', 'completed', 'pending', 'history'];
       tabs.forEach(t => {
@@ -161,11 +189,20 @@
       const grid = document.getElementById('taskGrid');
       if (!grid) return;
       
-      grid.innerHTML = activeTasks.map(task => `
+      const filtered = selectedCategory === 'All' 
+        ? activeTasks 
+        : activeTasks.filter(t => t.category && t.category.toLowerCase().includes(selectedCategory.toLowerCase()));
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="col-span-full bg-slate-800/60 border border-slate-700 p-8 rounded-2xl text-center text-slate-400">No active jobs in category: <strong>${selectedCategory}</strong></div>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(task => `
         <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 flex flex-col justify-between hover:border-indigo-500/50 transition-all shadow-lg relative overflow-hidden">
           
           ${task.isLocked ? `
-            <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center p-6 text-center">
+            <div class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm z-10 flex flex-col items-center justify-center p-6 text-center">
               <span class="text-2xl mb-2">🔒</span>
               <h4 class="font-bold text-white text-sm">Task Locked (Tier 2 Access)</h4>
               <p class="text-xs text-slate-300 mt-1 mb-3">Pay $${(task.lockFee || 1.50).toFixed(2)} activation fee to unlock slot.</p>
@@ -234,21 +271,23 @@
     }
 
     function toggleHelpModal() {
-      document.getElementById('helpModal').classList.toggle('hidden');
+      const modal = document.getElementById('helpModal');
+      if (modal) modal.classList.toggle('hidden');
     }
 
     function toggleProfileModal() {
-      document.getElementById('profileModal').classList.toggle('hidden');
+      const modal = document.getElementById('profileModal');
+      if (modal) modal.classList.toggle('hidden');
     }
   </script>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between p-4 md:p-8 relative">
 
-  <!-- REGISTRATION MODAL -->
+  <!-- ONBOARDING REGISTRATION MODAL -->
   <div id="onboardingModal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4 backdrop-blur-md">
     <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
       <h2 class="text-xl font-bold text-white text-center">Worker Setup</h2>
-      <p class="text-xs text-slate-400 text-center">Enter your legal details to activate your worker workspace and M-Pesa payout account.</p>
+      <p class="text-xs text-slate-400 text-center">Enter your details to activate your worker workspace and M-Pesa payout account.</p>
       <form onsubmit="handleOnboarding(event)" class="space-y-3">
         <div>
           <label class="block text-xs text-slate-400 mb-1">Full Legal Name</label>
@@ -269,7 +308,7 @@
 
   <div class="max-w-7xl mx-auto w-full space-y-8">
     
-    <!-- TOP HEADER -->
+    <!-- TOP HEADER BAR -->
     <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 backdrop-blur">
       <div>
         <h1 class="text-2xl font-bold text-white">Apex Task Studio</h1>
@@ -288,7 +327,7 @@
           <p id="userBalance" class="text-lg font-bold text-emerald-400 font-mono">$3.50</p>
         </div>
 
-        <button onclick="toggleProfileModal()" class="flex items-center gap-3 bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-xl">
+        <button onclick="toggleProfileModal()" class="flex items-center gap-3 bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-xl hover:bg-slate-700/50 transition-colors">
           <div id="avatarInitial" class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-xs text-white">W</div>
           <div class="text-left hidden sm:block">
             <p id="headerWorkerName" class="text-xs font-bold text-white">Worker Account</p>
@@ -322,10 +361,12 @@
       </div>
     </section>
 
-    <!-- DASHBOARD CONTENT WITH TABS AND WITHDRAWAL BOX -->
+    <!-- MAIN DASHBOARD AREA -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
       
       <section class="lg:col-span-8 space-y-6">
+        
+        <!-- DASHBOARD TABS -->
         <div class="flex items-center gap-6 border-b border-slate-700 text-sm font-medium pt-2">
           <button id="tabBtn-available" onclick="switchTab('available')" class="pb-2 border-b-2 border-indigo-500 font-bold text-indigo-400">
             Available Tasks
@@ -341,6 +382,17 @@
           </button>
         </div>
 
+        <!-- CATEGORY CLASSIFICATION FILTER BAR -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-1">
+          <span class="text-xs text-slate-400 font-medium mr-1">Category:</span>
+          <button id="catBtn-All" onclick="filterCategory('All')" class="px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold transition-colors">All</button>
+          <button id="catBtn-DataAnnotation" onclick="filterCategory('Data Annotation')" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 text-xs font-medium transition-colors">Data Annotation</button>
+          <button id="catBtn-Transcription" onclick="filterCategory('Transcription')" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 text-xs font-medium transition-colors">Transcription</button>
+          <button id="catBtn-AIEvaluation" onclick="filterCategory('AI Evaluation')" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 text-xs font-medium transition-colors">AI Evaluation</button>
+          <button id="catBtn-Microtask" onclick="filterCategory('Microtask')" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 text-xs font-medium transition-colors">Microtasks</button>
+        </div>
+
+        <!-- TASK GRID -->
         <div id="taskGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
       </section>
 
@@ -373,7 +425,7 @@
   </div>
 
   <!-- FLOATING BOTTOM HELP BUTTON -->
-  <button onclick="toggleHelpModal()" class="fixed bottom-6 right-6 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-3 px-4 rounded-full shadow-2xl border border-indigo-400/40 flex items-center gap-2 z-40 transition-transform hover:scale-105">
+  <button type="button" onclick="toggleHelpModal()" class="fixed bottom-6 right-6 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-3 px-4 rounded-full shadow-2xl border border-indigo-400/40 flex items-center gap-2 z-40 transition-transform hover:scale-105">
     <span>❓ Need Help? Support</span>
   </button>
 
@@ -382,7 +434,7 @@
     <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-lg w-full space-y-4">
       <div class="flex justify-between items-center border-b border-slate-700 pb-3">
         <h3 class="text-lg font-bold text-white flex items-center gap-2">❓ Worker Help & Support Center</h3>
-        <button onclick="toggleHelpModal()" class="text-slate-400 hover:text-white text-lg">✕</button>
+        <button type="button" onclick="toggleHelpModal()" class="text-slate-400 hover:text-white text-lg">✕</button>
       </div>
 
       <div class="space-y-3 text-xs text-slate-300 max-h-80 overflow-y-auto pr-1">
@@ -415,20 +467,20 @@
     <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full space-y-4">
       <div class="flex justify-between items-center border-b border-slate-700 pb-3">
         <h3 class="text-lg font-bold text-white">Profile Details</h3>
-        <button onclick="toggleProfileModal()" class="text-slate-400 hover:text-white">✕</button>
+        <button type="button" onclick="toggleProfileModal()" class="text-slate-400 hover:text-white">✕</button>
       </div>
       <div class="space-y-2 text-xs">
         <div><label class="block text-slate-400 mb-1">Full Name</label><input type="text" id="modalNameInput" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white"></div>
         <div><label class="block text-slate-400 mb-1">Email</label><input type="email" id="modalEmailInput" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white"></div>
       </div>
-      <button onclick="toggleProfileModal()" class="w-full bg-indigo-600 text-white font-semibold py-2 rounded-xl">Save Details</button>
+      <button type="button" onclick="toggleProfileModal()" class="w-full bg-indigo-600 text-white font-semibold py-2 rounded-xl">Save Details</button>
     </div>
   </div>
 
   <!-- FOOTER -->
   <footer class="mt-12 border-t border-slate-800 pt-6 text-center text-xs text-slate-500 space-y-2">
     <p>© 2026 Apex Task Studio. All rights reserved.</p>
-    <p><button onclick="toggleHelpModal()" class="text-indigo-400 hover:underline">Help & Support</button> • <a href="https://wa.me/254107246326" target="_blank" class="text-emerald-400 hover:underline">WhatsApp Admin</a></p>
+    <p><button type="button" onclick="toggleHelpModal()" class="text-indigo-400 hover:underline">Help & Support</button> • <a href="https://wa.me/254107246326" target="_blank" class="text-emerald-400 hover:underline">WhatsApp Admin</a></p>
   </footer>
 
 </body>

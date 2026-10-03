@@ -200,7 +200,7 @@
         <div class="rounded-2xl border border-slate-700 bg-panel p-5">
           <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Available Balance</p>
           <p id="balanceDisplay" class="mt-2 text-2xl font-black text-emerald">$0.00</p>
-          <p class="mt-1 text-xs text-slate-500">Approved and ready for M-Pesa withdrawal</p>
+          <p class="mt-1 text-xs text-slate-500">Ready for M-Pesa withdrawal</p>
         </div>
 
         <div class="rounded-2xl border border-slate-700 bg-panel p-5">
@@ -278,7 +278,7 @@
             <p class="text-sm font-bold uppercase tracking-widest text-emerald">M-Pesa Withdrawals</p>
             <h2 class="mt-2 text-2xl font-black text-white">Ready to cash out?</h2>
             <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
-              Submit a withdrawal request using your registered M-Pesa number. Only approved earnings in your available balance can be withdrawn.
+              Submit a withdrawal request using your registered M-Pesa number. Withdrawals are available when your Available Balance is greater than zero.
             </p>
           </div>
 
@@ -382,11 +382,6 @@
         <article class="rounded-2xl border border-slate-700 bg-slatebase p-4">
           <h3 class="font-bold text-white">Why are some tasks locked?</h3>
           <p class="mt-2 text-sm leading-6 text-slate-400">Your first task is free. Additional work may require a one-time task unlock fee between $1.50 and $2.00, deducted from your available balance.</p>
-        </article>
-
-        <article class="rounded-2xl border border-slate-700 bg-slatebase p-4">
-          <h3 class="font-bold text-white">Why are my earnings pending?</h3>
-          <p class="mt-2 text-sm leading-6 text-slate-400">Submitted work is reviewed by an administrator. Once approved, the payout moves from Pending Earnings to Available Balance and becomes eligible for M-Pesa withdrawal.</p>
         </article>
 
         <article class="rounded-2xl border border-slate-700 bg-slatebase p-4">
@@ -524,7 +519,7 @@
             placeholder="Enter amount"
             class="w-full rounded-xl border border-slate-700 bg-slatebase px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-emerald"
           />
-          <p class="mt-2 text-xs text-slate-500">The request is stored in USD. Display currency may differ.</p>
+          <p class="mt-2 text-xs text-slate-500">The request is stored in USD and KES. Display currency may differ.</p>
         </div>
 
         <p id="withdrawalStatus" class="hidden rounded-lg px-3 py-2 text-sm"></p>
@@ -681,6 +676,11 @@
       renderDashboard();
     }
 
+    function creditWalletBalance(amount) {
+      const currentBalance = getWalletBalance();
+      setWalletBalance(currentBalance + Number(amount));
+    }
+
     function getPendingEarnings() {
       return Number(localStorage.getItem(PENDING_KEY) || 0);
     }
@@ -735,6 +735,13 @@
       }
 
       return `$${usdAmount.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })}`;
+    }
+
+    function formatKes(usdAmount) {
+      return `KSh ${(usdAmount * EXCHANGE_RATE).toLocaleString("en-KE", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       })}`;
@@ -1053,6 +1060,20 @@
       return String(value ?? "").trim();
     }
 
+    function showSubmissionAlert(message, type = "error") {
+      const status = document.getElementById("submissionStatus");
+
+      if (type === "error") {
+        status.textContent = message;
+        status.className = "mt-3 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300";
+      } else {
+        status.textContent = message;
+        status.className = "mt-3 rounded-lg border border-emerald/40 bg-emerald/10 px-3 py-2 text-sm text-emerald";
+      }
+
+      status.classList.remove("hidden");
+    }
+
     async function submitWork(event) {
       event.preventDefault();
 
@@ -1060,61 +1081,61 @@
 
       const profile = getProfile();
       const proof = cleanText(document.getElementById("workProof").value);
-      const status = document.getElementById("submissionStatus");
       const button = document.getElementById("submitWorkButton");
 
       if (!proof) {
-        status.textContent = "Please paste your completed work or proof before submitting.";
-        status.className = "mt-3 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300";
+        showSubmissionAlert("Please paste your completed work or proof before submitting.", "error");
         return;
       }
 
       button.disabled = true;
       button.textContent = "Submitting...";
 
-      const submissionData = {
-        task_id: cleanText(selectedTask.id),
-        task_title: cleanText(selectedTask.title),
-        task_category: cleanText(selectedTask.category),
-        payout_usd: Number(selectedTask.payout),
-        worker_name: cleanText(profile.fullName),
-        worker_email: cleanText(profile.email),
-        worker_phone: cleanText(profile.phone),
-        proof: proof,
-        status: "pending"
-      };
+      try {
+        const submissionData = {
+          task_id: cleanText(selectedTask.id),
+          task_title: cleanText(selectedTask.title),
+          task_category: cleanText(selectedTask.category),
+          payout_usd: Number(selectedTask.payout),
+          worker_name: cleanText(profile.fullName),
+          worker_email: cleanText(profile.email),
+          worker_phone: cleanText(profile.phone),
+          proof: proof,
+          status: "pending"
+        };
 
-      const { error } = await supabaseClient
-        .from("submissions")
-        .insert([submissionData]);
+        const { error } = await supabaseClient
+          .from("submissions")
+          .insert([submissionData]);
 
-      if (error) {
-        console.error(error);
-        status.textContent = `Submission could not be saved: ${error.message}`;
-        status.className = "mt-3 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300";
-        button.disabled = false;
-        button.textContent = "Submit Work to Review";
-        return;
-      }
+        if (error) {
+          throw new Error(error.message);
+        }
 
-      const startedTasks = getStartedTasks();
-      if (!startedTasks.includes(selectedTask.id)) {
-        setStartedTasks([...startedTasks, selectedTask.id]);
-      }
+        const startedTasks = getStartedTasks();
+        if (!startedTasks.includes(selectedTask.id)) {
+          setStartedTasks([...startedTasks, selectedTask.id]);
+        }
 
-      setPendingEarnings(getPendingEarnings() + Number(selectedTask.payout));
+        creditWalletBalance(Number(selectedTask.payout));
 
-      status.textContent = "Your work was submitted successfully and is pending admin review. Your payout has been added to Pending Earnings.";
-      status.className = "mt-3 rounded-lg border border-emerald/40 bg-emerald/10 px-3 py-2 text-sm text-emerald";
+        showSubmissionAlert(
+          `Your work was submitted successfully. ${formatMoney(selectedTask.payout)} has been added to your Available Balance.`,
+          "success"
+        );
 
-      button.textContent = "Submitted Successfully";
-
-      setTimeout(() => {
-        closeModal("submissionModal");
-        button.disabled = false;
-        button.textContent = "Submit Work to Review";
+        document.getElementById("workProof").value = "";
         renderTasks(currentCategory);
-      }, 1200);
+      } catch (error) {
+        console.error(error);
+        showSubmissionAlert(
+          `Submission failed: ${error?.message || "Please check your connection and try again."}`,
+          "error"
+        );
+      } finally {
+        button.disabled = false;
+        button.textContent = "Submit Work to Review";
+      }
     }
 
     async function submitWithdrawal(event) {
@@ -1136,7 +1157,7 @@
       }
 
       if (amount > balance) {
-        status.textContent = "Withdrawal amount cannot be higher than your available balance. Pending earnings must be approved first.";
+        status.textContent = "Withdrawal amount cannot be higher than your available balance.";
         status.className = "rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300";
         return;
       }
@@ -1144,40 +1165,38 @@
       button.disabled = true;
       button.textContent = "Submitting request...";
 
-      const withdrawalData = {
-        worker_name: cleanText(profile.fullName),
-        worker_email: cleanText(profile.email),
-        worker_phone: phone,
-        amount_usd: Number(amount),
-        status: "pending"
-      };
+      try {
+        const withdrawalData = {
+          worker_name: cleanText(profile.fullName),
+          worker_email: cleanText(profile.email),
+          worker_phone: phone,
+          amount_usd: Number(amount),
+          amount_kes: Number((amount * EXCHANGE_RATE).toFixed(2)),
+          status: "pending"
+        };
 
-      const { error } = await supabaseClient
-        .from("withdrawals")
-        .insert([withdrawalData]);
+        const { error } = await supabaseClient
+          .from("withdrawals")
+          .insert([withdrawalData]);
 
-      if (error) {
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        setWalletBalance(balance - amount);
+
+        status.textContent = `Withdrawal request of ${formatKes(amount)} submitted successfully! M-Pesa processing.`;
+        status.className = "rounded-lg border border-emerald/40 bg-emerald/10 px-3 py-2 text-sm text-emerald";
+
+        document.getElementById("withdrawalAmount").value = "";
+      } catch (error) {
         console.error(error);
-        status.textContent = `Withdrawal request could not be saved: ${error.message}`;
+        status.textContent = `Withdrawal request failed: ${error?.message || "Please try again."}`;
         status.className = "rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300";
+      } finally {
         button.disabled = false;
         button.textContent = "Submit M-Pesa Withdrawal Request";
-        return;
       }
-
-      setWalletBalance(balance - amount);
-
-      status.textContent = "Your M-Pesa withdrawal request was submitted successfully.";
-      status.className = "rounded-lg border border-emerald/40 bg-emerald/10 px-3 py-2 text-sm text-emerald";
-
-      document.getElementById("withdrawalAmount").value = "";
-      button.textContent = "Request Submitted";
-
-      setTimeout(() => {
-        closeModal("withdrawalModal");
-        button.disabled = false;
-        button.textContent = "Submit M-Pesa Withdrawal Request";
-      }, 1200);
     }
 
     async function confirmUnlock() {

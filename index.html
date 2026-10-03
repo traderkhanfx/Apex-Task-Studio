@@ -1,496 +1,557 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Apex Task Studio — Remote Microtask Platform</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    body {
-      background: #090d16;
-      background-image: 
-        radial-gradient(at 10% 10%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
-        radial-gradient(at 90% 90%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
-      color: #f1f5f9;
-      font-family: 'Inter', system-ui, sans-serif;
-      min-height: 100vh;
-    }
-    .glass-card {
-      background: rgba(18, 24, 38, 0.7);
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-    }
-    .glass-modal {
-      background: rgba(15, 20, 32, 0.95);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(139, 92, 246, 0.25);
-    }
-    .btn-glow {
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-      transition: all 0.25s ease;
-      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
-    }
-    .btn-glow:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
-    }
-    .badge {
-      font-size: 0.7rem;
-      padding: 0.25rem 0.65rem;
-      border-radius: 9999px;
-      font-weight: 600;
-      letter-spacing: 0.025em;
-    }
-    .badge-transcription { background: rgba(99, 102, 241, 0.18); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); }
-    .badge-annotation { background: rgba(236, 72, 153, 0.18); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.3); }
-    .badge-rlhf { background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
-    .badge-general { background: rgba(168, 85, 247, 0.18); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Apex Task Studio — Work From Home Worldwide</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  body {
+    background: #0a0f1d;
+    color: #ffffff;
+    min-height: 100vh;
+  }
+  .glass {
+    background: rgba(17, 24, 39, 0.65);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(16, 185, 129, 0.18);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+  .glass-soft {
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(6, 182, 212, 0.15);
+  }
+  .card-hover { transition: all 0.22s ease; }
+  .card-hover:hover { transform: translateY(-2px); border-color: rgba(16, 185, 129, 0.45); box-shadow: 0 12px 40px rgba(16, 185, 129, 0.12); }
+  .btn-primary {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff;
+    font-weight: 600;
+    transition: all 0.22s;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(16, 185, 129, 0.5); }
+  .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+  .btn-cyan {
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+    color: #ffffff; font-weight: 600;
+    transition: all 0.22s;
+    box-shadow: 0 4px 14px rgba(6, 182, 212, 0.3);
+  }
+  .btn-cyan:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(6, 182, 212, 0.5); }
+  .btn-ghost {
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    color: #6ee7b7;
+    transition: all 0.2s;
+  }
+  .btn-ghost:hover { background: rgba(16, 185, 129, 0.18); color: #ffffff; }
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(10, 15, 29, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100; padding: 1rem;
+    animation: fadeIn 0.2s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal-content {
+    background: rgba(15, 23, 42, 0.96);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 1rem;
+    max-width: 520px; width: 100%;
+    padding: 1.75rem;
+    max-height: 90vh; overflow-y: auto;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.7);
+    animation: slideUp 0.25s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .hidden { display: none !important; }
+  .input-field {
+    width: 100%;
+    padding: 0.75rem 0.9rem;
+    border-radius: 0.5rem;
+    background: rgba(10, 15, 29, 0.7);
+    border: 1.5px solid rgba(16, 185, 129, 0.2);
+    color: #ffffff;
+    font-size: 0.875rem;
+    outline: none;
+    transition: all 0.2s;
+  }
+  .input-field:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15); }
+  .input-field::placeholder { color: rgba(110, 231, 183, 0.35); }
+  .badge {
+    font-size: 0.65rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    display: inline-block;
+  }
+  .badge-emerald { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
+  .badge-cyan { background: rgba(6, 182, 212, 0.15); color: #67e8f9; border: 1px solid rgba(6, 182, 212, 0.3); }
+  .badge-amber { background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3); }
+  .badge-slate { background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2); }
+  .badge-soon { background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(16, 185, 129, 0.2) 100%); color: #67e8f9; border: 1px solid rgba(6, 182, 212, 0.4); font-weight: 700; }
+  .stat-card {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(16, 185, 129, 0.15);
+    border-radius: 0.9rem;
+    padding: 1rem 1.15rem;
+    transition: all 0.2s;
+  }
+  .stat-card:hover { border-color: rgba(16, 185, 129, 0.35); }
+  .loading-spinner {
+    border: 3px solid rgba(16, 185, 129, 0.15);
+    border-top: 3px solid #10b981;
+    border-radius: 50%;
+    width: 28px; height: 28px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+  }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  .pulse-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%; background: #10b981;
+    display: inline-block;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .header-title {
+    background: linear-gradient(135deg, #ffffff 0%, #6ee7b7 60%, #06b6d4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  .toast {
+    position: fixed;
+    top: 1.5rem; left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.96);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    backdrop-filter: blur(16px);
+    padding: 0.85rem 1.25rem;
+    border-radius: 0.75rem;
+    font-size: 0.85rem;
+    color: #ffffff;
+    z-index: 200;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+    animation: slideDown 0.3s ease;
+    max-width: 90vw;
+  }
+  @keyframes slideDown { from { transform: translate(-50%, -20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+  .toast-success { border-color: rgba(16, 185, 129, 0.6); }
+  .toast-error { border-color: rgba(239, 68, 68, 0.6); }
+  .cat-tab {
+    padding: 0.55rem 1.1rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    background: rgba(15, 23, 42, 0.5);
+    color: #6ee7b7;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .cat-tab:hover { background: rgba(16, 185, 129, 0.12); color: #ffffff; }
+  .cat-tab.active {
+    background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+    color: #ffffff;
+    border-color: transparent;
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
+  }
+  .avatar {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.9rem; color: #ffffff;
+  }
+</style>
 </head>
-<body class="p-3 md:p-6 pb-20">
+<body>
 
-  <!-- ONBOARDING MODAL (Email, Name, Phone) -->
-  <div id="onboardingModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden">
-    <div class="glass-modal max-w-md w-full p-6 rounded-2xl shadow-2xl text-left border border-indigo-500/30">
-      <div class="flex items-center gap-3 mb-4">
-        <span class="text-3xl">⚡</span>
+<div id="toastContainer"></div>
+
+<!-- ============ ONBOARDING / PROFILE MODAL ============ -->
+<div id="onboardingModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="flex items-center gap-3 mb-5">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);">
+        <span class="text-2xl">⚡</span>
+      </div>
+      <div>
+        <h2 class="text-lg font-bold text-white">Welcome to Apex Task Studio</h2>
+        <p class="text-xs text-emerald-300/60 mt-0.5">Set up your worker profile to start earning</p>
+      </div>
+    </div>
+    <form id="onboardingForm" class="space-y-3">
+      <div>
+        <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Full Name</label>
+        <input type="text" id="inputFullName" placeholder="Enter your full name" required class="input-field" />
+      </div>
+      <div>
+        <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Email Address</label>
+        <input type="email" id="inputEmail" placeholder="Enter your email address" required class="input-field" />
+      </div>
+      <div>
+        <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">M-Pesa Phone Number</label>
+        <input type="tel" id="inputPhone" placeholder="e.g. 0712345678" required class="input-field" />
+      </div>
+      <button type="submit" class="btn-primary w-full py-3 rounded-lg text-sm mt-2">
+        Save Profile & Continue
+      </button>
+      <p class="text-xs text-emerald-300/40 text-center mt-2">Your data is used to track submissions and payouts.</p>
+    </form>
+  </div>
+</div>
+
+<!-- ============ HELP CENTER MODAL ============ -->
+<div id="helpModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <h2 class="text-lg font-bold text-white">❓ Help Center</h2>
+        <p class="text-xs text-emerald-300/60 mt-0.5">Frequently asked questions</p>
+      </div>
+      <button onclick="closeModal('helpModal')" class="text-emerald-300 hover:text-white text-2xl leading-none">&times;</button>
+    </div>
+    <div class="space-y-3 text-sm">
+      <div class="glass-soft rounded-lg p-3">
+        <h3 class="font-semibold text-emerald-400 mb-1 text-sm">📌 How do I get paid?</h3>
+        <p class="text-xs text-slate-300 leading-relaxed">Once your task is approved by our QA team, the payout is added to your balance. You can withdraw via M-Pesa anytime.</p>
+      </div>
+      <div class="glass-soft rounded-lg p-3">
+        <h3 class="font-semibold text-emerald-400 mb-1 text-sm">📌 Why is a task locked?</h3>
+        <p class="text-xs text-slate-300 leading-relaxed">Your first task is free. Premium tasks require a small unlock fee ($1.50–$2.00) to filter serious workers and maintain quality.</p>
+      </div>
+      <div class="glass-soft rounded-lg p-3">
+        <h3 class="font-semibold text-emerald-400 mb-1 text-sm">📌 What if my task is rejected?</h3>
+        <p class="text-xs text-slate-300 leading-relaxed">You'll be notified with feedback. You can resubmit the corrected task. Repeated rejections may affect your ranking.</p>
+      </div>
+      <div class="glass-soft rounded-lg p-3">
+        <h3 class="font-semibold text-emerald-400 mb-1 text-sm">📌 How long do withdrawals take?</h3>
+        <p class="text-xs text-slate-300 leading-relaxed">M-Pesa withdrawals are processed within 24 hours on business days.</p>
+      </div>
+      <div class="pt-2 border-t border-emerald-500/15">
+        <p class="text-xs text-emerald-300/60 mb-2">Still need help?</p>
+        <a href="https://wa.me/254107246326" target="_blank" class="btn-primary w-full py-3 rounded-lg text-sm flex items-center justify-center gap-2">
+          💬 Chat on WhatsApp
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TASK SUBMISSION MODAL ============ -->
+<div id="taskModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="flex justify-between items-start mb-4">
+      <div class="pr-4">
+        <span class="badge badge-emerald mb-2" id="modalTaskCategory">Category</span>
+        <h2 class="text-lg font-bold text-white mt-2" id="modalTaskTitle">Task Title</h2>
+      </div>
+      <button onclick="closeModal('taskModal')" class="text-emerald-300 hover:text-white text-2xl leading-none">&times;</button>
+    </div>
+    <div class="glass-soft rounded-lg p-3 mb-4">
+      <div class="grid grid-cols-3 gap-2 text-center">
         <div>
-          <h2 class="text-lg font-bold text-white">Welcome to Apex Task Studio</h2>
-          <p class="text-xs text-slate-400">Set up your worker profile to access tasks</p>
+          <p class="text-xs text-emerald-300/50">Payout</p>
+          <p class="text-sm font-bold text-emerald-400" id="modalTaskPayout">$0.00</p>
+        </div>
+        <div>
+          <p class="text-xs text-emerald-300/50">Est. Time</p>
+          <p class="text-sm font-bold text-white" id="modalTaskTime">0 min</p>
+        </div>
+        <div>
+          <p class="text-xs text-emerald-300/50">Worker</p>
+          <p class="text-sm font-bold text-white truncate" id="modalWorkerName">—</p>
         </div>
       </div>
-      <form id="onboardingForm" class="space-y-4">
-        <div>
-          <label class="text-xs font-semibold text-slate-300 block mb-1">Full Name</label>
-          <input type="text" id="onboardName" placeholder="Enter your full name" required class="w-full px-3.5 py-2.5 rounded-lg bg-slate-900/80 border border-slate-700 text-white text-xs outline-none focus:border-indigo-500" />
+    </div>
+    <div class="mb-4">
+      <p class="text-xs text-emerald-200/70 font-medium mb-2">📋 Instructions</p>
+      <div class="glass-soft rounded-lg p-3 text-xs text-slate-200/90 leading-relaxed max-h-32 overflow-y-auto" id="modalTaskDescription">
+        —
+      </div>
+    </div>
+    <div>
+      <label class="text-xs text-emerald-200/70 block mb-1.5 font-medium">Your Proof / Submission</label>
+      <textarea id="modalProof" rows="5" placeholder="Paste your transcription, verification code, or output here..." class="input-field resize-none"></textarea>
+    </div>
+    <div class="flex gap-2 mt-5">
+      <button onclick="closeModal('taskModal')" class="btn-ghost flex-1 py-3 rounded-lg text-sm">Cancel</button>
+      <button onclick="submitTaskProof()" id="submitTaskBtn" class="btn-primary flex-1 py-3 rounded-lg text-sm">Submit Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ WITHDRAWAL MODAL ============ -->
+<div id="withdrawModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <h2 class="text-lg font-bold text-white">💸 M-Pesa Withdrawal</h2>
+        <p class="text-xs text-emerald-300/60 mt-0.5">Cash out your approved balance</p>
+      </div>
+      <button onclick="closeModal('withdrawModal')" class="text-emerald-300 hover:text-white text-2xl leading-none">&times;</button>
+    </div>
+    <div class="glass-soft rounded-lg p-3 mb-4 flex justify-between items-center">
+      <span class="text-xs text-emerald-200/70">Available Balance</span>
+      <span class="text-lg font-bold text-emerald-400" id="withdrawAvailable">$0.00</span>
+    </div>
+    <div class="space-y-3">
+      <div>
+        <label class="text-xs text-emerald-200/70 block mb-1.5 font-medium">M-Pesa Mobile Number</label>
+        <input type="tel" id="withdrawPhone" placeholder="e.g. 0712345678" class="input-field" />
+      </div>
+      <div>
+        <label class="text-xs text-emerald-200/70 block mb-1.5 font-medium">Amount (USD)</label>
+        <input type="number" id="withdrawAmount" placeholder="10.00" step="0.01" min="1" class="input-field" />
+      </div>
+      <button onclick="submitWithdrawal()" id="withdrawBtn" class="btn-cyan w-full py-3 rounded-lg text-sm">
+        Request Withdrawal
+      </button>
+      <p class="text-xs text-emerald-300/40 text-center">Minimum: $1.00 · Processed within 24 hours</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CONFIRM MODAL ============ -->
+<div id="confirmModal" class="modal-overlay hidden">
+  <div class="modal-content text-center max-w-md">
+    <h2 class="text-lg font-bold text-white mb-2" id="confirmTitle">Confirm</h2>
+    <p class="text-sm text-slate-300 mb-5" id="confirmMessage">Are you sure?</p>
+    <div class="flex gap-3">
+      <button onclick="closeModal('confirmModal')" class="btn-ghost flex-1 py-2.5 rounded-lg text-sm">Cancel</button>
+      <button id="confirmYes" class="btn-primary flex-1 py-2.5 rounded-lg text-sm">Yes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MAIN APP ============ -->
+<div class="max-w-6xl mx-auto p-4 pb-24">
+
+  <!-- HEADER -->
+  <header class="flex flex-wrap items-center justify-between gap-4 mb-5">
+    <div class="flex items-center gap-3">
+      <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);">
+        <span class="text-xl">⚡</span>
+      </div>
+      <div>
+        <h1 class="text-xl md:text-2xl font-extrabold tracking-tight header-title">APEX TASK STUDIO</h1>
+        <p class="text-xs text-emerald-300/60 mt-0.5 font-medium">Remote Microtask Platform · Worldwide</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 flex-wrap">
+      <select id="currencySwitcher" onchange="changeCurrency()" class="input-field !w-auto !py-2 !px-3 text-xs font-semibold cursor-pointer">
+        <option value="USD">🇺🇸 USD ($)</option>
+        <option value="KES">🇰🇪 KES (KSh)</option>
+      </select>
+      <button onclick="openModal('helpModal')" class="btn-ghost px-4 py-2 rounded-lg text-xs font-semibold">❓ Help Center</button>
+      <button onclick="openModal('onboardingModal')" id="profilePill" class="glass rounded-full pl-1.5 pr-4 py-1.5 flex items-center gap-2.5 hover:bg-emerald-500/10 transition">
+        <div class="avatar" id="headerAvatar">?</div>
+        <div class="text-left hidden sm:block">
+          <p class="text-xs font-bold text-white leading-tight" id="headerWorkerName">Set Profile</p>
+          <p class="text-[10px] text-emerald-300/60 leading-tight" id="headerWorkerPhone">Tap to onboard</p>
         </div>
-        <div>
-          <label class="text-xs font-semibold text-slate-300 block mb-1">Email Address</label>
-          <input type="email" id="onboardEmail" placeholder="Enter your email address" required class="w-full px-3.5 py-2.5 rounded-lg bg-slate-900/80 border border-slate-700 text-white text-xs outline-none focus:border-indigo-500" />
-        </div>
-        <div>
-          <label class="text-xs font-semibold text-slate-300 block mb-1">M-Pesa Phone Number</label>
-          <input type="tel" id="onboardPhone" placeholder="e.g. 0712345678" required class="w-full px-3.5 py-2.5 rounded-lg bg-slate-900/80 border border-slate-700 text-white text-xs outline-none focus:border-indigo-500" />
-        </div>
-        <button type="submit" class="btn-glow w-full py-3 rounded-lg text-xs font-bold text-white mt-2">Start Working →</button>
-      </form>
+      </button>
+    </div>
+  </header>
+
+  <!-- WELCOME BANNER -->
+  <div class="glass rounded-2xl p-5 md:p-6 mb-6 relative overflow-hidden">
+    <div class="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-20 pointer-events-none" style="background: radial-gradient(circle, #10b981 0%, transparent 70%);"></div>
+    <div class="absolute -bottom-16 -left-16 w-56 h-56 rounded-full opacity-15 pointer-events-none" style="background: radial-gradient(circle, #06b6d4 0%, transparent 70%);"></div>
+    <div class="relative">
+      <span class="badge badge-emerald mb-3">🌍 Worldwide Access</span>
+      <h2 class="text-lg md:text-2xl font-extrabold text-white leading-snug mb-2">
+        Welcome to a remote microtask platform where you can <span class="text-emerald-400">work at home</span> and it is <span class="text-cyan-400">worldwide</span>.
+      </h2>
+      <p class="text-sm text-emerald-200/70 font-medium">
+        💸 It supports <span class="text-emerald-400 font-bold">M-Pesa withdrawal</span> — get paid directly to your phone.
+      </p>
     </div>
   </div>
 
-  <!-- HELP CENTER MODAL -->
-  <div id="helpModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden">
-    <div class="glass-modal max-w-lg w-full p-6 rounded-2xl shadow-2xl text-left border border-indigo-500/30">
-      <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-3">
-        <div class="flex items-center gap-2">
-          <span class="text-2xl">❓</span>
-          <h3 class="text-base font-bold text-white">Worker Help Center</h3>
-        </div>
-        <button onclick="closeModal('helpModal')" class="text-slate-400 hover:text-white font-bold text-lg">✕</button>
+  <!-- STATS GRID -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+    <div class="stat-card">
+      <div class="flex justify-between items-start mb-1">
+        <p class="text-xs text-emerald-200/60 uppercase tracking-wider font-medium">Available Tasks</p>
+        <span class="text-lg">📋</span>
       </div>
-      <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-1 text-xs text-slate-300">
-        <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-800">
-          <h4 class="font-bold text-indigo-400 mb-1">How do I start completing tasks?</h4>
-          <p class="leading-relaxed">Browse available tasks under Active Work Assignments. Click "Start & Submit", complete the instructions, and paste your proof or output into the submission box.</p>
-        </div>
-        <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-800">
-          <h4 class="font-bold text-indigo-400 mb-1">When will my earnings be approved?</h4>
-          <p class="leading-relaxed">Submissions are reviewed by administrators within 12–24 hours. Once approved, your pending balance moves to your Approved Balance.</p>
-        </div>
-        <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-800">
-          <h4 class="font-bold text-indigo-400 mb-1">How does M-Pesa Cashout work?</h4>
-          <p class="leading-relaxed">Click the "Cashout" button on your Approved Balance card. Enter your withdrawal amount and M-Pesa phone number. Payouts are processed directly to your mobile wallet.</p>
-        </div>
-        <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-800">
-          <h4 class="font-bold text-indigo-400 mb-1">Need direct support?</h4>
-          <p class="leading-relaxed">Email our support team at <span class="text-indigo-300">support@apextaskstudio.com</span> with your registered email and phone number.</p>
-        </div>
+      <p class="text-3xl font-extrabold text-white mt-1" id="statAvailableTasks">—</p>
+      <p class="text-xs text-emerald-300/50 mt-1">Ready to work on</p>
+    </div>
+    <div class="stat-card">
+      <div class="flex justify-between items-start mb-1">
+        <p class="text-xs text-emerald-200/60 uppercase tracking-wider font-medium">Approved Balance</p>
+        <span class="text-lg">✅</span>
       </div>
-      <button onclick="closeModal('helpModal')" class="btn-glow w-full py-2.5 rounded-xl text-xs font-bold text-white mt-4">Close Help Center</button>
+      <p class="text-3xl font-extrabold text-emerald-400 mt-1" id="statApprovedBalance">$0.00</p>
+      <p class="text-xs text-emerald-300/50 mt-1">Available for cashout</p>
+    </div>
+    <div class="stat-card">
+      <div class="flex justify-between items-start mb-1">
+        <p class="text-xs text-emerald-200/60 uppercase tracking-wider font-medium">Pending Approvals</p>
+        <span class="text-lg">⏳</span>
+      </div>
+      <p class="text-3xl font-extrabold text-amber-400 mt-1" id="statPendingBalance">$0.00</p>
+      <p class="text-xs text-emerald-300/50 mt-1">Awaiting QA review</p>
     </div>
   </div>
 
-  <!-- TASK SUBMISSION MODAL -->
-  <div id="submitModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden">
-    <div class="glass-modal max-w-lg w-full p-6 rounded-2xl shadow-2xl text-left">
-      <div class="flex justify-between items-center mb-3">
-        <h3 id="modalTaskTitle" class="text-base font-bold text-white">Task Submission</h3>
-        <button onclick="closeModal('submitModal')" class="text-slate-400 hover:text-white font-bold text-lg">✕</button>
-      </div>
-      <p id="modalTaskDesc" class="text-xs text-slate-300 mb-4 bg-slate-900/60 p-3 rounded-xl border border-slate-800 leading-relaxed"></p>
-      <form id="submissionForm" class="space-y-4">
-        <input type="hidden" id="modalTaskId" />
-        <div>
-          <label class="text-xs font-semibold text-slate-300 block mb-1">Your Submission Proof / Output</label>
-          <textarea id="proofInput" rows="5" placeholder="Paste your transcription, annotation results, or completion verification here..." required class="w-full p-3 rounded-xl bg-slate-900/80 border border-slate-700 text-white text-xs outline-none focus:border-indigo-500"></textarea>
-        </div>
-        <button type="submit" class="btn-glow w-full py-3 rounded-xl text-xs font-bold text-white">⚡ Submit Task for Review</button>
-      </form>
+  <!-- WITHDRAW BUTTON -->
+  <div class="flex justify-end mb-6">
+    <button onclick="openWithdraw()" class="btn-cyan px-6 py-3 rounded-xl text-sm flex items-center gap-2">
+      💸 Withdraw via M-Pesa
+    </button>
+  </div>
+
+  <!-- CATEGORY TABS -->
+  <div class="flex gap-2 mb-5 overflow-x-auto scrollbar-hide pb-1">
+    <button onclick="setCategory('All Work')" id="catAll" class="cat-tab active">📂 All Work</button>
+    <button onclick="setCategory('Audio Transcription')" id="catAudio" class="cat-tab">🎧 Audio Transcription</button>
+    <button onclick="setCategory('Data Annotation')" id="catData" class="cat-tab">🏷️ Data Annotation</button>
+    <button onclick="setCategory('RLHF & AI Training')" id="catRLHF" class="cat-tab">🤖 RLHF &amp; AI Training</button>
+    <button onclick="setCategory('Microtasks')" id="catMicro" class="cat-tab">⚡ Microtasks</button>
+  </div>
+
+  <!-- COMING SOON BANNER (shown for RLHF & Microtasks) -->
+  <div id="comingSoonBanner" class="hidden glass rounded-xl p-5 mb-5 text-center">
+    <div class="inline-flex items-center gap-2 mb-2">
+      <span class="text-2xl">🚧</span>
+      <span class="badge badge-soon !text-sm !px-3 !py-1">COMING SOON</span>
+    </div>
+    <h3 class="text-base font-bold text-white mb-1" id="comingSoonTitle">New Tasks Incoming</h3>
+    <p class="text-xs text-emerald-200/70 max-w-md mx-auto" id="comingSoonText">
+      We're preparing high-paying tasks for this category. Check back soon — they'll be live shortly!
+    </p>
+  </div>
+
+  <!-- TASKS SECTION -->
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <h2 class="text-lg font-bold text-white flex items-center gap-2" id="taskSectionTitle">📋 Available Tasks</h2>
+      <p class="text-xs text-emerald-300/60 mt-0.5" id="taskSectionSubtitle">Select a task to view instructions and submit your work.</p>
+    </div>
+    <button onclick="loadTasks()" class="btn-ghost px-3 py-1.5 rounded-lg text-xs font-medium">🔄 Refresh</button>
+  </div>
+
+  <div id="taskList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="col-span-2 text-center py-16">
+      <div class="loading-spinner"></div>
+      <p class="text-sm text-emerald-300/50 mt-4">Loading tasks...</p>
     </div>
   </div>
 
-  <!-- CASHOUT MODAL -->
-  <div id="withdrawModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden">
-    <div class="glass-modal max-w-md w-full p-6 rounded-2xl shadow-2xl text-left">
-      <div class="flex justify-between items-center mb-3">
-        <h3 class="text-base font-bold text-white">💸 Request M-Pesa Withdrawal</h3>
-        <button onclick="closeModal('withdrawModal')" class="text-slate-400 hover:text-white font-bold">✕</button>
-      </div>
-      <form id="withdrawForm" class="space-y-4">
-        <div>
-          <label class="text-xs font-semibold text-slate-300 block mb-1">M-Pesa Line</label>
-          <input type="text" id="withdrawPhone" required class="w-full px-3.5 py-2.5 rounded-lg bg-slate-900/80 border border-slate-700 text-white text-xs outline-none" />
-        </div>
-        <div>
-          <label class="text-xs font-semibold text-slate-300 block mb-1">Withdrawal Amount (<span class="currencyLabel">USD</span>)</label>
-          <input type="number" step="0.01" id="withdrawAmount" placeholder="e.g. 5.00" required class="w-full px-3.5 py-2.5 rounded-lg bg-slate-900/80 border border-slate-700 text-white text-xs outline-none" />
-        </div>
-        <button type="submit" class="btn-glow w-full py-3 rounded-xl text-xs font-bold text-white">Submit M-Pesa Request</button>
-      </form>
-    </div>
-  </div>
+  <!-- FOOTER -->
+  <footer class="text-center text-xs text-emerald-300/40 border-t border-emerald-500/10 pt-6 mt-10">
+    <p>© 2026 Apex Task Studio. All rights reserved.</p>
+    <p class="mt-1">Support: <a href="https://wa.me/254107246326" target="_blank" class="text-emerald-400 hover:text-white">WhatsApp</a></p>
+  </footer>
+</div>
 
-  <!-- MAIN WRAPPER -->
-  <div class="max-w-6xl mx-auto space-y-6">
+<script>
+// ============ SUPABASE INIT ============
+const SUPABASE_URL = 'https://dwdtvasykhorrvmwmnhb.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3ZHR2YXN5a2hvcnJ2bXdtbmhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUzNzQsImV4cCI6MjEwNjUzMTM3NH0.vt_I7uvUqsjv5e8RTgREMoXJiZqq_80a9fVOqVyW6Lk';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    <!-- HEADER BAR -->
-    <header class="flex flex-wrap items-center justify-between gap-4 glass-card p-4 rounded-2xl">
-      <div class="flex items-center gap-3">
-        <span class="text-3xl">⚡</span>
-        <div>
-          <h1 class="text-lg font-bold tracking-tight text-white">APEX TASK STUDIO</h1>
-          <p class="text-xs text-indigo-300/60">Remote Microtask Platform · Worldwide</p>
-        </div>
-      </div>
+// ============ STATE ============
+let USER = JSON.parse(localStorage.getItem('apex_user') || 'null');
+let TASKS = [];
+let APPROVED_BALANCE = 0;
+let PENDING_BALANCE = 0;
+let currentCategory = 'All Work';
+let currentCurrency = 'USD';
+const RATE_KES = 130;
+let activeTaskForModal = null;
+let confirmAction = null;
 
-      <!-- HEADER CONTROLS (Currency Switch, Help Center, Profile) -->
-      <div class="flex items-center flex-wrap gap-2.5">
-        <!-- Currency Switcher -->
-        <div class="bg-slate-900/80 border border-slate-700 px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 text-xs text-slate-300">
-          <span class="text-[10px] text-slate-400 font-semibold">CURRENCY:</span>
-          <select id="currencySelector" onchange="toggleCurrency(this.value)" class="bg-transparent text-indigo-400 font-bold outline-none cursor-pointer">
-            <option value="USD" class="bg-slate-900 text-white">USD ($)</option>
-            <option value="KES" class="bg-slate-900 text-white">KES (KSh)</option>
-          </select>
-        </div>
+// ============ HELPERS ============
+function esc(str) {
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/[&<>"']/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m]));
+}
+function fmtMoney(usd) {
+  const n = parseFloat(usd) || 0;
+  if (currentCurrency === 'KES') return 'KSh ' + (n * RATE_KES).toFixed(0);
+  return '$' + n.toFixed(2);
+}
+function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-        <!-- Help Center Button -->
-        <button onclick="openModal('helpModal')" class="bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-xs px-3 py-1.5 rounded-xl font-medium text-slate-300 transition flex items-center gap-1">
-          <span>❓</span> Help Center
-        </button>
+function toast(msg, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  const el = document.createElement('div');
+  el.className = 'toast' + (type === 'success' ? ' toast-success' : type === 'error' ? ' toast-error' : '');
+  el.textContent = msg;
+  container.appendChild(el);
+  setTimeout(() => {
+    el.style.opacity = '0';
+    el.style.transition = 'opacity 0.3s';
+    setTimeout(() => el.remove(), 300);
+  }, 3200);
+}
+function askConfirm(title, message, onYes) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMessage').textContent = message;
+  confirmAction = onYes;
+  openModal('confirmModal');
+  document.getElementById('confirmYes').onclick = () => {
+    closeModal('confirmModal');
+    if (typeof confirmAction === 'function') confirmAction();
+    confirmAction = null;
+  };
+}
+function getInitials(name) {
+  if (!name) return '?';
+  return name.trim().split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
 
-        <!-- Profile Pill -->
-        <div id="profilePill" onclick="openOnboarding()" class="cursor-pointer bg-slate-900/80 border border-indigo-500/30 px-3.5 py-1.5 rounded-full flex items-center gap-2 hover:border-indigo-500/60 transition">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span id="profileNameDisplay" class="text-xs font-semibold text-slate-200">Set Up Profile</span>
-          <span id="profilePhoneDisplay" class="text-[10px] text-slate-400 font-mono"></span>
-        </div>
+// ============ USER PROFILE ============
+function applyUserProfile() {
+  if (!USER) return;
+  const initials = getInitials(USER.full_name);
+  document.getElementById('headerAvatar').textContent = initials;
+  document.getElementById('headerWorkerName').textContent = USER.full_name;
+  document.getElementById('headerWorkerPhone').textContent = USER.mpesa_phone || USER.email || '';
+}
 
-        <a href="admin.html" class="bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-xs px-3 py-1.5 rounded-xl font-medium text-slate-300 transition">Admin Panel →</a>
-      </div>
-    </header>
+document.getElementById('onboardingForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const full_name = document.getElementById('inputFullName').value.trim();
+  const email = document.getElementById('inputEmail').value.trim();
+  const mpesa_phone = document.getElementById('inputPhone').value.trim();
 
-    <!-- STATS / BALANCE BOARD -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="glass-card rounded-2xl p-5">
-        <div class="flex justify-between items-center text-slate-400 text-xs font-semibold mb-2">
-          <span>AVAILABLE TASKS</span>
-          <span>📄</span>
-        </div>
-        <p class="text-3xl font-extrabold text-white" id="statAvailableTasks">0</p>
-        <p class="text-[11px] text-slate-400 mt-1">Ready to work on</p>
-      </div>
+  if (!full_name || !email || !mpesa_phone) {
+    toast('Please fill in all fields.', 'error');
+    return;
+  }
+  if (mpesa_phone.replace(/\D/g, '').length < 9) {
+    toast('Please enter a valid M-Pesa phone number.', 'error');
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    toast('Please enter a valid email address.', 'error');
+    return;
+  }
 
-      <div class="glass-card rounded-2xl p-5 flex flex-col justify-between">
-        <div class="flex justify-between items-center">
-          <div>
-            <div class="flex justify-between items-center text-slate-400 text-xs font-semibold mb-2">
-              <span>APPROVED BALANCE</span>
-              <span class="text-emerald-400">✓</span>
-            </div>
-            <p class="text-3xl font-extrabold text-emerald-400" id="statApprovedBalance">$0.00</p>
-          </div>
-          <button onclick="openModal('withdrawModal')" class="btn-glow px-4 py-2.5 rounded-xl text-xs font-bold text-white flex items-center gap-1.5">
-            <span>💸</span> Cashout
-          </button>
-        </div>
-        <p class="text-[11px] text-slate-400 mt-1">Available for instant cashout</p>
-      </div>
-
-      <div class="glass-card rounded-2xl p-5">
-        <div class="flex justify-between items-center text-slate-400 text-xs font-semibold mb-2">
-          <span>PENDING APPROVALS</span>
-          <span class="text-amber-400">⏳</span>
-        </div>
-        <p class="text-3xl font-extrabold text-amber-400" id="statPendingBalance">$0.00</p>
-        <p class="text-[11px] text-slate-400 mt-1">Awaiting admin review</p>
-      </div>
-    </div>
-
-    <!-- CATEGORY FILTER CLASSIFICATION TABS -->
-    <div class="glass-card rounded-2xl p-4">
-      <div class="flex items-center justify-between flex-wrap gap-3 mb-3">
-        <h2 class="text-sm font-bold text-white flex items-center gap-2">
-          <span>📋</span> Task Classifications
-        </h2>
-        <button onclick="fetchTasks()" class="text-xs text-indigo-400 hover:text-indigo-300 font-medium">🔄 Refresh Jobs</button>
-      </div>
-      <div class="flex flex-wrap gap-2" id="categoryFilterContainer">
-        <button onclick="filterCategory('All')" class="category-btn bg-indigo-600 text-white text-xs px-3.5 py-1.5 rounded-lg font-semibold transition">All Work</button>
-        <button onclick="filterCategory('Transcription')" class="category-btn bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3.5 py-1.5 rounded-lg font-semibold transition">Audio Transcription</button>
-        <button onclick="filterCategory('Data Annotation')" class="category-btn bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3.5 py-1.5 rounded-lg font-semibold transition">Data Annotation</button>
-        <button onclick="filterCategory('RLHF')" class="category-btn bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3.5 py-1.5 rounded-lg font-semibold transition">RLHF & AI Training</button>
-        <button onclick="filterCategory('Microtasks')" class="category-btn bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3.5 py-1.5 rounded-lg font-semibold transition">Microtasks</button>
-      </div>
-    </div>
-
-    <!-- ACTIVE TASK GRID -->
-    <div class="glass-card rounded-2xl p-6">
-      <h2 class="text-base font-bold text-white mb-4">Active Work Assignments</h2>
-      <div id="taskListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <p class="col-span-full text-center text-slate-400 text-xs py-10">Fetching live tasks...</p>
-      </div>
-    </div>
-
-  </div>
-
-  <script>
-    const SUPABASE_URL = 'https://dwdtvasykhorrvmwmnhb.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3ZHR2YXN5a2hvcnJ2bXdtbmhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUzNzQsImV4cCI6MjEwNjUzMTM3NH0.vt_I7uvUqsjv5e8RTgREMoXJiZqq_80a9fVOqVyW6Lk';
-    const { createClient } = supabase;
-    const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    let ALL_TASKS = [];
-    let SELECTED_CATEGORY = 'All';
-    let CURRENT_CURRENCY = 'USD';
-    const KES_RATE = 130; // 1 USD = 130 KES
-
-    let RAW_APPROVED_USD = 0;
-    let RAW_PENDING_USD = 0;
-
-    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-    function openOnboarding() { openModal('onboardingModal'); }
-
-    // Currency Switcher Logic
-    function toggleCurrency(curr) {
-      CURRENT_CURRENCY = curr;
-      document.querySelectorAll('.currencyLabel').forEach(el => el.textContent = curr);
-      updateBalanceDisplays();
-      renderTasks();
-    }
-
-    function formatAmount(usdAmount) {
-      if (CURRENT_CURRENCY === 'KES') {
-        return 'KSh ' + (usdAmount * KES_RATE).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
-      }
-      return '$' + usdAmount.toFixed(2);
-    }
-
-    function updateBalanceDisplays() {
-      document.getElementById('statApprovedBalance').textContent = formatAmount(RAW_APPROVED_USD);
-      document.getElementById('statPendingBalance').textContent = formatAmount(RAW_PENDING_USD);
-    }
-
-    // User Profile Management
-    function getProfile() {
-      return {
-        name: localStorage.getItem('apex_worker_name') || '',
-        email: localStorage.getItem('apex_worker_email') || '',
-        phone: localStorage.getItem('apex_worker_phone') || ''
-      };
-    }
-
-    function syncProfileUI() {
-      const p = getProfile();
-      if (p.name) {
-        document.getElementById('profileNameDisplay').textContent = p.name;
-        document.getElementById('profilePhoneDisplay').textContent = p.phone ? ' · ' + p.phone : '';
-        document.getElementById('withdrawPhone').value = p.phone;
-      } else {
-        openOnboarding();
-      }
-    }
-
-    document.getElementById('onboardingForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const name = document.getElementById('onboardName').value.trim();
-      const email = document.getElementById('onboardEmail').value.trim();
-      const phone = document.getElementById('onboardPhone').value.trim();
-
-      localStorage.setItem('apex_worker_name', name);
-      localStorage.setItem('apex_worker_email', email);
-      localStorage.setItem('apex_worker_phone', phone);
-
-      closeModal('onboardingModal');
-      syncProfileUI();
-      loadWorkerEarnings();
-    });
-
-    // Category Filter Switch
-    function filterCategory(cat) {
-      SELECTED_CATEGORY = cat;
-      document.querySelectorAll('.category-btn').forEach(btn => {
-        if (btn.textContent.includes(cat) || (cat === 'All' && btn.textContent === 'All Work')) {
-          btn.className = 'category-btn bg-indigo-600 text-white text-xs px-3.5 py-1.5 rounded-lg font-semibold transition';
-        } else {
-          btn.className = 'category-btn bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3.5 py-1.5 rounded-lg font-semibold transition';
-        }
-      });
-      renderTasks();
-    }
-
-    // Fetch Tasks from Supabase
-    async function fetchTasks() {
-      try {
-        const { data, error } = await db.from('tasks').select('*').order('created_at', { ascending: false });
-        if (error) throw error;
-        ALL_TASKS = data || [];
-        document.getElementById('statAvailableTasks').textContent = ALL_TASKS.length;
-        renderTasks();
-        loadWorkerEarnings();
-      } catch (err) {
-        console.error('Fetch error:', err);
-      }
-    }
-
-    function renderTasks() {
-      const container = document.getElementById('taskListContainer');
-      const filtered = SELECTED_CATEGORY === 'All' ? ALL_TASKS : ALL_TASKS.filter(t => (t.category || '').toLowerCase().includes(SELECTED_CATEGORY.toLowerCase()));
-
-      if (!filtered.length) {
-        container.innerHTML = '<p class="col-span-full text-center text-slate-400 text-xs py-10">No tasks in this classification category.</p>';
-        return;
-      }
-
-      let html = '';
-      filtered.forEach(t => {
-        const cat = t.category || 'General';
-        let badgeClass = 'badge-general';
-        if (cat.toLowerCase().includes('transcribe')) badgeClass = 'badge-transcription';
-        else if (cat.toLowerCase().includes('annotation')) badgeClass = 'badge-annotation';
-        else if (cat.toLowerCase().includes('rlhf')) badgeClass = 'badge-rlhf';
-
-        const rawPayout = parseFloat(t.payout || 0);
-
-        html += `
-          <div class="glass-card p-5 rounded-2xl flex flex-col justify-between border border-slate-800 hover:border-indigo-500/40 transition">
-            <div>
-              <div class="flex justify-between items-center gap-2 mb-3">
-                <span class="badge ${badgeClass}">${cat}</span>
-                <span class="text-[11px] text-slate-400">⏱ ${t.time || 5} min</span>
-              </div>
-              <h3 class="text-sm font-bold text-white mb-2 leading-snug">${t.title}</h3>
-              <p class="text-xs text-slate-300/80 mb-4 line-clamp-3">${t.description}</p>
-            </div>
-            <div>
-              <div class="flex justify-between items-center pt-3 border-t border-slate-800/80 mb-3">
-                <span class="text-xs text-slate-400">Payout</span>
-                <span class="text-base font-extrabold text-emerald-400">+${formatAmount(rawPayout)}</span>
-              </div>
-              <button onclick="startTask('${t.id}')" class="btn-glow w-full py-2.5 rounded-xl text-xs font-bold text-white">⚡ Start & Submit</button>
-            </div>
-          </div>
-        `;
-      });
-      container.innerHTML = html;
-    }
-
-    function startTask(id) {
-      const p = getProfile();
-      if (!p.name) {
-        openOnboarding();
-        return;
-      }
-      const task = ALL_TASKS.find(t => t.id === id);
-      if (!task) return;
-
-      document.getElementById('modalTaskId').value = task.id;
-      document.getElementById('modalTaskTitle').textContent = task.title;
-      document.getElementById('modalTaskDesc').textContent = 'Instructions: ' + task.description;
-      openModal('submitModal');
-    }
-
-    // Task Submission Handler
-    document.getElementById('submissionForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const p = getProfile();
-      const taskId = document.getElementById('modalTaskId').value;
-      const proof = document.getElementById('proofInput').value.trim();
-      const taskObj = ALL_TASKS.find(t => t.id === taskId) || {};
-
-      try {
-        const { error } = await db.from('submissions').insert([{
-          task_id: taskId,
-          task_title: taskObj.title || 'Task',
-          worker_name: p.name + (p.phone ? ' ' + p.phone : ''),
-          proof: proof,
-          status: 'pending'
-        }]);
-        if (error) throw error;
-
-        closeModal('submitModal');
-        document.getElementById('proofInput').value = '';
-        alert('🎉 Submission uploaded successfully! Admin will review your output.');
-        loadWorkerEarnings();
-      } catch (err) { alert(err.message); }
-    });
-
-    // Withdrawal Request Handler
-    document.getElementById('withdrawForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const p = getProfile();
-      const phone = document.getElementById('withdrawPhone').value.trim();
-      let amount = parseFloat(document.getElementById('withdrawAmount').value);
-
-      // If user is currently viewing KES, convert amount back to USD for DB recording
-      if (CURRENT_CURRENCY === 'KES') {
-        amount = amount / KES_RATE;
-      }
-
-      try {
-        const { error } = await db.from('withdrawals').insert([{
-          worker_name: p.name,
-          mpesa_number: phone,
-          amount: amount,
-          status: 'pending'
-        }]);
-        if (error) throw error;
-
-        closeModal('withdrawModal');
-        alert('💸 Payout request submitted! Admin will send M-Pesa shortly.');
-      } catch (err) { alert(err.message); }
-    });
-
-    // Load Worker Approved and Pending Balances
-    async function loadWorkerEarnings() {
-      const p = getProfile();
-      if (!p.name) return;
-
-      const identifier = p.name + (p.phone ? ' ' + p.phone : '');
-
-      try {
-        const { data: subs } = await db.from('submissions').select('*').or(`worker_name.eq."${p.name}",worker_name.eq."${identifier}"`);
-        RAW_APPROVED_USD = 0;
-        RAW_PENDING_USD = 0;
-
-        (subs || []).forEach(s => {
-          const taskObj = ALL_TASKS.find(t => t.id === s.task_id);
-          const payout = taskObj ? parseFloat(taskObj.payout || 0) : 0.50;
-          if (s.status === 'accepted') RAW_APPROVED_USD += payout;
-          else if (s.status === 'pending') RAW_PENDING_USD += payout;
-        });
-
-        updateBalanceDisplays();
-      } catch (err) { console.error(err); }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      syncProfileUI();
-      fetchTasks();
-    });
-  </script>
-</body>
-</html>
+  USER = { full_name, email, mpesa_phone };
+  localStorage.setItem('apex_user',

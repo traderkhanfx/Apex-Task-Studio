@@ -64,6 +64,26 @@
     .hidden-modal {
       display: none !important;
     }
+
+    .progress-track {
+      height: 10px;
+      background: #1e293b;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #10b981, #06b6d4);
+      border-radius: 999px;
+      transition: width 0.5s ease;
+    }
+
+    .countdown-warning {
+      border-color: rgba(251, 191, 36, 0.5) !important;
+      background: rgba(251, 191, 36, 0.08) !important;
+      color: #fbbf24 !important;
+    }
   </style>
 </head>
 
@@ -180,7 +200,13 @@
         <div class="rounded-2xl border border-slate-700 bg-panel p-5">
           <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Available Balance</p>
           <p id="balanceDisplay" class="mt-2 text-2xl font-black text-emerald">$0.00</p>
-          <p class="mt-1 text-xs text-slate-500">Earn after approved submissions</p>
+          <p class="mt-1 text-xs text-slate-500">Approved and ready for M-Pesa withdrawal</p>
+        </div>
+
+        <div class="rounded-2xl border border-slate-700 bg-panel p-5">
+          <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Pending Earnings</p>
+          <p id="pendingEarningsDisplay" class="mt-2 text-2xl font-black text-cyan">$0.00</p>
+          <p class="mt-1 text-xs text-slate-500">Awaiting admin approval before withdrawal</p>
         </div>
 
         <div class="rounded-2xl border border-slate-700 bg-panel p-5">
@@ -190,15 +216,23 @@
         </div>
 
         <div class="rounded-2xl border border-slate-700 bg-panel p-5">
-          <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Unlock Status</p>
-          <p id="unlockStatus" class="mt-2 text-lg font-black text-cyan">Free First Task</p>
-          <p class="mt-1 text-xs text-slate-500">Later work requires unlocking</p>
-        </div>
+          <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Worker Tier & Progress</p>
+          <p class="mt-2 text-lg font-black text-white">Level 1 (Novice)</p>
 
-        <div class="rounded-2xl border border-slate-700 bg-panel p-5">
-          <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Exchange Rate</p>
-          <p class="mt-2 text-lg font-black text-white">1 USD = 130 KES</p>
-          <p class="mt-1 text-xs text-slate-500">Display currency only</p>
+          <div class="mt-3">
+            <div class="flex items-center justify-between text-xs font-semibold text-slate-400">
+              <span id="tierProgressLabel">Tasks Completed: 0 / 3 to Level 2</span>
+              <span id="tierProgressPercent">0%</span>
+            </div>
+
+            <div class="progress-track mt-2">
+              <div id="tierProgressFill" class="progress-fill" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <span class="mt-3 inline-flex rounded-full border border-cyan/35 bg-cyan/10 px-2.5 py-1 text-xs font-bold text-cyan">
+            Unlock higher payout tasks at Level 2
+          </span>
         </div>
       </section>
 
@@ -244,7 +278,7 @@
             <p class="text-sm font-bold uppercase tracking-widest text-emerald">M-Pesa Withdrawals</p>
             <h2 class="mt-2 text-2xl font-black text-white">Ready to cash out?</h2>
             <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
-              Submit a withdrawal request using your registered M-Pesa number. Requests are recorded securely for processing.
+              Submit a withdrawal request using your registered M-Pesa number. Only approved earnings in your available balance can be withdrawn.
             </p>
           </div>
 
@@ -351,6 +385,11 @@
         </article>
 
         <article class="rounded-2xl border border-slate-700 bg-slatebase p-4">
+          <h3 class="font-bold text-white">Why are my earnings pending?</h3>
+          <p class="mt-2 text-sm leading-6 text-slate-400">Submitted work is reviewed by an administrator. Once approved, the payout moves from Pending Earnings to Available Balance and becomes eligible for M-Pesa withdrawal.</p>
+        </article>
+
+        <article class="rounded-2xl border border-slate-700 bg-slatebase p-4">
           <h3 class="font-bold text-white">How do M-Pesa withdrawals work?</h3>
           <p class="mt-2 text-sm leading-6 text-slate-400">Open the withdrawal form, confirm your registered M-Pesa number, enter an amount within your available balance, and submit the request.</p>
         </article>
@@ -376,7 +415,24 @@
         <button onclick="closeModal('submissionModal')" class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white" aria-label="Close">✕</button>
       </div>
 
-      <div class="mt-6 rounded-2xl border border-slate-700 bg-slatebase p-4">
+      <div id="countdownContainer" class="mt-5 rounded-2xl border border-emerald/35 bg-emerald/5 px-4 py-3">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-emerald">Time Remaining</p>
+            <p id="countdownDisplay" class="mt-1 text-3xl font-black text-white">08:00</p>
+          </div>
+
+          <span id="countdownBadge" class="rounded-full border border-emerald/35 bg-emerald/10 px-3 py-1 text-xs font-bold text-emerald">
+            Session Active
+          </span>
+        </div>
+
+        <p id="countdownNotice" class="hidden mt-3 rounded-lg border border-amber-400/40 bg-amber-400/10 px-3 py-2 text-sm text-amber-300">
+          Time expired for this session. Please submit your work now.
+        </p>
+      </div>
+
+      <div class="mt-5 rounded-2xl border border-slate-700 bg-slatebase p-4">
         <h3 class="text-sm font-bold uppercase tracking-wider text-emerald">Instructions</h3>
         <p id="submissionInstructions" class="mt-2 text-sm leading-6 text-slate-300"></p>
       </div>
@@ -437,7 +493,10 @@
         <div>
           <span class="inline-flex rounded-full bg-emerald/10 px-3 py-1 text-xs font-bold text-emerald">M-Pesa Cashout</span>
           <h2 class="mt-3 text-2xl font-black text-white">Withdrawal Request</h2>
-          <p class="mt-2 text-sm text-slate-400">Available balance: <span id="withdrawalBalance" class="font-bold text-emerald">$0.00</span></p>
+          <p class="mt-2 text-sm text-slate-400">
+            Available balance: <span id="withdrawalBalance" class="font-bold text-emerald">$0.00</span>
+            • Pending earnings: <span id="withdrawalPending" class="font-bold text-cyan">$0.00</span>
+          </p>
         </div>
         <button onclick="closeModal('withdrawalModal')" class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white" aria-label="Close">✕</button>
       </div>
@@ -523,12 +582,18 @@
     const EXCHANGE_RATE = 130;
     const PROFILE_KEY = "apexTaskStudioProfile";
     const WALLET_KEY = "apexTaskStudioWallet";
+    const PENDING_KEY = "apexTaskStudioPendingEarnings";
     const STARTED_TASKS_KEY = "apexTaskStudioStartedTasks";
     const UNLOCKED_TASKS_KEY = "apexTaskStudioUnlockedTasks";
+
+    const TASK_SESSION_SECONDS = 8 * 60;
+    const LEVEL_TWO_TARGET = 3;
 
     let selectedCurrency = localStorage.getItem("apexTaskStudioCurrency") || "USD";
     let selectedTask = null;
     let pendingUnlockTask = null;
+    let countdownInterval = null;
+    let countdownSeconds = TASK_SESSION_SECONDS;
 
     const tasks = [
       {
@@ -616,6 +681,15 @@
       renderDashboard();
     }
 
+    function getPendingEarnings() {
+      return Number(localStorage.getItem(PENDING_KEY) || 0);
+    }
+
+    function setPendingEarnings(amount) {
+      localStorage.setItem(PENDING_KEY, String(Math.max(0, Number(amount))));
+      renderDashboard();
+    }
+
     function getStartedTasks() {
       try {
         return JSON.parse(localStorage.getItem(STARTED_TASKS_KEY)) || [];
@@ -685,14 +759,24 @@
 
     function renderDashboard() {
       const balance = getWalletBalance();
+      const pending = getPendingEarnings();
       const started = getStartedTasks();
+      const completed = Math.min(started.length, LEVEL_TWO_TARGET);
+      const percent = Math.round((completed / LEVEL_TWO_TARGET) * 100);
 
       document.getElementById("balanceDisplay").textContent = formatMoney(balance);
+      document.getElementById("pendingEarningsDisplay").textContent = formatMoney(pending);
       document.getElementById("startedTasksDisplay").textContent = started.length;
       document.getElementById("unlockStatus").textContent =
         started.length === 0 ? "Free First Task" : "Unlock Needed";
 
       document.getElementById("withdrawalBalance").textContent = formatMoney(balance);
+      document.getElementById("withdrawalPending").textContent = formatMoney(pending);
+
+      document.getElementById("tierProgressLabel").textContent =
+        `Tasks Completed: ${completed} / ${LEVEL_TWO_TARGET} to Level 2`;
+      document.getElementById("tierProgressPercent").textContent = `${percent}%`;
+      document.getElementById("tierProgressFill").style.width = `${percent}%`;
     }
 
     let currentCategory = "All Work";
@@ -841,7 +925,59 @@
       status.classList.add("hidden");
       status.textContent = "";
 
+      startCountdown();
       openModal("submissionModal");
+    }
+
+    function formatCountdown(seconds) {
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = seconds % 60;
+      return `${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
+    }
+
+    function startCountdown() {
+      clearInterval(countdownInterval);
+      countdownSeconds = TASK_SESSION_SECONDS;
+
+      const display = document.getElementById("countdownDisplay");
+      const badge = document.getElementById("countdownBadge");
+      const notice = document.getElementById("countdownNotice");
+      const container = document.getElementById("countdownContainer");
+
+      display.textContent = formatCountdown(countdownSeconds);
+      badge.textContent = "Session Active";
+      badge.className = "rounded-full border border-emerald/35 bg-emerald/10 px-3 py-1 text-xs font-bold text-emerald";
+      notice.classList.add("hidden");
+      container.classList.remove("countdown-warning");
+
+      countdownInterval = setInterval(() => {
+        countdownSeconds -= 1;
+
+        if (countdownSeconds <= 0) {
+          countdownSeconds = 0;
+          clearInterval(countdownInterval);
+
+          display.textContent = "00:00";
+          badge.textContent = "Time Expired";
+          badge.className = "rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1 text-xs font-bold text-amber-300";
+          notice.classList.remove("hidden");
+          container.classList.add("countdown-warning");
+          return;
+        }
+
+        display.textContent = formatCountdown(countdownSeconds);
+
+        if (countdownSeconds <= 60) {
+          container.classList.add("countdown-warning");
+          badge.textContent = "Ending Soon";
+          badge.className = "rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1 text-xs font-bold text-amber-300";
+        }
+      }, 1000);
+    }
+
+    function stopCountdown() {
+      clearInterval(countdownInterval);
+      countdownInterval = null;
     }
 
     function generateSampleWav() {
@@ -966,7 +1102,9 @@
         setStartedTasks([...startedTasks, selectedTask.id]);
       }
 
-      status.textContent = "Your work was submitted successfully and is pending review.";
+      setPendingEarnings(getPendingEarnings() + Number(selectedTask.payout));
+
+      status.textContent = "Your work was submitted successfully and is pending admin review. Your payout has been added to Pending Earnings.";
       status.className = "mt-3 rounded-lg border border-emerald/40 bg-emerald/10 px-3 py-2 text-sm text-emerald";
 
       button.textContent = "Submitted Successfully";
@@ -998,7 +1136,7 @@
       }
 
       if (amount > balance) {
-        status.textContent = "Withdrawal amount cannot be higher than your available balance.";
+        status.textContent = "Withdrawal amount cannot be higher than your available balance. Pending earnings must be approved first.";
         status.className = "rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300";
         return;
       }
@@ -1108,6 +1246,10 @@
       const modal = document.getElementById(id);
       modal.classList.add("hidden-modal");
       modal.classList.remove("flex");
+
+      if (id === "submissionModal") {
+        stopCountdown();
+      }
 
       const anyOpen = [...document.querySelectorAll(".modal-backdrop")].some(
         item => !item.classList.contains("hidden-modal")

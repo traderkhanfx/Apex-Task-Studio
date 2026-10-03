@@ -84,10 +84,31 @@
       background: rgba(251, 191, 36, 0.08) !important;
       color: #fbbf24 !important;
     }
+
+    .toast-visible {
+      transform: translateY(0) !important;
+      opacity: 1 !important;
+    }
   </style>
 </head>
 
 <body class="min-h-screen font-sans selection:bg-emerald/30">
+  <!-- Global toast -->
+  <div
+    id="successToast"
+    class="pointer-events-none fixed right-4 top-5 z-[100] w-[min(92vw,430px)] translate-y-[-20px] rounded-2xl border border-emerald/40 bg-panel p-4 opacity-0 shadow-2xl transition duration-300"
+    role="status"
+    aria-live="polite"
+  >
+    <div class="flex items-start gap-3">
+      <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald/15 font-black text-emerald">✓</div>
+      <div>
+        <p id="successToastTitle" class="font-bold text-white">Success</p>
+        <p id="successToastMessage" class="mt-1 text-sm leading-5 text-slate-300"></p>
+      </div>
+    </div>
+  </div>
+
   <div class="min-h-screen hero-grid">
     <!-- Header -->
     <header class="sticky top-0 z-30 border-b border-slate-700/60 bg-slatebase/95 backdrop-blur">
@@ -199,19 +220,19 @@
       <section class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div class="rounded-2xl border border-slate-700 bg-panel p-5">
           <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Available Balance</p>
-          <p id="balanceDisplay" class="mt-2 text-2xl font-black text-emerald">$0.00</p>
+          <p id="availableBalance" class="mt-2 text-2xl font-black text-emerald">$0.00</p>
           <p class="mt-1 text-xs text-slate-500">Ready for M-Pesa withdrawal</p>
         </div>
 
         <div class="rounded-2xl border border-slate-700 bg-panel p-5">
           <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Pending Earnings</p>
-          <p id="pendingEarningsDisplay" class="mt-2 text-2xl font-black text-cyan">$0.00</p>
+          <p id="pendingBalance" class="mt-2 text-2xl font-black text-cyan">$0.00</p>
           <p class="mt-1 text-xs text-slate-500">Awaiting admin approval before withdrawal</p>
         </div>
 
         <div class="rounded-2xl border border-slate-700 bg-panel p-5">
           <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Tasks Started</p>
-          <p id="startedTasksDisplay" class="mt-2 text-2xl font-black text-white">0</p>
+          <p id="completedCount" class="mt-2 text-2xl font-black text-white">0</p>
           <p class="mt-1 text-xs text-slate-500">First task starts free</p>
         </div>
 
@@ -221,7 +242,7 @@
 
           <div class="mt-3">
             <div class="flex items-center justify-between text-xs font-semibold text-slate-400">
-              <span id="tierProgressLabel">Tasks Completed: 0 / 3 to Level 2</span>
+              <span id="taskProgressText">Tasks Completed: 0 / 3 to Level 2</span>
               <span id="tierProgressPercent">0%</span>
             </div>
 
@@ -525,7 +546,7 @@
         <p id="withdrawalStatus" class="hidden rounded-lg px-3 py-2 text-sm"></p>
 
         <button
-          id="withdrawalButton"
+          id="confirmWithdrawBtn"
           type="submit"
           class="w-full rounded-xl bg-cyan px-5 py-3.5 font-black text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-60"
         >
@@ -570,7 +591,7 @@
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
     const SUPABASE_URL = "https://dwdtvasykhorrvmwmnhb.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3ZHR2YXN5a2hvcnJ2bXdtbmhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUzNzQsImV4cCI6MjEwNjUzMTM3NH0.vt_I7uvUqsjv5e8RTgREMoXJiZqq_80a9fVOqVyW6Lk";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCI6IkpXVCJ9.eyJpc3MiOiJzdWIiOiJkd2R0dmFzeWtocm9ycnZtd21uaGIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzkwOTU1Mzc0LCJleHAiOjIxMDY1MzExMzd9.vt_I7uvUqsjv5e8RTgREMoXJiZqq_80a9fVOqVyW6Lk";
 
     const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -589,6 +610,7 @@
     let pendingUnlockTask = null;
     let countdownInterval = null;
     let countdownSeconds = TASK_SESSION_SECONDS;
+    let toastTimeout = null;
 
     const tasks = [
       {
@@ -659,6 +681,30 @@
       }
     ];
 
+    function getElement(id) {
+      return document.getElementById(id);
+    }
+
+    function setText(id, value) {
+      const element = getElement(id);
+      if (element) element.textContent = value;
+    }
+
+    function setWidth(id, value) {
+      const element = getElement(id);
+      if (element) element.style.width = value;
+    }
+
+    function showElement(id) {
+      const element = getElement(id);
+      if (element) element.classList.remove("hidden");
+    }
+
+    function hideElement(id) {
+      const element = getElement(id);
+      if (element) element.classList.add("hidden");
+    }
+
     function getProfile() {
       try {
         return JSON.parse(localStorage.getItem(PROFILE_KEY));
@@ -672,13 +718,12 @@
     }
 
     function setWalletBalance(amount) {
-      localStorage.setItem(WALLET_KEY, String(Math.max(0, Number(amount))));
+      localStorage.setItem(WALLET_KEY, String(Math.max(0, Number(amount) || 0)));
       renderDashboard();
     }
 
     function creditWalletBalance(amount) {
-      const currentBalance = getWalletBalance();
-      setWalletBalance(currentBalance + Number(amount));
+      setWalletBalance(getWalletBalance() + Number(amount || 0));
     }
 
     function getPendingEarnings() {
@@ -686,7 +731,7 @@
     }
 
     function setPendingEarnings(amount) {
-      localStorage.setItem(PENDING_KEY, String(Math.max(0, Number(amount))));
+      localStorage.setItem(PENDING_KEY, String(Math.max(0, Number(amount) || 0)));
       renderDashboard();
     }
 
@@ -718,50 +763,63 @@
     }
 
     function initialsFromName(name) {
-      return name
+      return String(name || "")
         .trim()
         .split(/\s+/)
+        .filter(Boolean)
         .map(part => part.charAt(0).toUpperCase())
         .slice(0, 2)
         .join("") || "?";
     }
 
     function formatMoney(usdAmount) {
+      const value = Number(usdAmount || 0);
+
       if (selectedCurrency === "KES") {
-        return `KSh ${(usdAmount * EXCHANGE_RATE).toLocaleString("en-KE", {
+        return `KSh ${(value * EXCHANGE_RATE).toLocaleString("en-KE", {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
         })}`;
       }
 
-      return `$${usdAmount.toLocaleString("en-US", {
+      return `$${value.toLocaleString("en-US", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       })}`;
     }
 
     function formatKes(usdAmount) {
-      return `KSh ${(usdAmount * EXCHANGE_RATE).toLocaleString("en-KE", {
+      const value = Number(usdAmount || 0);
+      return `KSh ${(value * EXCHANGE_RATE).toLocaleString("en-KE", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       })}`;
     }
 
+    function showToast(title, message) {
+      const toast = getElement("successToast");
+      const toastTitle = getElement("successToastTitle");
+      const toastMessage = getElement("successToastMessage");
+
+      if (!toast) return;
+
+      if (toastTitle) toastTitle.textContent = title;
+      if (toastMessage) toastMessage.textContent = message;
+
+      toast.classList.add("toast-visible");
+
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove("toast-visible");
+      }, 4500);
+    }
+
     function updateProfileUI() {
       const profile = getProfile();
-      const initial = document.getElementById("profileInitial");
-      const name = document.getElementById("profileName");
-      const phone = document.getElementById("profilePhone");
 
-      if (profile) {
-        initial.textContent = initialsFromName(profile.fullName);
-        name.textContent = profile.fullName;
-        phone.textContent = profile.phone;
-      } else {
-        initial.textContent = "?";
-        name.textContent = "Create Profile";
-        phone.textContent = "Tap to begin";
-      }
+      setText("profileInitial", profile ? initialsFromName(profile.fullName) : "?");
+      setText("profileName", profile ? profile.fullName : "Create Profile");
+      setText("profilePhone", profile ? profile.phone : "Tap to begin");
     }
 
     function renderDashboard() {
@@ -771,19 +829,15 @@
       const completed = Math.min(started.length, LEVEL_TWO_TARGET);
       const percent = Math.round((completed / LEVEL_TWO_TARGET) * 100);
 
-      document.getElementById("balanceDisplay").textContent = formatMoney(balance);
-      document.getElementById("pendingEarningsDisplay").textContent = formatMoney(pending);
-      document.getElementById("startedTasksDisplay").textContent = started.length;
-      document.getElementById("unlockStatus").textContent =
-        started.length === 0 ? "Free First Task" : "Unlock Needed";
+      setText("availableBalance", formatMoney(balance));
+      setText("pendingBalance", formatMoney(pending));
+      setText("completedCount", String(started.length));
+      setText("withdrawalBalance", formatMoney(balance));
+      setText("withdrawalPending", formatMoney(pending));
 
-      document.getElementById("withdrawalBalance").textContent = formatMoney(balance);
-      document.getElementById("withdrawalPending").textContent = formatMoney(pending);
-
-      document.getElementById("tierProgressLabel").textContent =
-        `Tasks Completed: ${completed} / ${LEVEL_TWO_TARGET} to Level 2`;
-      document.getElementById("tierProgressPercent").textContent = `${percent}%`;
-      document.getElementById("tierProgressFill").style.width = `${percent}%`;
+      setText("taskProgressText", `Tasks Completed: ${completed} / ${LEVEL_TWO_TARGET} to Level 2`);
+      setText("tierProgressPercent", `${percent}%`);
+      setWidth("tierProgressFill", `${percent}%`);
     }
 
     let currentCategory = "All Work";
@@ -834,13 +888,19 @@
 
     function renderTasks(category = "All Work") {
       currentCategory = category;
-      const taskGrid = document.getElementById("taskGrid");
-      const comingSoonBanner = document.getElementById("comingSoonBanner");
-      const comingSoonText = document.getElementById("comingSoonText");
+
+      const taskGrid = getElement("taskGrid");
+      const comingSoonBanner = getElement("comingSoonBanner");
+      const comingSoonText = getElement("comingSoonText");
+
+      if (!taskGrid) return;
 
       if (category === "RLHF & AI Training" || category === "Microtasks") {
-        comingSoonBanner.classList.remove("hidden");
-        comingSoonText.textContent = `${category} tasks are coming soon. Check back for new worldwide opportunities.`;
+        if (comingSoonBanner) comingSoonBanner.classList.remove("hidden");
+        if (comingSoonText) {
+          comingSoonText.textContent = `${category} tasks are coming soon. Check back for new worldwide opportunities.`;
+        }
+
         taskGrid.innerHTML = `
           <div class="col-span-full rounded-3xl border border-dashed border-cyan/40 bg-cyan/5 p-10 text-center">
             <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan/15 text-2xl">🚀</div>
@@ -853,7 +913,7 @@
         return;
       }
 
-      comingSoonBanner.classList.add("hidden");
+      if (comingSoonBanner) comingSoonBanner.classList.add("hidden");
 
       const visibleTasks = category === "All Work"
         ? tasks
@@ -864,7 +924,7 @@
       document.querySelectorAll(".start-task-button").forEach(button => {
         button.addEventListener("click", () => {
           const task = tasks.find(item => item.id === button.dataset.taskId);
-          handleStartTask(task);
+          if (task) handleStartTask(task);
         });
       });
     }
@@ -893,14 +953,18 @@
       }
 
       pendingUnlockTask = task;
-      document.getElementById("unlockFeeDisplay").textContent = formatMoney(task.unlockFee);
-      document.getElementById("unlockBalanceDisplay").textContent = formatMoney(getWalletBalance());
-      document.getElementById("unlockMessage").textContent =
-        `"${task.title}" needs a one-time unlock fee before you can start. The fee will be deducted from your account balance.`;
+      setText("unlockFeeDisplay", formatMoney(task.unlockFee));
+      setText("unlockBalanceDisplay", formatMoney(getWalletBalance()));
+      setText(
+        "unlockMessage",
+        `"${task.title}" needs a one-time unlock fee before you can start. The fee will be deducted from your account balance.`
+      );
 
-      const unlockStatus = document.getElementById("unlockStatusMessage");
-      unlockStatus.classList.add("hidden");
-      unlockStatus.textContent = "";
+      const unlockStatus = getElement("unlockStatusMessage");
+      if (unlockStatus) {
+        unlockStatus.classList.add("hidden");
+        unlockStatus.textContent = "";
+      }
 
       openModal("unlockModal");
     }
@@ -908,29 +972,33 @@
     function openSubmissionModal(task) {
       selectedTask = task;
 
-      document.getElementById("submissionCategory").textContent = task.category;
-      document.getElementById("submissionTitle").textContent = task.title;
-      document.getElementById("submissionMeta").textContent =
-        `${task.duration} • ⭐ ${task.rating} • Payout: ${formatMoney(task.payout)}`;
-      document.getElementById("submissionInstructions").textContent = task.instructions;
-      document.getElementById("submissionTaskId").value = task.id;
-      document.getElementById("workProof").value = "";
+      setText("submissionCategory", task.category);
+      setText("submissionTitle", task.title);
+      setText("submissionMeta", `${task.duration} • ⭐ ${task.rating} • Payout: ${formatMoney(task.payout)}`);
+      setText("submissionInstructions", task.instructions);
 
-      const audioSection = document.getElementById("audioDownloadSection");
-      const audioStatus = document.getElementById("audioDownloadStatus");
+      const taskIdInput = getElement("submissionTaskId");
+      if (taskIdInput) taskIdInput.value = task.id;
 
-      if (task.category === "Audio Transcription") {
-        audioSection.classList.remove("hidden");
-      } else {
-        audioSection.classList.add("hidden");
+      const proofInput = getElement("workProof");
+      if (proofInput) proofInput.value = "";
+
+      const audioSection = getElement("audioDownloadSection");
+      if (audioSection) {
+        audioSection.classList.toggle("hidden", task.category !== "Audio Transcription");
       }
 
-      audioStatus.classList.add("hidden");
-      audioStatus.textContent = "";
+      const audioStatus = getElement("audioDownloadStatus");
+      if (audioStatus) {
+        audioStatus.classList.add("hidden");
+        audioStatus.textContent = "";
+      }
 
-      const status = document.getElementById("submissionStatus");
-      status.classList.add("hidden");
-      status.textContent = "";
+      const submissionStatus = getElement("submissionStatus");
+      if (submissionStatus) {
+        submissionStatus.classList.add("hidden");
+        submissionStatus.textContent = "";
+      }
 
       startCountdown();
       openModal("submissionModal");
@@ -943,48 +1011,58 @@
     }
 
     function startCountdown() {
-      clearInterval(countdownInterval);
+      stopCountdown();
       countdownSeconds = TASK_SESSION_SECONDS;
 
-      const display = document.getElementById("countdownDisplay");
-      const badge = document.getElementById("countdownBadge");
-      const notice = document.getElementById("countdownNotice");
-      const container = document.getElementById("countdownContainer");
+      const display = getElement("countdownDisplay");
+      const badge = getElement("countdownBadge");
+      const notice = getElement("countdownNotice");
+      const container = getElement("countdownContainer");
 
-      display.textContent = formatCountdown(countdownSeconds);
-      badge.textContent = "Session Active";
-      badge.className = "rounded-full border border-emerald/35 bg-emerald/10 px-3 py-1 text-xs font-bold text-emerald";
-      notice.classList.add("hidden");
-      container.classList.remove("countdown-warning");
+      if (display) display.textContent = formatCountdown(countdownSeconds);
+
+      if (badge) {
+        badge.textContent = "Session Active";
+        badge.className = "rounded-full border border-emerald/35 bg-emerald/10 px-3 py-1 text-xs font-bold text-emerald";
+      }
+
+      if (notice) notice.classList.add("hidden");
+      if (container) container.classList.remove("countdown-warning");
 
       countdownInterval = setInterval(() => {
-        countdownSeconds -= 1;
+        countdownSeconds = Math.max(0, countdownSeconds - 1);
 
-        if (countdownSeconds <= 0) {
-          countdownSeconds = 0;
-          clearInterval(countdownInterval);
+        if (display) display.textContent = formatCountdown(countdownSeconds);
 
-          display.textContent = "00:00";
-          badge.textContent = "Time Expired";
-          badge.className = "rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1 text-xs font-bold text-amber-300";
-          notice.classList.remove("hidden");
-          container.classList.add("countdown-warning");
+        if (countdownSeconds === 0) {
+          stopCountdown();
+
+          if (badge) {
+            badge.textContent = "Time Expired";
+            badge.className = "rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1 text-xs font-bold text-amber-300";
+          }
+
+          if (notice) notice.classList.remove("hidden");
+          if (container) container.classList.add("countdown-warning");
           return;
         }
 
-        display.textContent = formatCountdown(countdownSeconds);
-
         if (countdownSeconds <= 60) {
-          container.classList.add("countdown-warning");
-          badge.textContent = "Ending Soon";
-          badge.className = "rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1 text-xs font-bold text-amber-300";
+          if (container) container.classList.add("countdown-warning");
+
+          if (badge) {
+            badge.textContent = "Ending Soon";
+            badge.className = "rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1 text-xs font-bold text-amber-300";
+          }
         }
       }, 1000);
     }
 
     function stopCountdown() {
-      clearInterval(countdownInterval);
-      countdownInterval = null;
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+      }
     }
 
     function generateSampleWav() {
@@ -1021,7 +1099,6 @@
         const segment = Math.min(Math.floor(i / segmentLength), frequencies.length - 1);
         const frequency = frequencies[segment];
         const time = i / sampleRate;
-
         const envelope = 0.6 * (1 - ((i % segmentLength) / segmentLength));
         const value = Math.sin(2 * Math.PI * frequency * time) * envelope;
 
@@ -1032,7 +1109,7 @@
     }
 
     function downloadSampleAudio() {
-      const status = document.getElementById("audioDownloadStatus");
+      const status = getElement("audioDownloadStatus");
 
       try {
         const audioBlob = generateSampleWav();
@@ -1047,12 +1124,17 @@
 
         setTimeout(() => URL.revokeObjectURL(downloadUrl), 2000);
 
-        status.textContent = "Sample audio downloaded successfully. Listen to it, then paste your transcription below.";
-        status.className = "mt-3 rounded-lg border border-emerald/40 bg-emerald/10 px-3 py-2 text-sm text-emerald";
+        if (status) {
+          status.textContent = "Sample audio downloaded successfully. Listen to it, then paste your transcription below.";
+          status.className = "mt-3 rounded-lg border border-emerald/40 bg-emerald/10 px-3 py-2 text-sm text-emerald";
+        }
       } catch (error) {
         console.error(error);
-        status.textContent = "The sample audio could not be generated. Please try again.";
-        status.className = "mt-3 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300";
+
+        if (status) {
+          status.textContent = "The sample audio could not be generated. Please try again.";
+          status.className = "mt-3 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300";
+        }
       }
     }
 
@@ -1061,17 +1143,23 @@
     }
 
     function showSubmissionAlert(message, type = "error") {
-      const status = document.getElementById("submissionStatus");
+      const status = getElement("submissionStatus");
+      if (!status) return;
 
-      if (type === "error") {
-        status.textContent = message;
-        status.className = "mt-3 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300";
-      } else {
-        status.textContent = message;
-        status.className = "mt-3 rounded-lg border border-emerald/40 bg-emerald/10 px-3 py-2 text-sm text-emerald";
-      }
+      status.textContent = message;
+      status.className = type === "success"
+        ? "mt-3 rounded-lg border border-emerald/40 bg-emerald/10 px-3 py-2 text-sm text-emerald"
+        : "mt-3 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300";
+    }
 
-      status.classList.remove("hidden");
+    function showWithdrawalAlert(message, type = "error") {
+      const status = getElement("withdrawalStatus");
+      if (!status) return;
+
+      status.textContent = message;
+      status.className = type === "success"
+        ? "rounded-lg border border-emerald/40 bg-emerald/10 px-3 py-2 text-sm text-emerald"
+        : "rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300";
     }
 
     async function submitWork(event) {
@@ -1080,16 +1168,19 @@
       if (!requireProfile() || !selectedTask) return;
 
       const profile = getProfile();
-      const proof = cleanText(document.getElementById("workProof").value);
-      const button = document.getElementById("submitWorkButton");
+      const proofInput = getElement("workProof");
+      const button = getElement("submitWorkButton");
+      const proof = cleanText(proofInput ? proofInput.value : "");
 
       if (!proof) {
         showSubmissionAlert("Please paste your completed work or proof before submitting.", "error");
         return;
       }
 
-      button.disabled = true;
-      button.textContent = "Submitting...";
+      if (button) {
+        button.disabled = true;
+        button.textContent = "Submitting...";
+      }
 
       try {
         const submissionData = {
@@ -1097,10 +1188,10 @@
           task_title: cleanText(selectedTask.title),
           task_category: cleanText(selectedTask.category),
           payout_usd: Number(selectedTask.payout),
-          worker_name: cleanText(profile.fullName),
-          worker_email: cleanText(profile.email),
-          worker_phone: cleanText(profile.phone),
-          proof: proof,
+          worker_name: cleanText(profile?.fullName),
+          worker_email: cleanText(profile?.email),
+          worker_phone: cleanText(profile?.phone),
+          proof,
           status: "pending"
         };
 
@@ -1108,9 +1199,7 @@
           .from("submissions")
           .insert([submissionData]);
 
-        if (error) {
-          throw new Error(error.message);
-        }
+        if (error) throw new Error(error.message);
 
         const startedTasks = getStartedTasks();
         if (!startedTasks.includes(selectedTask.id)) {
@@ -1119,13 +1208,16 @@
 
         creditWalletBalance(Number(selectedTask.payout));
 
+        if (proofInput) proofInput.value = "";
+
         showSubmissionAlert(
           `Your work was submitted successfully. ${formatMoney(selectedTask.payout)} has been added to your Available Balance.`,
           "success"
         );
 
-        document.getElementById("workProof").value = "";
+        renderDashboard();
         renderTasks(currentCategory);
+        showToast("Task submitted", `${formatMoney(selectedTask.payout)} was credited to your Available Balance for testing.`);
       } catch (error) {
         console.error(error);
         showSubmissionAlert(
@@ -1133,8 +1225,10 @@
           "error"
         );
       } finally {
-        button.disabled = false;
-        button.textContent = "Submit Work to Review";
+        if (button) {
+          button.disabled = false;
+          button.textContent = "Submit Work to Review";
+        }
       }
     }
 
@@ -1144,33 +1238,38 @@
       if (!requireProfile()) return;
 
       const profile = getProfile();
-      const phone = cleanText(document.getElementById("withdrawalPhone").value);
-      const amount = Number(document.getElementById("withdrawalAmount").value);
-      const balance = getWalletBalance();
-      const status = document.getElementById("withdrawalStatus");
-      const button = document.getElementById("withdrawalButton");
+      const phoneInput = getElement("withdrawalPhone");
+      const amountInput = getElement("withdrawalAmount");
+      const button = getElement("confirmWithdrawBtn");
 
-      if (!phone || !amount || amount <= 0) {
-        status.textContent = "Enter a valid M-Pesa phone number and amount.";
-        status.className = "rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300";
+      const phone = cleanText(phoneInput ? phoneInput.value : "");
+      const amount = Number(amountInput ? amountInput.value : 0);
+      const balance = getWalletBalance();
+
+      if (!phone || !Number.isFinite(amount) || amount <= 0) {
+        showWithdrawalAlert("Enter a valid M-Pesa phone number and withdrawal amount.", "error");
+        return;
+      }
+
+      if (balance <= 0) {
+        showWithdrawalAlert("Your Available Balance is zero. Submit a task first to add testing funds.", "error");
         return;
       }
 
       if (amount > balance) {
-        status.textContent = "Withdrawal amount cannot be higher than your available balance.";
-        status.className = "rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300";
+        showWithdrawalAlert("Withdrawal amount cannot be higher than your Available Balance.", "error");
         return;
       }
 
-      button.disabled = true;
-      button.textContent = "Submitting request...";
+      if (button) {
+        button.disabled = true;
+        button.textContent = "Submitting request...";
+      }
 
       try {
         const withdrawalData = {
-          worker_name: cleanText(profile.fullName),
-          worker_email: cleanText(profile.email),
           worker_phone: phone,
-          amount_usd: Number(amount),
+          amount_usd: Number(amount.toFixed(2)),
           amount_kes: Number((amount * EXCHANGE_RATE).toFixed(2)),
           status: "pending"
         };
@@ -1179,23 +1278,32 @@
           .from("withdrawals")
           .insert([withdrawalData]);
 
-        if (error) {
-          throw new Error(error.message);
-        }
+        if (error) throw new Error(error.message);
 
         setWalletBalance(balance - amount);
 
-        status.textContent = `Withdrawal request of ${formatKes(amount)} submitted successfully! M-Pesa processing.`;
-        status.className = "rounded-lg border border-emerald/40 bg-emerald/10 px-3 py-2 text-sm text-emerald";
+        if (amountInput) amountInput.value = "";
 
-        document.getElementById("withdrawalAmount").value = "";
+        const successMessage = `Withdrawal request of ${formatKes(amount)} submitted successfully! M-Pesa processing.`;
+        showWithdrawalAlert(successMessage, "success");
+        renderDashboard();
+
+        showToast("Withdrawal requested", successMessage);
+
+        setTimeout(() => {
+          closeModal("withdrawalModal");
+        }, 700);
       } catch (error) {
         console.error(error);
-        status.textContent = `Withdrawal request failed: ${error?.message || "Please try again."}`;
-        status.className = "rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300";
+        showWithdrawalAlert(
+          `Withdrawal request failed: ${error?.message || "Please try again."}`,
+          "error"
+        );
       } finally {
-        button.disabled = false;
-        button.textContent = "Submit M-Pesa Withdrawal Request";
+        if (button) {
+          button.disabled = false;
+          button.textContent = "Submit M-Pesa Withdrawal Request";
+        }
       }
     }
 
@@ -1204,71 +1312,91 @@
 
       const balance = getWalletBalance();
       const fee = pendingUnlockTask.unlockFee;
-      const status = document.getElementById("unlockStatusMessage");
-      const button = document.getElementById("confirmUnlockButton");
+      const status = getElement("unlockStatusMessage");
+      const button = getElement("confirmUnlockButton");
 
       if (balance < fee) {
-        status.textContent = `Insufficient balance. You need ${formatMoney(fee)} to unlock this task.`;
-        status.className = "mt-4 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300";
+        if (status) {
+          status.textContent = `Insufficient balance. You need ${formatMoney(fee)} to unlock this task.`;
+          status.className = "mt-4 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300";
+        }
         return;
       }
 
-      button.disabled = true;
-      button.textContent = "Unlocking...";
-
-      setWalletBalance(balance - fee);
-
-      const unlocked = getUnlockedTasks();
-      if (!unlocked.includes(pendingUnlockTask.id)) {
-        setUnlockedTasks([...unlocked, pendingUnlockTask.id]);
+      if (button) {
+        button.disabled = true;
+        button.textContent = "Unlocking...";
       }
 
-      const taskToOpen = pendingUnlockTask;
-      pendingUnlockTask = null;
+      try {
+        setWalletBalance(balance - fee);
 
-      closeModal("unlockModal");
-      button.disabled = false;
-      button.textContent = "Unlock Now";
+        const unlocked = getUnlockedTasks();
+        if (!unlocked.includes(pendingUnlockTask.id)) {
+          setUnlockedTasks([...unlocked, pendingUnlockTask.id]);
+        }
 
-      openSubmissionModal(taskToOpen);
+        const taskToOpen = pendingUnlockTask;
+        pendingUnlockTask = null;
+
+        closeModal("unlockModal");
+        openSubmissionModal(taskToOpen);
+      } catch (error) {
+        console.error(error);
+
+        if (status) {
+          status.textContent = "Could not unlock the task. Please try again.";
+          status.className = "mt-4 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300";
+        }
+      } finally {
+        if (button) {
+          button.disabled = false;
+          button.textContent = "Unlock Now";
+        }
+      }
     }
 
     function saveProfile(event) {
       event.preventDefault();
 
-      const fullName = cleanText(document.getElementById("fullName").value);
-      const email = cleanText(document.getElementById("emailAddress").value);
-      const phone = cleanText(document.getElementById("mpesaPhone").value);
-      const errorBox = document.getElementById("profileError");
+      const fullName = cleanText(getElement("fullName")?.value);
+      const email = cleanText(getElement("emailAddress")?.value);
+      const phone = cleanText(getElement("mpesaPhone")?.value);
+      const errorBox = getElement("profileError");
 
       if (!fullName || !email || !phone) {
-        errorBox.textContent = "Please complete all profile fields.";
-        errorBox.classList.remove("hidden");
+        if (errorBox) {
+          errorBox.textContent = "Please complete all profile fields.";
+          errorBox.classList.remove("hidden");
+        }
         return;
       }
 
       localStorage.setItem(PROFILE_KEY, JSON.stringify({ fullName, email, phone }));
-      errorBox.classList.add("hidden");
+
+      if (errorBox) errorBox.classList.add("hidden");
 
       updateProfileUI();
       closeProfileModal();
     }
 
     function openModal(id) {
-      const modal = document.getElementById(id);
+      const modal = getElement(id);
+      if (!modal) return;
+
       modal.classList.remove("hidden-modal");
       modal.classList.add("flex");
       document.body.classList.add("overflow-hidden");
     }
 
     function closeModal(id) {
-      const modal = document.getElementById(id);
+      const modal = getElement(id);
+      if (!modal) return;
+
       modal.classList.add("hidden-modal");
       modal.classList.remove("flex");
 
-      if (id === "submissionModal") {
-        stopCountdown();
-      }
+      if (id === "submissionModal") stopCountdown();
 
       const anyOpen = [...document.querySelectorAll(".modal-backdrop")].some(
         item => !item.classList.contains("hidden-modal")
@@ -1279,51 +1407,58 @@
 
     function openProfileModal() {
       const profile = getProfile();
-      const closeButton = document.getElementById("closeProfileButton");
+      const closeButton = getElement("closeProfileButton");
 
-      document.getElementById("profileModalTitle").textContent =
-        profile ? "Edit your profile" : "Create your profile";
+      setText("profileModalTitle", profile ? "Edit your profile" : "Create your profile");
 
-      document.getElementById("fullName").value = profile?.fullName || "";
-      document.getElementById("emailAddress").value = profile?.email || "";
-      document.getElementById("mpesaPhone").value = profile?.phone || "";
+      const fullName = getElement("fullName");
+      const email = getElement("emailAddress");
+      const phone = getElement("mpesaPhone");
 
-      if (profile) {
-        closeButton.classList.remove("hidden");
-      } else {
-        closeButton.classList.add("hidden");
+      if (fullName) fullName.value = profile?.fullName || "";
+      if (email) email.value = profile?.email || "";
+      if (phone) phone.value = profile?.phone || "";
+
+      if (closeButton) {
+        closeButton.classList.toggle("hidden", !profile);
       }
 
       openModal("profileModal");
     }
 
     function closeProfileModal() {
-      if (getProfile()) {
-        closeModal("profileModal");
-      }
+      if (getProfile()) closeModal("profileModal");
     }
 
     function openWithdrawalModal() {
       if (!requireProfile()) return;
 
       const profile = getProfile();
-      document.getElementById("withdrawalPhone").value = profile?.phone || "";
-      document.getElementById("withdrawalAmount").value = "";
+      const phoneInput = getElement("withdrawalPhone");
+      const amountInput = getElement("withdrawalAmount");
+      const status = getElement("withdrawalStatus");
 
-      const status = document.getElementById("withdrawalStatus");
-      status.classList.add("hidden");
-      status.textContent = "";
+      if (phoneInput) phoneInput.value = profile?.phone || "";
+      if (amountInput) amountInput.value = "";
+
+      if (status) {
+        status.classList.add("hidden");
+        status.textContent = "";
+      }
 
       renderDashboard();
       openModal("withdrawalModal");
     }
 
     function changeCurrency(currency) {
-      selectedCurrency = currency;
-      localStorage.setItem("apexTaskStudioCurrency", currency);
+      selectedCurrency = currency === "KES" ? "KES" : "USD";
+      localStorage.setItem("apexTaskStudioCurrency", selectedCurrency);
 
-      document.getElementById("currencySwitcher").value = currency;
-      document.getElementById("currencySwitcherMobile").value = currency;
+      const desktopSwitcher = getElement("currencySwitcher");
+      const mobileSwitcher = getElement("currencySwitcherMobile");
+
+      if (desktopSwitcher) desktopSwitcher.value = selectedCurrency;
+      if (mobileSwitcher) mobileSwitcher.value = selectedCurrency;
 
       renderDashboard();
       renderTasks(currentCategory);
@@ -1341,11 +1476,32 @@
     window.changeCurrency = changeCurrency;
     window.scrollToTop = scrollToTop;
 
-    document.getElementById("profileForm").addEventListener("submit", saveProfile);
-    document.getElementById("submissionForm").addEventListener("submit", submitWork);
-    document.getElementById("withdrawalForm").addEventListener("submit", submitWithdrawal);
-    document.getElementById("confirmUnlockButton").addEventListener("click", confirmUnlock);
-    document.getElementById("downloadAudioButton").addEventListener("click", downloadSampleAudio);
+    const profileForm = getElement("profileForm");
+    const submissionForm = getElement("submissionForm");
+    const withdrawalForm = getElement("withdrawalForm");
+    const confirmWithdrawBtn = getElement("confirmWithdrawBtn");
+    const confirmUnlockButton = getElement("confirmUnlockButton");
+    const downloadAudioButton = getElement("downloadAudioButton");
+
+    if (profileForm) profileForm.addEventListener("submit", saveProfile);
+    if (submissionForm) submissionForm.addEventListener("submit", submitWork);
+    if (withdrawalForm) withdrawalForm.addEventListener("submit", submitWithdrawal);
+
+    if (confirmWithdrawBtn) {
+      confirmWithdrawBtn.addEventListener("click", event => {
+        event.preventDefault();
+
+        const form = getElement("withdrawalForm");
+        if (form?.requestSubmit) {
+          form.requestSubmit();
+        } else {
+          submitWithdrawal(event);
+        }
+      });
+    }
+
+    if (confirmUnlockButton) confirmUnlockButton.addEventListener("click", confirmUnlock);
+    if (downloadAudioButton) downloadAudioButton.addEventListener("click", downloadSampleAudio);
 
     document.querySelectorAll(".category-tab").forEach(tab => {
       tab.addEventListener("click", () => {
@@ -1358,23 +1514,25 @@
     document.querySelectorAll(".modal-backdrop").forEach(modal => {
       modal.addEventListener("click", event => {
         if (event.target !== modal) return;
-
         if (modal.id === "profileModal" && !getProfile()) return;
+
         closeModal(modal.id);
       });
     });
 
-    selectedCurrency = ["USD", "KES"].includes(selectedCurrency) ? selectedCurrency : "USD";
-    document.getElementById("currencySwitcher").value = selectedCurrency;
-    document.getElementById("currencySwitcherMobile").value = selectedCurrency;
+    selectedCurrency = selectedCurrency === "KES" ? "KES" : "USD";
+
+    const desktopSwitcher = getElement("currencySwitcher");
+    const mobileSwitcher = getElement("currencySwitcherMobile");
+
+    if (desktopSwitcher) desktopSwitcher.value = selectedCurrency;
+    if (mobileSwitcher) mobileSwitcher.value = selectedCurrency;
 
     updateProfileUI();
     renderDashboard();
     renderTasks("All Work");
 
-    if (!getProfile()) {
-      openProfileModal();
-    }
+    if (!getProfile()) openProfileModal();
   </script>
 </body>
 </html>

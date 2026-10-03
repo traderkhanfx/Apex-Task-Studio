@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Apex Task Studio | Remote Microtasks</title>
 
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
 
   <script>
     tailwind.config = {
@@ -93,10 +92,9 @@
 </head>
 
 <body class="min-h-screen font-sans selection:bg-emerald/30">
-  <!-- Global toast -->
   <div
     id="successToast"
-    class="pointer-events-none fixed right-4 top-5 z-[100] w-[min(92vw,430px)] translate-y-[-20px] rounded-2xl border border-emerald/40 bg-panel p-4 opacity-0 shadow-2xl transition duration-300"
+    class="pointer-events-none fixed right-4 top-5 z- w-[min(92vw,430px)] translate-y-[-20px] rounded-2xl border border-emerald/40 bg-panel p-4 opacity-0 shadow-2xl transition duration-300"
     role="status"
     aria-live="polite"
   >
@@ -110,10 +108,9 @@
   </div>
 
   <div class="min-h-screen hero-grid">
-    <!-- Header -->
     <header class="sticky top-0 z-30 border-b border-slate-700/60 bg-slatebase/95 backdrop-blur">
       <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-        <button class="flex items-center gap-3 text-left" onclick="scrollToTop()">
+        <button type="button" id="brandButton" class="flex items-center gap-3 text-left">
           <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-emerald to-cyan font-black text-slate-950 shadow-glow">
             A
           </div>
@@ -127,22 +124,22 @@
           <select
             id="currencySwitcher"
             class="hidden rounded-lg border border-slate-700 bg-panel px-3 py-2 text-sm font-medium text-white outline-none transition focus:border-cyan sm:block"
-            onchange="changeCurrency(this.value)"
           >
             <option value="USD">USD ($)</option>
             <option value="KES">KES (KSh)</option>
           </select>
 
           <button
-            onclick="openModal('helpModal')"
+            type="button"
+            id="helpCenterButton"
             class="hidden rounded-lg border border-cyan/50 bg-cyan/10 px-3 py-2 text-sm font-semibold text-cyan transition hover:bg-cyan hover:text-slate-950 sm:block"
           >
             Help Center
           </button>
 
           <button
+            type="button"
             id="profileButton"
-            onclick="openProfileModal()"
             class="flex items-center gap-2 rounded-full border border-slate-700 bg-panel px-2 py-1.5 transition hover:border-emerald"
             aria-label="Open profile"
           >
@@ -162,25 +159,24 @@
     </header>
 
     <main class="mx-auto max-w-7xl px-4 pb-12 pt-7 sm:px-6 lg:px-8">
-      <!-- Mobile controls -->
       <div class="mb-5 flex gap-2 sm:hidden">
         <select
           id="currencySwitcherMobile"
           class="w-1/2 rounded-lg border border-slate-700 bg-panel px-3 py-2 text-sm font-medium text-white outline-none focus:border-cyan"
-          onchange="changeCurrency(this.value)"
         >
           <option value="USD">USD ($)</option>
           <option value="KES">KES (KSh)</option>
         </select>
+
         <button
-          onclick="openModal('helpModal')"
+          type="button"
+          id="helpCenterButtonMobile"
           class="w-1/2 rounded-lg border border-cyan/50 bg-cyan/10 px-3 py-2 text-sm font-semibold text-cyan"
         >
           Help Center
         </button>
       </div>
 
-      <!-- Banner -->
       <section class="relative overflow-hidden rounded-3xl border border-emerald/25 bg-gradient-to-br from-emerald/20 via-panel to-cyan/15 p-6 shadow-glow sm:p-9">
         <div class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-cyan/20 blur-3xl"></div>
         <div class="absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-emerald/20 blur-3xl"></div>
@@ -200,14 +196,16 @@
 
           <div class="mt-6 flex flex-wrap gap-3">
             <button
-              onclick="document.getElementById('tasks').scrollIntoView({ behavior: 'smooth' })"
+              type="button"
+              id="browseWorkButton"
               class="rounded-xl bg-emerald px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-emerald-400"
             >
               Browse Work
             </button>
 
             <button
-              onclick="openWithdrawalModal()"
+              type="button"
+              id="openWithdrawalButton"
               class="rounded-xl border border-cyan/60 bg-cyan/10 px-5 py-3 text-sm font-bold text-cyan transition hover:bg-cyan hover:text-slate-950"
             >
               Withdraw via M-Pesa
@@ -216,7 +214,6 @@
         </div>
       </section>
 
-      <!-- Dashboard cards -->
       <section class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div class="rounded-2xl border border-slate-700 bg-panel p-5">
           <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Available Balance</p>
@@ -257,7 +254,6 @@
         </div>
       </section>
 
-      <!-- Categories -->
       <section id="tasks" class="mt-10">
         <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
@@ -268,19 +264,19 @@
         </div>
 
         <div class="mt-6 flex flex-wrap gap-2" id="categoryTabs">
-          <button class="category-tab tab-active rounded-xl border border-slate-700 bg-panel px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:border-emerald hover:text-white" data-category="All Work">
+          <button type="button" class="category-tab tab-active rounded-xl border border-slate-700 bg-panel px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:border-emerald hover:text-white" data-category="All Work">
             All Work
           </button>
-          <button class="category-tab rounded-xl border border-slate-700 bg-panel px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:border-emerald hover:text-white" data-category="Audio Transcription">
+          <button type="button" class="category-tab rounded-xl border border-slate-700 bg-panel px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:border-emerald hover:text-white" data-category="Audio Transcription">
             Audio Transcription
           </button>
-          <button class="category-tab rounded-xl border border-slate-700 bg-panel px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:border-emerald hover:text-white" data-category="Data Annotation">
+          <button type="button" class="category-tab rounded-xl border border-slate-700 bg-panel px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:border-emerald hover:text-white" data-category="Data Annotation">
             Data Annotation
           </button>
-          <button class="category-tab rounded-xl border border-slate-700 bg-panel px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:border-emerald hover:text-white" data-category="RLHF & AI Training">
+          <button type="button" class="category-tab rounded-xl border border-slate-700 bg-panel px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:border-emerald hover:text-white" data-category="RLHF & AI Training">
             RLHF & AI Training
           </button>
-          <button class="category-tab rounded-xl border border-slate-700 bg-panel px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:border-emerald hover:text-white" data-category="Microtasks">
+          <button type="button" class="category-tab rounded-xl border border-slate-700 bg-panel px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:border-emerald hover:text-white" data-category="Microtasks">
             Microtasks
           </button>
         </div>
@@ -304,7 +300,8 @@
           </div>
 
           <button
-            onclick="openWithdrawalModal()"
+            type="button"
+            id="openWithdrawalButtonBottom"
             class="whitespace-nowrap rounded-xl bg-cyan px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-cyan-300"
           >
             Request Withdrawal
@@ -314,7 +311,6 @@
     </main>
   </div>
 
-  <!-- Onboarding / Profile Modal -->
   <div id="profileModal" class="modal-backdrop fixed inset-0 z-50 hidden-modal items-center justify-center overflow-y-auto p-4">
     <div class="w-full max-w-lg rounded-3xl border border-slate-700 bg-panel p-6 shadow-2xl sm:p-8">
       <div class="flex items-start justify-between gap-4">
@@ -327,8 +323,8 @@
         </div>
 
         <button
+          type="button"
           id="closeProfileButton"
-          onclick="closeProfileModal()"
           class="hidden rounded-lg p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white"
           aria-label="Close"
         >
@@ -382,7 +378,6 @@
     </div>
   </div>
 
-  <!-- Help Modal -->
   <div id="helpModal" class="modal-backdrop fixed inset-0 z-50 hidden-modal items-center justify-center overflow-y-auto p-4">
     <div class="w-full max-w-2xl rounded-3xl border border-slate-700 bg-panel p-6 shadow-2xl sm:p-8">
       <div class="flex items-start justify-between gap-4">
@@ -391,7 +386,7 @@
           <h2 class="mt-3 text-2xl font-black text-white">Help Center</h2>
           <p class="mt-2 text-sm text-slate-400">Quick answers for Apex Task Studio workers.</p>
         </div>
-        <button onclick="closeModal('helpModal')" class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white" aria-label="Close">✕</button>
+        <button type="button" id="closeHelpButton" class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white" aria-label="Close">✕</button>
       </div>
 
       <div class="mt-6 space-y-4">
@@ -419,7 +414,6 @@
     </div>
   </div>
 
-  <!-- Submission Modal -->
   <div id="submissionModal" class="modal-backdrop fixed inset-0 z-50 hidden-modal items-center justify-center overflow-y-auto p-4">
     <div class="w-full max-w-2xl rounded-3xl border border-slate-700 bg-panel p-6 shadow-2xl sm:p-8">
       <div class="flex items-start justify-between gap-4">
@@ -428,7 +422,7 @@
           <h2 id="submissionTitle" class="mt-3 text-2xl font-black text-white">Task Submission</h2>
           <p id="submissionMeta" class="mt-1 text-sm text-slate-400"></p>
         </div>
-        <button onclick="closeModal('submissionModal')" class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white" aria-label="Close">✕</button>
+        <button type="button" id="closeSubmissionButton" class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white" aria-label="Close">✕</button>
       </div>
 
       <div id="countdownContainer" class="mt-5 rounded-2xl border border-emerald/35 bg-emerald/5 px-4 py-3">
@@ -463,8 +457,8 @@
           </div>
 
           <button
-            id="downloadAudioButton"
             type="button"
+            id="downloadAudioButton"
             class="whitespace-nowrap rounded-xl bg-cyan px-4 py-3 text-sm font-black text-slate-950 transition hover:bg-cyan-300"
           >
             Download Sample Audio (.wav)
@@ -502,7 +496,6 @@
     </div>
   </div>
 
-  <!-- Withdrawal Modal -->
   <div id="withdrawalModal" class="modal-backdrop fixed inset-0 z-50 hidden-modal items-center justify-center overflow-y-auto p-4">
     <div class="w-full max-w-lg rounded-3xl border border-slate-700 bg-panel p-6 shadow-2xl sm:p-8">
       <div class="flex items-start justify-between gap-4">
@@ -511,10 +504,10 @@
           <h2 class="mt-3 text-2xl font-black text-white">Withdrawal Request</h2>
           <p class="mt-2 text-sm text-slate-400">
             Available balance: <span id="withdrawalBalance" class="font-bold text-emerald">$0.00</span>
-            • Pending earnings: <span id="withdrawalPending" class="font-bold text-cyan">$0.00</span>
+            -  Pending earnings: <span id="withdrawalPending" class="font-bold text-cyan">$0.00</span>
           </p>
         </div>
-        <button onclick="closeModal('withdrawalModal')" class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white" aria-label="Close">✕</button>
+        <button type="button" id="closeWithdrawalButton" class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white" aria-label="Close">✕</button>
       </div>
 
       <form id="withdrawalForm" class="mt-6 space-y-4">
@@ -556,8 +549,7 @@
     </div>
   </div>
 
-  <!-- Unlock Modal -->
-  <div id="unlockModal" class="modal-backdrop fixed inset-0 z-[60] hidden-modal items-center justify-center overflow-y-auto p-4">
+  <div id="unlockModal" class="modal-backdrop fixed inset-0 z- hidden-modal items-center justify-center overflow-y-auto p-4">
     <div class="w-full max-w-md rounded-3xl border border-slate-700 bg-panel p-6 shadow-2xl">
       <span class="inline-flex rounded-full bg-amber-400/10 px-3 py-1 text-xs font-bold text-amber-300">Task Locked</span>
       <h2 class="mt-3 text-2xl font-black text-white">Unlock this task</h2>
@@ -577,10 +569,10 @@
       <p id="unlockStatusMessage" class="hidden mt-4 rounded-lg px-3 py-2 text-sm"></p>
 
       <div class="mt-5 flex gap-3">
-        <button onclick="closeModal('unlockModal')" class="w-1/2 rounded-xl border border-slate-700 px-4 py-3 font-bold text-slate-300 transition hover:bg-slate-800">
+        <button type="button" id="cancelUnlockButton" class="w-1/2 rounded-xl border border-slate-700 px-4 py-3 font-bold text-slate-300 transition hover:bg-slate-800">
           Cancel
         </button>
-        <button id="confirmUnlockButton" class="w-1/2 rounded-xl bg-emerald px-4 py-3 font-black text-slate-950 transition hover:bg-emerald-400">
+        <button type="button" id="confirmUnlockButton" class="w-1/2 rounded-xl bg-emerald px-4 py-3 font-black text-slate-950 transition hover:bg-emerald-400">
           Unlock Now
         </button>
       </div>
@@ -588,10 +580,11 @@
   </div>
 
   <script type="module">
-    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+    import { createClient } from "[https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm](https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm)";
 
-   const SUPABASE_URL = "[https://dwdtvasykhorrvmwmnhb.supabase.co](https://dwdtvasykhorrvmwmnhb.supabase.co)";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3ZHR2YXN5a2hvcnJ2bXdtbmhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUzNzQsImV4cCI6MjEwNjUzMTM3NH0.vt_I7uvUqsjv5e8RTgREMoXJiZqq_80a9fVOqVyW6Lk";
+    const SUPABASE_URL = "[https://dwdtvasykhorrvmwmnhb.supabase.co](https://dwdtvasykhorrvmwmnhb.supabase.co)";
+
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3ZHR2YXN5a2hvcnJ2bXdtbmhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUzNzQsImV4cCI6MjEwNjUzMTM3NH0.vt_I7uvUqsjv5e8RTgREMoXJiZqq_80a9fVOqVyW6Lk";
 
     const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -602,7 +595,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     const STARTED_TASKS_KEY = "apexTaskStudioStartedTasks";
     const UNLOCKED_TASKS_KEY = "apexTaskStudioUnlockedTasks";
 
-    const TASK_SESSION_SECONDS = 8 * 60;
+    const TASK_SESSION_SECONDS = 480;
     const LEVEL_TWO_TARGET = 3;
 
     let selectedCurrency = localStorage.getItem("apexTaskStudioCurrency") || "USD";
@@ -687,28 +680,22 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
     function setText(id, value) {
       const element = getElement(id);
-      if (element) element.textContent = value;
+      if (element) {
+        element.textContent = value;
+      }
     }
 
     function setWidth(id, value) {
       const element = getElement(id);
-      if (element) element.style.width = value;
-    }
-
-    function showElement(id) {
-      const element = getElement(id);
-      if (element) element.classList.remove("hidden");
-    }
-
-    function hideElement(id) {
-      const element = getElement(id);
-      if (element) element.classList.add("hidden");
+      if (element) {
+        element.style.width = value;
+      }
     }
 
     function getProfile() {
       try {
         return JSON.parse(localStorage.getItem(PROFILE_KEY));
-      } catch {
+      } catch (error) {
         return null;
       }
     }
@@ -738,7 +725,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     function getStartedTasks() {
       try {
         return JSON.parse(localStorage.getItem(STARTED_TASKS_KEY)) || [];
-      } catch {
+      } catch (error) {
         return [];
       }
     }
@@ -751,7 +738,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     function getUnlockedTasks() {
       try {
         return JSON.parse(localStorage.getItem(UNLOCKED_TASKS_KEY)) || [];
-      } catch {
+      } catch (error) {
         return [];
       }
     }
@@ -767,7 +754,9 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
         .trim()
         .split(/\s+/)
         .filter(Boolean)
-        .map(part => part.charAt(0).toUpperCase())
+        .map(function (part) {
+          return part.charAt(0).toUpperCase();
+        })
         .slice(0, 2)
         .join("") || "?";
     }
@@ -776,24 +765,25 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       const value = Number(usdAmount || 0);
 
       if (selectedCurrency === "KES") {
-        return `KSh ${(value * EXCHANGE_RATE).toLocaleString("en-KE", {
+        return "KSh " + (value * EXCHANGE_RATE).toLocaleString("en-KE", {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
-        })}`;
+        });
       }
 
-      return `$${value.toLocaleString("en-US", {
+      return "$" + value.toLocaleString("en-US", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
-      })}`;
+      });
     }
 
     function formatKes(usdAmount) {
       const value = Number(usdAmount || 0);
-      return `KSh ${(value * EXCHANGE_RATE).toLocaleString("en-KE", {
+
+      return "KSh " + (value * EXCHANGE_RATE).toLocaleString("en-KE", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
-      })}`;
+      });
     }
 
     function showToast(title, message) {
@@ -801,15 +791,22 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       const toastTitle = getElement("successToastTitle");
       const toastMessage = getElement("successToastMessage");
 
-      if (!toast) return;
+      if (!toast) {
+        return;
+      }
 
-      if (toastTitle) toastTitle.textContent = title;
-      if (toastMessage) toastMessage.textContent = message;
+      if (toastTitle) {
+        toastTitle.textContent = title;
+      }
+
+      if (toastMessage) {
+        toastMessage.textContent = message;
+      }
 
       toast.classList.add("toast-visible");
 
       clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(() => {
+      toastTimeout = setTimeout(function () {
         toast.classList.remove("toast-visible");
       }, 4500);
     }
@@ -834,10 +831,9 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       setText("completedCount", String(started.length));
       setText("withdrawalBalance", formatMoney(balance));
       setText("withdrawalPending", formatMoney(pending));
-
-      setText("taskProgressText", `Tasks Completed: ${completed} / ${LEVEL_TWO_TARGET} to Level 2`);
-      setText("tierProgressPercent", `${percent}%`);
-      setWidth("tierProgressFill", `${percent}%`);
+      setText("taskProgressText", "Tasks Completed: " + completed + " / " + LEVEL_TWO_TARGET + " to Level 2");
+      setText("tierProgressPercent", percent + "%");
+      setWidth("tierProgressFill", percent + "%");
     }
 
     let currentCategory = "All Work";
@@ -849,82 +845,88 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       const isUnlocked = unlockedTasks.includes(task.id);
       const isFree = task.unlockFee === 0 || isFirstFreeTask || isUnlocked;
 
-      const status = isFree
-        ? `<span class="rounded-full border border-emerald/35 bg-emerald/10 px-2.5 py-1 text-xs font-bold text-emerald">${startedTasks.length === 0 ? "First Task Free" : "Available"}</span>`
-        : `<span class="rounded-full border border-amber-400/35 bg-amber-400/10 px-2.5 py-1 text-xs font-bold text-amber-300">Unlock: ${formatMoney(task.unlockFee)}</span>`;
+      let statusBadge;
 
-      return `
-        <article class="task-card flex flex-col rounded-2xl border border-slate-700 bg-panel p-5">
-          <div class="flex items-start justify-between gap-3">
-            <span class="rounded-full border border-cyan/30 bg-cyan/10 px-2.5 py-1 text-xs font-bold text-cyan">${task.category}</span>
-            ${status}
-          </div>
+      if (isFree) {
+        statusBadge = '<span class="rounded-full border border-emerald/35 bg-emerald/10 px-2.5 py-1 text-xs font-bold text-emerald">' + (isFirstFreeTask ? "First Task Free" : "Available") + "</span>";
+      } else {
+        statusBadge = '<span class="rounded-full border border-amber-400/35 bg-amber-400/10 px-2.5 py-1 text-xs font-bold text-amber-300">Unlock: ' + formatMoney(task.unlockFee) + "</span>";
+      }
 
-          <h3 class="mt-5 text-xl font-black leading-tight text-white">${task.title}</h3>
-
-          <div class="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs font-semibold text-slate-400">
-            <span>⏱ ${task.duration}</span>
-            <span>⭐ ${task.rating}</span>
-          </div>
-
-          <p class="mt-4 flex-1 text-sm leading-6 text-slate-400">${task.description}</p>
-
-          <div class="mt-5 flex items-end justify-between gap-3 border-t border-slate-700 pt-4">
-            <div>
-              <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Payout</p>
-              <p class="mt-1 text-2xl font-black text-emerald">${formatMoney(task.payout)}</p>
-            </div>
-
-            <button
-              class="start-task-button rounded-xl bg-emerald px-4 py-3 text-sm font-black text-slate-950 transition hover:bg-emerald-400"
-              data-task-id="${task.id}"
-            >
-              Start & Submit
-            </button>
-          </div>
-        </article>
-      `;
+      return '<article class="task-card flex flex-col rounded-2xl border border-slate-700 bg-panel p-5">' +
+        '<div class="flex items-start justify-between gap-3">' +
+        '<span class="rounded-full border border-cyan/30 bg-cyan/10 px-2.5 py-1 text-xs font-bold text-cyan">' + task.category + "</span>" +
+        statusBadge +
+        "</div>" +
+        '<h3 class="mt-5 text-xl font-black leading-tight text-white">' + task.title + "</h3>" +
+        '<div class="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs font-semibold text-slate-400">' +
+        "<span>⏱ " + task.duration + "</span>" +
+        "<span>⭐ " + task.rating + "</span>" +
+        "</div>" +
+        '<p class="mt-4 flex-1 text-sm leading-6 text-slate-400">' + task.description + "</p>" +
+        '<div class="mt-5 flex items-end justify-between gap-3 border-t border-slate-700 pt-4">' +
+        "<div>" +
+        '<p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Payout</p>' +
+        '<p class="mt-1 text-2xl font-black text-emerald">' + formatMoney(task.payout) + "</p>" +
+        "</div>" +
+        '<button type="button" class="start-task-button rounded-xl bg-emerald px-4 py-3 text-sm font-black text-slate-950 transition hover:bg-emerald-400" data-task-id="' + task.id + '">Start & Submit</button>' +
+        "</div>" +
+        "</article>";
     }
 
-    function renderTasks(category = "All Work") {
-      currentCategory = category;
+    function renderTasks(category) {
+      currentCategory = category || "All Work";
 
       const taskGrid = getElement("taskGrid");
       const comingSoonBanner = getElement("comingSoonBanner");
       const comingSoonText = getElement("comingSoonText");
 
-      if (!taskGrid) return;
-
-      if (category === "RLHF & AI Training" || category === "Microtasks") {
-        if (comingSoonBanner) comingSoonBanner.classList.remove("hidden");
-        if (comingSoonText) {
-          comingSoonText.textContent = `${category} tasks are coming soon. Check back for new worldwide opportunities.`;
-        }
-
-        taskGrid.innerHTML = `
-          <div class="col-span-full rounded-3xl border border-dashed border-cyan/40 bg-cyan/5 p-10 text-center">
-            <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan/15 text-2xl">🚀</div>
-            <h3 class="mt-4 text-xl font-black text-white">Coming Soon</h3>
-            <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-400">
-              We are preparing quality ${category} assignments. Explore the currently active categories while you wait.
-            </p>
-          </div>
-        `;
+      if (!taskGrid) {
         return;
       }
 
-      if (comingSoonBanner) comingSoonBanner.classList.add("hidden");
+      if (currentCategory === "RLHF & AI Training" || currentCategory === "Microtasks") {
+        if (comingSoonBanner) {
+          comingSoonBanner.classList.remove("hidden");
+        }
 
-      const visibleTasks = category === "All Work"
+        if (comingSoonText) {
+          comingSoonText.textContent = currentCategory + " tasks are coming soon. Check back for new worldwide opportunities.";
+        }
+
+        taskGrid.innerHTML = '<div class="col-span-full rounded-3xl border border-dashed border-cyan/40 bg-cyan/5 p-10 text-center">' +
+          '<div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan/15 text-2xl">🚀</div>' +
+          '<h3 class="mt-4 text-xl font-black text-white">Coming Soon</h3>' +
+          '<p class="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-400">We are preparing quality ' + currentCategory + ' assignments. Explore the currently active categories while you wait.</p>' +
+          "</div>";
+
+        return;
+      }
+
+      if (comingSoonBanner) {
+        comingSoonBanner.classList.add("hidden");
+      }
+
+      const visibleTasks = currentCategory === "All Work"
         ? tasks
-        : tasks.filter(task => task.category === category);
+        : tasks.filter(function (task) {
+            return task.category === currentCategory;
+          });
 
       taskGrid.innerHTML = visibleTasks.map(taskCard).join("");
 
-      document.querySelectorAll(".start-task-button").forEach(button => {
-        button.addEventListener("click", () => {
-          const task = tasks.find(item => item.id === button.dataset.taskId);
-          if (task) handleStartTask(task);
+      const startButtons = document.querySelectorAll(".start-task-button");
+
+      startButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          const taskId = button.getAttribute("data-task-id");
+          const task = tasks.find(function (item) {
+            return item.id === taskId;
+          });
+
+          if (task) {
+            handleStartTask(task);
+          }
         });
       });
     }
@@ -934,15 +936,17 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
         openProfileModal();
         return false;
       }
+
       return true;
     }
 
     function handleStartTask(task) {
-      if (!requireProfile()) return;
+      if (!requireProfile()) {
+        return;
+      }
 
       const startedTasks = getStartedTasks();
       const unlockedTasks = getUnlockedTasks();
-
       const canStartFree = startedTasks.length === 0;
       const isUnlocked = unlockedTasks.includes(task.id);
       const noUnlockRequired = task.unlockFee === 0;
@@ -955,12 +959,10 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       pendingUnlockTask = task;
       setText("unlockFeeDisplay", formatMoney(task.unlockFee));
       setText("unlockBalanceDisplay", formatMoney(getWalletBalance()));
-      setText(
-        "unlockMessage",
-        `"${task.title}" needs a one-time unlock fee before you can start. The fee will be deducted from your account balance.`
-      );
+      setText("unlockMessage", '"' + task.title + '" needs a one-time unlock fee before you can start. The fee will be deducted from your account balance.');
 
       const unlockStatus = getElement("unlockStatusMessage");
+
       if (unlockStatus) {
         unlockStatus.classList.add("hidden");
         unlockStatus.textContent = "";
@@ -974,27 +976,32 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
       setText("submissionCategory", task.category);
       setText("submissionTitle", task.title);
-      setText("submissionMeta", `${task.duration} • ⭐ ${task.rating} • Payout: ${formatMoney(task.payout)}`);
+      setText("submissionMeta", task.duration + " -  ⭐ " + task.rating + " -  Payout: " + formatMoney(task.payout));
       setText("submissionInstructions", task.instructions);
 
       const taskIdInput = getElement("submissionTaskId");
-      if (taskIdInput) taskIdInput.value = task.id;
-
       const proofInput = getElement("workProof");
-      if (proofInput) proofInput.value = "";
-
       const audioSection = getElement("audioDownloadSection");
+      const audioStatus = getElement("audioDownloadStatus");
+      const submissionStatus = getElement("submissionStatus");
+
+      if (taskIdInput) {
+        taskIdInput.value = task.id;
+      }
+
+      if (proofInput) {
+        proofInput.value = "";
+      }
+
       if (audioSection) {
         audioSection.classList.toggle("hidden", task.category !== "Audio Transcription");
       }
 
-      const audioStatus = getElement("audioDownloadStatus");
       if (audioStatus) {
         audioStatus.classList.add("hidden");
         audioStatus.textContent = "";
       }
 
-      const submissionStatus = getElement("submissionStatus");
       if (submissionStatus) {
         submissionStatus.classList.add("hidden");
         submissionStatus.textContent = "";
@@ -1007,7 +1014,15 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     function formatCountdown(seconds) {
       const minutes = Math.floor(seconds / 60);
       const remainingSeconds = seconds % 60;
-      return `${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
+
+      return String(minutes).padStart(2, "0") + ":" + String(remainingSeconds).padStart(2, "0");
+    }
+
+    function stopCountdown() {
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+      }
     }
 
     function startCountdown() {
@@ -1019,20 +1034,29 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       const notice = getElement("countdownNotice");
       const container = getElement("countdownContainer");
 
-      if (display) display.textContent = formatCountdown(countdownSeconds);
+      if (display) {
+        display.textContent = formatCountdown(countdownSeconds);
+      }
 
       if (badge) {
         badge.textContent = "Session Active";
         badge.className = "rounded-full border border-emerald/35 bg-emerald/10 px-3 py-1 text-xs font-bold text-emerald";
       }
 
-      if (notice) notice.classList.add("hidden");
-      if (container) container.classList.remove("countdown-warning");
+      if (notice) {
+        notice.classList.add("hidden");
+      }
 
-      countdownInterval = setInterval(() => {
+      if (container) {
+        container.classList.remove("countdown-warning");
+      }
+
+      countdownInterval = setInterval(function () {
         countdownSeconds = Math.max(0, countdownSeconds - 1);
 
-        if (display) display.textContent = formatCountdown(countdownSeconds);
+        if (display) {
+          display.textContent = formatCountdown(countdownSeconds);
+        }
 
         if (countdownSeconds === 0) {
           stopCountdown();
@@ -1042,13 +1066,21 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
             badge.className = "rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1 text-xs font-bold text-amber-300";
           }
 
-          if (notice) notice.classList.remove("hidden");
-          if (container) container.classList.add("countdown-warning");
+          if (notice) {
+            notice.classList.remove("hidden");
+          }
+
+          if (container) {
+            container.classList.add("countdown-warning");
+          }
+
           return;
         }
 
         if (countdownSeconds <= 60) {
-          if (container) container.classList.add("countdown-warning");
+          if (container) {
+            container.classList.add("countdown-warning");
+          }
 
           if (badge) {
             badge.textContent = "Ending Soon";
@@ -1056,13 +1088,6 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
           }
         }
       }, 1000);
-    }
-
-    function stopCountdown() {
-      if (countdownInterval) {
-        clearInterval(countdownInterval);
-        countdownInterval = null;
-      }
     }
 
     function generateSampleWav() {
@@ -1122,7 +1147,9 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
         link.click();
         link.remove();
 
-        setTimeout(() => URL.revokeObjectURL(downloadUrl), 2000);
+        setTimeout(function () {
+          URL.revokeObjectURL(downloadUrl);
+        }, 2000);
 
         if (status) {
           status.textContent = "Sample audio downloaded successfully. Listen to it, then paste your transcription below.";
@@ -1139,12 +1166,15 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     }
 
     function cleanText(value) {
-      return String(value ?? "").trim();
+      return String(value === null || value === undefined ? "" : value).trim();
     }
 
-    function showSubmissionAlert(message, type = "error") {
+    function showSubmissionAlert(message, type) {
       const status = getElement("submissionStatus");
-      if (!status) return;
+
+      if (!status) {
+        return;
+      }
 
       status.textContent = message;
       status.className = type === "success"
@@ -1152,9 +1182,12 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
         : "mt-3 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300";
     }
 
-    function showWithdrawalAlert(message, type = "error") {
+    function showWithdrawalAlert(message, type) {
       const status = getElement("withdrawalStatus");
-      if (!status) return;
+
+      if (!status) {
+        return;
+      }
 
       status.textContent = message;
       status.className = type === "success"
@@ -1165,7 +1198,9 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     async function submitWork(event) {
       event.preventDefault();
 
-      if (!requireProfile() || !selectedTask) return;
+      if (!requireProfile() || !selectedTask) {
+        return;
+      }
 
       const profile = getProfile();
       const proofInput = getElement("workProof");
@@ -1188,42 +1223,45 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
           task_title: cleanText(selectedTask.title),
           task_category: cleanText(selectedTask.category),
           payout_usd: Number(selectedTask.payout),
-          worker_name: cleanText(profile?.fullName),
-          worker_email: cleanText(profile?.email),
-          worker_phone: cleanText(profile?.phone),
-          proof,
+          worker_name: cleanText(profile ? profile.fullName : ""),
+          worker_email: cleanText(profile ? profile.email : ""),
+          worker_phone: cleanText(profile ? profile.phone : ""),
+          proof: proof,
           status: "pending"
         };
 
-        const { error } = await supabaseClient
+        const response = await supabaseClient
           .from("submissions")
           .insert([submissionData]);
 
-        if (error) throw new Error(error.message);
+        if (response.error) {
+          throw new Error(response.error.message);
+        }
 
         const startedTasks = getStartedTasks();
+
         if (!startedTasks.includes(selectedTask.id)) {
-          setStartedTasks([...startedTasks, selectedTask.id]);
+          startedTasks.push(selectedTask.id);
+          setStartedTasks(startedTasks);
         }
 
         creditWalletBalance(Number(selectedTask.payout));
 
-        if (proofInput) proofInput.value = "";
+        if (proofInput) {
+          proofInput.value = "";
+        }
 
         showSubmissionAlert(
-          `Your work was submitted successfully. ${formatMoney(selectedTask.payout)} has been added to your Available Balance.`,
+          "Your work was submitted successfully. " + formatMoney(selectedTask.payout) + " has been added to your Available Balance.",
           "success"
         );
 
         renderDashboard();
         renderTasks(currentCategory);
-        showToast("Task submitted", `${formatMoney(selectedTask.payout)} was credited to your Available Balance for testing.`);
+        showToast("Task submitted", formatMoney(selectedTask.payout) + " was credited to your Available Balance for testing.");
       } catch (error) {
         console.error(error);
-        showSubmissionAlert(
-          `Submission failed: ${error?.message || "Please check your connection and try again."}`,
-          "error"
-        );
+        showSubmissionAlert("Submission failed: " + (error && error.message ? error.message : "Please check your connection and try again."), "error");
       } finally {
         if (button) {
           button.disabled = false;
@@ -1235,7 +1273,9 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     async function submitWithdrawal(event) {
       event.preventDefault();
 
-      if (!requireProfile()) return;
+      if (!requireProfile()) {
+        return;
+      }
 
       const profile = getProfile();
       const phoneInput = getElement("withdrawalPhone");
@@ -1274,31 +1314,31 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
           status: "pending"
         };
 
-        const { error } = await supabaseClient
+        const response = await supabaseClient
           .from("withdrawals")
           .insert([withdrawalData]);
 
-        if (error) throw new Error(error.message);
+        if (response.error) {
+          throw new Error(response.error.message);
+        }
 
         setWalletBalance(balance - amount);
 
-        if (amountInput) amountInput.value = "";
+        if (amountInput) {
+          amountInput.value = "";
+        }
 
-        const successMessage = `Withdrawal request of ${formatKes(amount)} submitted successfully! M-Pesa processing.`;
+        const successMessage = "Withdrawal request of " + formatKes(amount) + " submitted successfully! M-Pesa processing.";
         showWithdrawalAlert(successMessage, "success");
         renderDashboard();
-
         showToast("Withdrawal requested", successMessage);
 
-        setTimeout(() => {
+        setTimeout(function () {
           closeModal("withdrawalModal");
         }, 700);
       } catch (error) {
         console.error(error);
-        showWithdrawalAlert(
-          `Withdrawal request failed: ${error?.message || "Please try again."}`,
-          "error"
-        );
+        showWithdrawalAlert("Withdrawal request failed: " + (error && error.message ? error.message : "Please try again."), "error");
       } finally {
         if (button) {
           button.disabled = false;
@@ -1308,7 +1348,9 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     }
 
     async function confirmUnlock() {
-      if (!pendingUnlockTask) return;
+      if (!pendingUnlockTask) {
+        return;
+      }
 
       const balance = getWalletBalance();
       const fee = pendingUnlockTask.unlockFee;
@@ -1317,9 +1359,10 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
       if (balance < fee) {
         if (status) {
-          status.textContent = `Insufficient balance. You need ${formatMoney(fee)} to unlock this task.`;
+          status.textContent = "Insufficient balance. You need " + formatMoney(fee) + " to unlock this task.";
           status.className = "mt-4 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300";
         }
+
         return;
       }
 
@@ -1332,8 +1375,10 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
         setWalletBalance(balance - fee);
 
         const unlocked = getUnlockedTasks();
+
         if (!unlocked.includes(pendingUnlockTask.id)) {
-          setUnlockedTasks([...unlocked, pendingUnlockTask.id]);
+          unlocked.push(pendingUnlockTask.id);
+          setUnlockedTasks(unlocked);
         }
 
         const taskToOpen = pendingUnlockTask;
@@ -1359,9 +1404,9 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     function saveProfile(event) {
       event.preventDefault();
 
-      const fullName = cleanText(getElement("fullName")?.value);
-      const email = cleanText(getElement("emailAddress")?.value);
-      const phone = cleanText(getElement("mpesaPhone")?.value);
+      const fullName = cleanText(getElement("fullName") ? getElement("fullName").value : "");
+      const email = cleanText(getElement("emailAddress") ? getElement("emailAddress").value : "");
+      const phone = cleanText(getElement("mpesaPhone") ? getElement("mpesaPhone").value : "");
       const errorBox = getElement("profileError");
 
       if (!fullName || !email || !phone) {
@@ -1369,12 +1414,19 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
           errorBox.textContent = "Please complete all profile fields.";
           errorBox.classList.remove("hidden");
         }
+
         return;
       }
 
-      localStorage.setItem(PROFILE_KEY, JSON.stringify({ fullName, email, phone }));
+      localStorage.setItem(PROFILE_KEY, JSON.stringify({
+        fullName: fullName,
+        email: email,
+        phone: phone
+      }));
 
-      if (errorBox) errorBox.classList.add("hidden");
+      if (errorBox) {
+        errorBox.classList.add("hidden");
+      }
 
       updateProfileUI();
       closeProfileModal();
@@ -1382,7 +1434,10 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
     function openModal(id) {
       const modal = getElement(id);
-      if (!modal) return;
+
+      if (!modal) {
+        return;
+      }
 
       modal.classList.remove("hidden-modal");
       modal.classList.add("flex");
@@ -1391,33 +1446,45 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
     function closeModal(id) {
       const modal = getElement(id);
-      if (!modal) return;
+
+      if (!modal) {
+        return;
+      }
 
       modal.classList.add("hidden-modal");
       modal.classList.remove("flex");
 
-      if (id === "submissionModal") stopCountdown();
+      if (id === "submissionModal") {
+        stopCountdown();
+      }
 
-      const anyOpen = [...document.querySelectorAll(".modal-backdrop")].some(
-        item => !item.classList.contains("hidden-modal")
-      );
+      const openModals = document.querySelectorAll(".modal-backdrop:not(.hidden-modal)");
 
-      if (!anyOpen) document.body.classList.remove("overflow-hidden");
+      if (openModals.length === 0) {
+        document.body.classList.remove("overflow-hidden");
+      }
     }
 
     function openProfileModal() {
       const profile = getProfile();
       const closeButton = getElement("closeProfileButton");
-
-      setText("profileModalTitle", profile ? "Edit your profile" : "Create your profile");
-
       const fullName = getElement("fullName");
       const email = getElement("emailAddress");
       const phone = getElement("mpesaPhone");
 
-      if (fullName) fullName.value = profile?.fullName || "";
-      if (email) email.value = profile?.email || "";
-      if (phone) phone.value = profile?.phone || "";
+      setText("profileModalTitle", profile ? "Edit your profile" : "Create your profile");
+
+      if (fullName) {
+        fullName.value = profile ? profile.fullName : "";
+      }
+
+      if (email) {
+        email.value = profile ? profile.email : "";
+      }
+
+      if (phone) {
+        phone.value = profile ? profile.phone : "";
+      }
 
       if (closeButton) {
         closeButton.classList.toggle("hidden", !profile);
@@ -1427,19 +1494,28 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     }
 
     function closeProfileModal() {
-      if (getProfile()) closeModal("profileModal");
+      if (getProfile()) {
+        closeModal("profileModal");
+      }
     }
 
     function openWithdrawalModal() {
-      if (!requireProfile()) return;
+      if (!requireProfile()) {
+        return;
+      }
 
       const profile = getProfile();
       const phoneInput = getElement("withdrawalPhone");
       const amountInput = getElement("withdrawalAmount");
       const status = getElement("withdrawalStatus");
 
-      if (phoneInput) phoneInput.value = profile?.phone || "";
-      if (amountInput) amountInput.value = "";
+      if (phoneInput) {
+        phoneInput.value = profile ? profile.phone : "";
+      }
+
+      if (amountInput) {
+        amountInput.value = "";
+      }
 
       if (status) {
         status.classList.add("hidden");
@@ -1457,15 +1533,23 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       const desktopSwitcher = getElement("currencySwitcher");
       const mobileSwitcher = getElement("currencySwitcherMobile");
 
-      if (desktopSwitcher) desktopSwitcher.value = selectedCurrency;
-      if (mobileSwitcher) mobileSwitcher.value = selectedCurrency;
+      if (desktopSwitcher) {
+        desktopSwitcher.value = selectedCurrency;
+      }
+
+      if (mobileSwitcher) {
+        mobileSwitcher.value = selectedCurrency;
+      }
 
       renderDashboard();
       renderTasks(currentCategory);
     }
 
     function scrollToTop() {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
     }
 
     window.openModal = openModal;
@@ -1476,64 +1560,190 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     window.changeCurrency = changeCurrency;
     window.scrollToTop = scrollToTop;
 
-    const profileForm = getElement("profileForm");
-    const submissionForm = getElement("submissionForm");
-    const withdrawalForm = getElement("withdrawalForm");
-    const confirmWithdrawBtn = getElement("confirmWithdrawBtn");
-    const confirmUnlockButton = getElement("confirmUnlockButton");
-    const downloadAudioButton = getElement("downloadAudioButton");
+    function initializeEventListeners() {
+      const brandButton = getElement("brandButton");
+      const browseWorkButton = getElement("browseWorkButton");
+      const helpCenterButton = getElement("helpCenterButton");
+      const helpCenterButtonMobile = getElement("helpCenterButtonMobile");
+      const closeHelpButton = getElement("closeHelpButton");
+      const profileButton = getElement("profileButton");
+      const closeProfileButton = getElement("closeProfileButton");
+      const profileForm = getElement("profileForm");
+      const openWithdrawalButton = getElement("openWithdrawalButton");
+      const openWithdrawalButtonBottom = getElement("openWithdrawalButtonBottom");
+      const closeWithdrawalButton = getElement("closeWithdrawalButton");
+      const withdrawalForm = getElement("withdrawalForm");
+      const confirmWithdrawBtn = getElement("confirmWithdrawBtn");
+      const submissionForm = getElement("submissionForm");
+      const closeSubmissionButton = getElement("closeSubmissionButton");
+      const downloadAudioButton = getElement("downloadAudioButton");
+      const cancelUnlockButton = getElement("cancelUnlockButton");
+      const confirmUnlockButton = getElement("confirmUnlockButton");
+      const categoryTabs = document.querySelectorAll(".category-tab");
+      const currencySwitcher = getElement("currencySwitcher");
+      const currencySwitcherMobile = getElement("currencySwitcherMobile");
 
-    if (profileForm) profileForm.addEventListener("submit", saveProfile);
-    if (submissionForm) submissionForm.addEventListener("submit", submitWork);
-    if (withdrawalForm) withdrawalForm.addEventListener("submit", submitWithdrawal);
+      if (brandButton) {
+        brandButton.addEventListener("click", scrollToTop);
+      }
 
-    if (confirmWithdrawBtn) {
-      confirmWithdrawBtn.addEventListener("click", event => {
-        event.preventDefault();
+      if (browseWorkButton) {
+        browseWorkButton.addEventListener("click", function () {
+          const tasksSection = getElement("tasks");
 
-        const form = getElement("withdrawalForm");
-        if (form?.requestSubmit) {
-          form.requestSubmit();
-        } else {
-          submitWithdrawal(event);
-        }
+          if (tasksSection) {
+            tasksSection.scrollIntoView({ behavior: "smooth" });
+          }
+        });
+      }
+
+      if (helpCenterButton) {
+        helpCenterButton.addEventListener("click", function () {
+          openModal("helpModal");
+        });
+      }
+
+      if (helpCenterButtonMobile) {
+        helpCenterButtonMobile.addEventListener("click", function () {
+          openModal("helpModal");
+        });
+      }
+
+      if (closeHelpButton) {
+        closeHelpButton.addEventListener("click", function () {
+          closeModal("helpModal");
+        });
+      }
+
+      if (profileButton) {
+        profileButton.addEventListener("click", openProfileModal);
+      }
+
+      if (closeProfileButton) {
+        closeProfileButton.addEventListener("click", closeProfileModal);
+      }
+
+      if (profileForm) {
+        profileForm.addEventListener("submit", saveProfile);
+      }
+
+      if (openWithdrawalButton) {
+        openWithdrawalButton.addEventListener("click", openWithdrawalModal);
+      }
+
+      if (openWithdrawalButtonBottom) {
+        openWithdrawalButtonBottom.addEventListener("click", openWithdrawalModal);
+      }
+
+      if (closeWithdrawalButton) {
+        closeWithdrawalButton.addEventListener("click", function () {
+          closeModal("withdrawalModal");
+        });
+      }
+
+      if (withdrawalForm) {
+        withdrawalForm.addEventListener("submit", submitWithdrawal);
+      }
+
+      if (confirmWithdrawBtn) {
+        confirmWithdrawBtn.addEventListener("click", function (event) {
+          event.preventDefault();
+
+          const withdrawalForm = getElement("withdrawalForm");
+
+          if (withdrawalForm && typeof withdrawalForm.requestSubmit === "function") {
+            withdrawalForm.requestSubmit();
+          } else {
+            submitWithdrawal(event);
+          }
+        });
+      }
+
+      if (submissionForm) {
+        submissionForm.addEventListener("submit", submitWork);
+      }
+
+      if (closeSubmissionButton) {
+        closeSubmissionButton.addEventListener("click", function () {
+          closeModal("submissionModal");
+        });
+      }
+
+      if (downloadAudioButton) {
+        downloadAudioButton.addEventListener("click", downloadSampleAudio);
+      }
+
+      if (cancelUnlockButton) {
+        cancelUnlockButton.addEventListener("click", function () {
+          closeModal("unlockModal");
+        });
+      }
+
+      if (confirmUnlockButton) {
+        confirmUnlockButton.addEventListener("click", confirmUnlock);
+      }
+
+      if (currencySwitcher) {
+        currencySwitcher.addEventListener("change", function (event) {
+          changeCurrency(event.target.value);
+        });
+      }
+
+      if (currencySwitcherMobile) {
+        currencySwitcherMobile.addEventListener("change", function (event) {
+          changeCurrency(event.target.value);
+        });
+      }
+
+      categoryTabs.forEach(function (tab) {
+        tab.addEventListener("click", function () {
+          categoryTabs.forEach(function (item) {
+            item.classList.remove("tab-active");
+          });
+
+          tab.classList.add("tab-active");
+          renderTasks(tab.getAttribute("data-category"));
+        });
+      });
+
+      const modalBackdrops = document.querySelectorAll(".modal-backdrop");
+
+      modalBackdrops.forEach(function (modal) {
+        modal.addEventListener("click", function (event) {
+          if (event.target !== modal) {
+            return;
+          }
+
+          if (modal.id === "profileModal" && !getProfile()) {
+            return;
+          }
+
+          closeModal(modal.id);
+        });
       });
     }
-
-    if (confirmUnlockButton) confirmUnlockButton.addEventListener("click", confirmUnlock);
-    if (downloadAudioButton) downloadAudioButton.addEventListener("click", downloadSampleAudio);
-
-    document.querySelectorAll(".category-tab").forEach(tab => {
-      tab.addEventListener("click", () => {
-        document.querySelectorAll(".category-tab").forEach(item => item.classList.remove("tab-active"));
-        tab.classList.add("tab-active");
-        renderTasks(tab.dataset.category);
-      });
-    });
-
-    document.querySelectorAll(".modal-backdrop").forEach(modal => {
-      modal.addEventListener("click", event => {
-        if (event.target !== modal) return;
-        if (modal.id === "profileModal" && !getProfile()) return;
-
-        closeModal(modal.id);
-      });
-    });
 
     selectedCurrency = selectedCurrency === "KES" ? "KES" : "USD";
 
     const desktopSwitcher = getElement("currencySwitcher");
     const mobileSwitcher = getElement("currencySwitcherMobile");
 
-    if (desktopSwitcher) desktopSwitcher.value = selectedCurrency;
-    if (mobileSwitcher) mobileSwitcher.value = selectedCurrency;
+    if (desktopSwitcher) {
+      desktopSwitcher.value = selectedCurrency;
+    }
+
+    if (mobileSwitcher) {
+      mobileSwitcher.value = selectedCurrency;
+    }
 
     updateProfileUI();
     renderDashboard();
     renderTasks("All Work");
+    initializeEventListeners();
 
-    if (!getProfile()) openProfileModal();
+    if (!getProfile()) {
+      openProfileModal();
+    }
   </script>
 </body>
 </html>
-```

@@ -493,7 +493,60 @@
       </div>
     </div>
   </div>
+<!-- Footer -->
+    <footer class="mt-16 border-t border-slate-700/60 bg-slatebase/95 pt-10 pb-8 text-slate-400">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          
+          <!-- Column 1: Brand -->
+          <div>
+            <h3 class="text-lg font-bold text-white">Apex Task Studio</h3>
+            <p class="mt-2 text-sm leading-6">
+              Empowering workers with fast microtasks, simplified remote work, and direct M-Pesa payouts.
+            </p>
+          </div>
 
+          <!-- Column 2: Quick Links -->
+          <div>
+            <h4 class="text-sm font-semibold uppercase tracking-wider text-slate-200">Quick Links</h4>
+            <ul class="mt-3 space-y-2 text-sm">
+              <li>
+                <button onclick="document.getElementById('tasks').scrollIntoView({ behavior: 'smooth' })" class="transition hover:text-emerald">
+                  Browse Tasks
+                </button>
+              </li>
+              <li>
+                <button onclick="openWithdrawalModal()" class="transition hover:text-cyan">
+                  M-Pesa Withdrawals
+                </button>
+              </li>
+              <li>
+                <button onclick="openModal('helpModal')" class="transition hover:text-cyan">
+                  Help Center
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Column 3: Contact -->
+          <div>
+            <h4 class="text-sm font-semibold uppercase tracking-wider text-slate-200">Support Contact</h4>
+            <p class="mt-3 text-sm">
+              Email: <a href="mailto:collinsmagu00@gmail.com" class="text-emerald hover:underline">collinsmagu00@gmail.com</a>
+            </p>
+            <p class="mt-1 text-sm">
+              M-Pesa Support: <a href="tel:+254107246326" class="text-cyan hover:underline">+254 107 246 326</a>
+            </p>
+          </div>
+
+        </div>
+
+        <!-- Copyright -->
+        <div class="mt-10 border-t border-slate-800 pt-6 text-center text-xs text-slate-500">
+          &copy; 2026 Apex Task Studio. All rights reserved.
+        </div>
+      </div>
+    </footer>
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 

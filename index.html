@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -380,6 +381,27 @@
         <p id="submissionInstructions" class="mt-2 text-sm leading-6 text-slate-300"></p>
       </div>
 
+      <div id="audioDownloadSection" class="hidden mt-4 rounded-2xl border border-cyan/40 bg-cyan/5 p-4">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 class="text-sm font-bold uppercase tracking-wider text-cyan">Sample Audio</h3>
+            <p class="mt-1 text-sm leading-6 text-slate-300">
+              Download the sample audio, listen carefully, and transcribe its spoken content.
+            </p>
+          </div>
+
+          <button
+            id="downloadAudioButton"
+            type="button"
+            class="whitespace-nowrap rounded-xl bg-cyan px-4 py-3 text-sm font-black text-slate-950 transition hover:bg-cyan-300"
+          >
+            Download Sample Audio (.wav)
+          </button>
+        </div>
+
+        <p id="audioDownloadStatus" class="hidden mt-3 rounded-lg px-3 py-2 text-sm"></p>
+      </div>
+
       <form id="submissionForm" class="mt-5">
         <input id="submissionTaskId" type="hidden" />
 
@@ -516,7 +538,7 @@
         duration: "5 min",
         rating: "4.8 / 5.0",
         description: "Listen to a short audio sample and accurately transcribe the spoken English into clear text.",
-        instructions: "Transcribe the supplied audio accurately. Include natural punctuation, remove obvious filler words only where instructed, and paste the completed transcript as your proof.",
+        instructions: "Download and listen to the sample audio. Transcribe the spoken English accurately, including natural punctuation. Paste the completed transcript as your proof.",
         payout: 1.2,
         unlockFee: 0
       },
@@ -538,7 +560,7 @@
         duration: "10 min",
         rating: "4.7 / 5.0",
         description: "Transcribe selected parts of a customer call and identify key service-related phrases.",
-        instructions: "Provide the requested transcript excerpts and list the specified service phrases. Keep all timestamps and notes in the requested format.",
+        instructions: "Download the sample call audio, provide the requested transcript excerpts, and list the specified service phrases in the requested format.",
         payout: 2.2,
         unlockFee: 1.75
       },
@@ -560,7 +582,7 @@
         duration: "7 min",
         rating: "4.6 / 5.0",
         description: "Convert a short Kiswahili spoken clip into clean written transcription.",
-        instructions: "Write the full Kiswahili transcription as accurately as possible. Preserve important names and words, using punctuation for clarity.",
+        instructions: "Download the sample audio and write the full Kiswahili transcription as accurately as possible. Preserve important names and words, using punctuation for clarity.",
         payout: 1.65,
         unlockFee: 1.5
       },
@@ -803,11 +825,96 @@
       document.getElementById("submissionTaskId").value = task.id;
       document.getElementById("workProof").value = "";
 
+      const audioSection = document.getElementById("audioDownloadSection");
+      const audioStatus = document.getElementById("audioDownloadStatus");
+
+      if (task.category === "Audio Transcription") {
+        audioSection.classList.remove("hidden");
+      } else {
+        audioSection.classList.add("hidden");
+      }
+
+      audioStatus.classList.add("hidden");
+      audioStatus.textContent = "";
+
       const status = document.getElementById("submissionStatus");
       status.classList.add("hidden");
       status.textContent = "";
 
       openModal("submissionModal");
+    }
+
+    function generateSampleWav() {
+      const sampleRate = 22050;
+      const durationSeconds = 4;
+      const totalSamples = sampleRate * durationSeconds;
+      const wavBuffer = new ArrayBuffer(44 + totalSamples * 2);
+      const view = new DataView(wavBuffer);
+
+      function writeString(offset, text) {
+        for (let i = 0; i < text.length; i++) {
+          view.setUint8(offset + i, text.charCodeAt(i));
+        }
+      }
+
+      writeString(0, "RIFF");
+      view.setUint32(4, 36 + totalSamples * 2, true);
+      writeString(8, "WAVE");
+      writeString(12, "fmt ");
+      view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true);
+      view.setUint16(22, 1, true);
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, sampleRate * 2, true);
+      view.setUint16(32, 2, true);
+      view.setUint16(34, 16, true);
+      writeString(36, "data");
+      view.setUint32(40, totalSamples * 2, true);
+
+      const frequencies = [523.25, 659.25, 783.99, 659.25];
+      const segmentLength = Math.floor(totalSamples / frequencies.length);
+
+      for (let i = 0; i < totalSamples; i++) {
+        const segment = Math.min(Math.floor(i / segmentLength), frequencies.length - 1);
+        const frequency = frequencies[segment];
+        const time = i / sampleRate;
+
+        const envelope = 0.6 * (1 - ((i % segmentLength) / segmentLength));
+        const value = Math.sin(2 * Math.PI * frequency * time) * envelope;
+
+        view.setInt16(44 + i * 2, Math.max(-1, Math.min(1, value)) * 32767, true);
+      }
+
+      return new Blob([wavBuffer], { type: "audio/wav" });
+    }
+
+    function downloadSampleAudio() {
+      const status = document.getElementById("audioDownloadStatus");
+
+      try {
+        const audioBlob = generateSampleWav();
+        const downloadUrl = URL.createObjectURL(audioBlob);
+        const link = document.createElement("a");
+
+        link.href = downloadUrl;
+        link.download = "sample-transcription.wav";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        setTimeout(() => URL.revokeObjectURL(downloadUrl), 2000);
+
+        status.textContent = "Sample audio downloaded successfully. Listen to it, then paste your transcription below.";
+        status.className = "mt-3 rounded-lg border border-emerald/40 bg-emerald/10 px-3 py-2 text-sm text-emerald";
+      } catch (error) {
+        console.error(error);
+        status.textContent = "The sample audio could not be generated. Please try again.";
+        status.className = "mt-3 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300";
+      }
+    }
+
+    function cleanText(value) {
+      return String(value ?? "").trim();
     }
 
     async function submitWork(event) {
@@ -816,7 +923,7 @@
       if (!requireProfile() || !selectedTask) return;
 
       const profile = getProfile();
-      const proof = document.getElementById("workProof").value.trim();
+      const proof = cleanText(document.getElementById("workProof").value);
       const status = document.getElementById("submissionStatus");
       const button = document.getElementById("submitWorkButton");
 
@@ -830,14 +937,14 @@
       button.textContent = "Submitting...";
 
       const submissionData = {
-        task_id: selectedTask.id,
-        task_title: selectedTask.title,
-        task_category: selectedTask.category,
-        worker_name: profile.fullName,
-        worker_email: profile.email,
-        worker_phone: profile.phone,
+        task_id: cleanText(selectedTask.id),
+        task_title: cleanText(selectedTask.title),
+        task_category: cleanText(selectedTask.category),
+        payout_usd: Number(selectedTask.payout),
+        worker_name: cleanText(profile.fullName),
+        worker_email: cleanText(profile.email),
+        worker_phone: cleanText(profile.phone),
         proof: proof,
-        payout_usd: selectedTask.payout,
         status: "pending"
       };
 
@@ -878,7 +985,7 @@
       if (!requireProfile()) return;
 
       const profile = getProfile();
-      const phone = document.getElementById("withdrawalPhone").value.trim();
+      const phone = cleanText(document.getElementById("withdrawalPhone").value);
       const amount = Number(document.getElementById("withdrawalAmount").value);
       const balance = getWalletBalance();
       const status = document.getElementById("withdrawalStatus");
@@ -900,10 +1007,10 @@
       button.textContent = "Submitting request...";
 
       const withdrawalData = {
-        worker_name: profile.fullName,
-        worker_email: profile.email,
+        worker_name: cleanText(profile.fullName),
+        worker_email: cleanText(profile.email),
         worker_phone: phone,
-        amount_usd: amount,
+        amount_usd: Number(amount),
         status: "pending"
       };
 
@@ -972,9 +1079,9 @@
     function saveProfile(event) {
       event.preventDefault();
 
-      const fullName = document.getElementById("fullName").value.trim();
-      const email = document.getElementById("emailAddress").value.trim();
-      const phone = document.getElementById("mpesaPhone").value.trim();
+      const fullName = cleanText(document.getElementById("fullName").value);
+      const email = cleanText(document.getElementById("emailAddress").value);
+      const phone = cleanText(document.getElementById("mpesaPhone").value);
       const errorBox = document.getElementById("profileError");
 
       if (!fullName || !email || !phone) {
@@ -1077,6 +1184,7 @@
     document.getElementById("submissionForm").addEventListener("submit", submitWork);
     document.getElementById("withdrawalForm").addEventListener("submit", submitWithdrawal);
     document.getElementById("confirmUnlockButton").addEventListener("click", confirmUnlock);
+    document.getElementById("downloadAudioButton").addEventListener("click", downloadSampleAudio);
 
     document.querySelectorAll(".category-tab").forEach(tab => {
       tab.addEventListener("click", () => {
@@ -1109,3 +1217,4 @@
   </script>
 </body>
 </html>
+```

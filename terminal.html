@@ -279,7 +279,7 @@ const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const ADMIN_PIN = '5123';
-const BUCKET = 'task-files';
+const BUCKET = 'tasks-files';
 
 // ============ PIN GATE ============
 function checkPin() {
@@ -415,13 +415,13 @@ async function loadStats() {
     const { count: taskCount } = await db.from('tasks').select('*', { count: 'exact', head: true });
     document.getElementById('statTotalTasks').textContent = taskCount || 0;
 
-    const { data: subs } = await db.from('submissions').select('worker_name, payout, status');
+    const { data: subs } = await db.from('submissions').select('worker_name, payout_usd, status');
     const workers = new Set((subs || []).map(s => s.worker_name).filter(Boolean));
     document.getElementById('statTotalWorkers').textContent = workers.size;
 
     const approvedTotal = (subs || [])
       .filter(s => (s.status || '').toLowerCase() === 'accepted' || (s.status || '').toLowerCase() === 'approved')
-      .reduce((sum, s) => sum + (parseFloat(s.payout) || 0), 0);
+      .reduce((sum, s) => sum + (parseFloat(s.payout_usd) || 0), 0);
     document.getElementById('statApprovedPayout').textContent = '$' + approvedTotal.toFixed(2);
 
     const { data: tasks } = await db.from('tasks').select('profit');

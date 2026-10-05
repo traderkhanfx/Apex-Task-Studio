@@ -140,6 +140,61 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3ZHR2YXN5a2hvcnJ2bXdtbmhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUzNzQsImV4cCI6MjEwNjUzMTM3NH0.vt_I7uvUqsjv5e8RTgREMoXJiZqq_80a9fVOqVyW6Lk';
     const { createClient } = supabase;
     const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// 1. Submit New Task from Admin Form
+  document.getElementById('adminTaskForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const newTask = {
+      title: document.getElementById('taskTitle').value,
+      category: document.getElementById('taskCategory').value,
+      payout_usd: parseFloat(document.getElementById('taskPayout').value),
+      instructions: document.getElementById('taskInstructions').value,
+      audio_url: document.getElementById('taskAudioUrl').value || null
+    };
+
+    const { data, error } = await db.from('tasks').insert([newTask]);
+
+    if (error) {
+      alert("Error publishing task: " + error.message);
+    } else {
+      alert("Task published successfully!");
+      closeModal('adminTaskModal');
+      loadTasks(); // Reload tasks on worker feed
+    }
+  });
+
+  // 2. Fetch Tasks from Supabase & Display on Worker Panel
+  async function loadTasks() {
+    const taskContainer = document.getElementById('tasksFeed');
+    if (!taskContainer) return;
+
+    const { data: tasks, error } = await db
+      .from('tasks')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error || !tasks) return;
+
+    const EXCHANGE_RATE = 130; // KSh conversion rate
+
+    taskContainer.innerHTML = tasks.map(task => `
+      <div class="rounded-2xl border border-slate-700/60 bg-slate-800/40 p-5 shadow-lg">
+        <div class="flex items-center justify-between">
+          <span class="rounded-full bg-emerald/10 px-3 py-1 text-xs font-semibold text-emerald">${task.category}</span>
+          <span class="text-sm font-bold text-cyan">KSh ${(task.payout_usd * EXCHANGE_RATE).toFixed(2)}</span>
+        </div>
+        <h4 class="mt-3 text-lg font-bold text-white">${task.title}</h4>
+        <p class="mt-1 text-xs text-slate-400">${task.duration_mins || 5} min • ★ ${task.rating || 5.0} • Payout: $${task.payout_usd.toFixed(2)}</p>
+        
+        <button onclick='openTaskDetails(${JSON.stringify(task)})' class="mt-4 w-full rounded-xl bg-slate-700 py-2.5 text-xs font-bold text-white transition hover:bg-emerald hover:text-slatebase">
+          Start & Submit Work
+        </button>
+      </div>
+    `).join('');
+  }
+
+  // Call on startup
+  loadTasks();
 
     // Toggle Lock Fee Input
     document.getElementById('taskIsLocked').addEventListener('change', (e) => {

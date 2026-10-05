@@ -1,1472 +1,925 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Apex Task Studio | Remote Microtasks</title>
-
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Font Awesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            slatebase: "#0a0f1d",
-            panel: "#101827",
-            panel2: "#152235",
-            emerald: { DEFAULT: "#10b981", 400: "#34d399" },
-            cyan: { DEFAULT: "#06b6d4", 300: "#67e8f9" }
-          },
-          boxShadow: {
-            glow: "0 0 35px rgba(16, 185, 129, 0.14)"
-          }
-        }
-      }
-    };
-  </script>
-
-  <style>
-    body {
-      background: #0a0f1d;
-      color: #f8fafc;
-    }
-
-    .hero-grid {
-      background-image:
-        linear-gradient(rgba(136, 73, 73, 0.06) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(6, 182, 212, 0.06) 1px, transparent 1px);
-      background-size: 28px 28px;
-    }
-
-    .modal-backdrop {
-      background: rgba(2, 6, 23, 0.82);
-      backdrop-filter: blur(8px);
-    }
-
-    .tab-active {
-      background: #10b981 !important;
-      color: #022c22 !important;
-      border-color: #10b981 !important;
-    }
-
-    .task-card {
-      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .task-card:hover {
-      transform: translateY(-4px);
-      border-color: rgba(6, 182, 212, 0.75);
-      box-shadow: 0 0 30px rgba(6, 182, 212, 0.12);
-    }
-
-    .hidden-modal {
-      display: none !important;
-    }
-
-    /* Toast Notification Animation */
-    #toastContainer {
-      position: fixed;
-      top: 1rem;
-      right: 1rem;
-      z-index: 100;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .toast {
-      animation: slideIn 0.3s ease-out forwards;
-    }
-
-    @keyframes slideIn {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Apex Task Studio — Remote Work, Simplified</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+  window.supabaseClient = createClient(
+    'https://dwdtvasykhorrvmwmnhb.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3ZHR2YXN5a2hvcnJ2bXdtbmhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUzNzQsImV4cCI6MjEwNjUzMTM3NH0.vt_I7uvUqsjv5e8RTgREMoXJiZqq_80a9fVOqVyW6Lk'
+  );
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  body { background: #0a0f1a; color: #f1f5f9; min-height: 100vh; }
+  .glass { background: rgba(17, 24, 39, 0.6); backdrop-filter: blur(14px); border: 1px solid rgba(16, 185, 129, 0.15); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+  .btn-primary { background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%); color: white; font-weight: 600; transition: all 0.2s; box-shadow: 0 4px 14px rgba(16,185,129,0.3); }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(16,185,129,0.5); }
+  .btn-ghost { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); color: #6ee7b7; transition: all 0.2s; }
+  .btn-ghost:hover { background: rgba(16,185,129,0.18); color: white; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(10,15,26,0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 1rem; }
+  .modal-content { background: rgba(15,23,42,0.96); border: 1px solid rgba(16,185,129,0.3); border-radius: 1rem; max-width: 520px; width: 100%; padding: 1.75rem; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 80px rgba(0,0,0,0.7); }
+  .hidden { display: none !important; }
+  .input-field { width: 100%; padding: 0.75rem 0.9rem; border-radius: 0.5rem; background: rgba(10,15,29,0.7); border: 1.5px solid rgba(16,185,129,0.2); color: white; font-size: 0.875rem; outline: none; transition: all 0.2s; }
+  .input-field:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.15); }
+  .input-field::placeholder { color: rgba(110,231,183,0.35); }
+  .cat-tab { padding: 0.55rem 1.1rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; border: 1px solid rgba(16,185,129,0.2); background: rgba(15,23,42,0.5); color: #6ee7b7; transition: all 0.2s; white-space: nowrap; }
+  .cat-tab:hover { background: rgba(16,185,129,0.12); color: white; }
+  .cat-tab.active { background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%); color: white; border-color: transparent; }
+  .avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: white; }
+  .badge { font-size: 0.65rem; padding: 0.25rem 0.65rem; border-radius: 9999px; font-weight: 600; display: inline-block; }
+  .badge-emerald { background: rgba(16,185,129,0.15); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+  .badge-cyan { background: rgba(6,182,212,0.15); color: #67e8f9; border: 1px solid rgba(6,182,212,0.3); }
+  .badge-amber { background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+  .badge-slate { background: rgba(148,163,184,0.12); color: #cbd5e1; border: 1px solid rgba(148,163,184,0.2); }
+  .badge-soon { background: linear-gradient(135deg, rgba(6,182,212,0.2), rgba(16,185,129,0.2)); color: #67e8f9; border: 1px solid rgba(6,182,212,0.4); font-weight: 700; }
+  .stat-card { background: rgba(15,23,42,0.6); border: 1px solid rgba(16,185,129,0.15); border-radius: 0.9rem; padding: 1rem; }
+  .loading-spinner { border: 3px solid rgba(16,185,129,0.15); border-top: 3px solid #10b981; border-radius: 50%; width: 28px; height: 28px; animation: spin 1s linear infinite; margin: 0 auto; }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  .toast { position: fixed; top: 1.5rem; left: 50%; transform: translateX(-50%); background: rgba(15,23,42,0.96); border: 1px solid rgba(16,185,129,0.4); padding: 0.85rem 1.25rem; border-radius: 0.75rem; font-size: 0.85rem; color: white; z-index: 200; box-shadow: 0 10px 40px rgba(0,0,0,0.6); max-width: 90vw; }
+  .toast-error { border-color: rgba(239,68,68,0.6); }
+</style>
 </head>
+<body>
 
-<body class="min-h-screen font-sans selection:bg-emerald/30">
-  <!-- Toast Notification Container -->
-  <div id="toastContainer"></div>
+<div id="toastContainer"></div>
 
-  <div class="min-h-screen hero-grid">
-    <!-- Header -->
-    <header class="sticky top-0 z-30 border-b border-slate-700/60 bg-slatebase/95 backdrop-blur">
-      <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-        <button class="flex items-center gap-3 text-left" onclick="scrollToTop()">
-          <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-emerald to-cyan font-black text-slate-950 shadow-glow">
-            A
-          </div>
-          <div>
-            <h1 class="text-lg font-bold tracking-tight text-white sm:text-xl">Apex Task Studio</h1>
-            <p class="text-xs text-slate-400">Remote work, simplified</p>
-          </div>
-        </button>
-
-        <div class="flex items-center gap-2 sm:gap-3">
-          <select
-            id="currencySwitcher"
-            class="hidden rounded-lg border border-slate-700 bg-panel px-3 py-2 text-sm font-medium text-white outline-none transition focus:border-cyan sm:block"
-            onchange="changeCurrency(this.value)"
-          >
-            <option value="USD">USD ($)</option>
-            <option value="KES">KES (KSh)</option>
-          </select>
-
-          <button
-            onclick="openModal('historyModal')"
-            class="hidden rounded-lg border border-emerald/50 bg-emerald/10 px-3 py-2 text-sm font-semibold text-emerald transition hover:bg-emerald hover:text-slate-950 sm:block"
-          >
-            My Submissions
-          </button>
-
-          <button
-            onclick="openModal('helpModal')"
-            class="hidden rounded-lg border border-cyan/50 bg-cyan/10 px-3 py-2 text-sm font-semibold text-cyan transition hover:bg-cyan hover:text-slate-950 sm:block"
-          >
-            Help Center
-          </button>
-
-          <button
-            id="profileButton"
-            onclick="openProfileModal()"
-            class="flex items-center gap-2 rounded-full border border-slate-700 bg-panel px-2 py-1.5 transition hover:border-emerald"
-            aria-label="Open profile"
-          >
-            <span
-              id="profileInitial"
-              class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald to-cyan text-sm font-black text-slate-950"
-            >
-              ?
-            </span>
-            <span class="hidden text-left leading-tight md:block">
-              <span id="profileName" class="block max-w-32 truncate text-sm font-semibold text-white">Create Profile</span>
-              <span id="profilePhone" class="block max-w-32 truncate text-xs text-slate-400">Tap to begin</span>
-            </span>
-          </button>
-        </div>
+<!-- ============ ONBOARDING MODAL ============ -->
+<div id="onboardingModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="flex items-center gap-3 mb-5">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);">
+        <span class="text-2xl">⚡</span>
       </div>
-    </header>
-
-    <main class="mx-auto max-w-7xl px-4 pb-12 pt-7 sm:px-6 lg:px-8">
-      <!-- Mobile controls -->
-      <div class="mb-5 flex gap-2 sm:hidden">
-        <select
-          id="currencySwitcherMobile"
-          class="w-1/3 rounded-lg border border-slate-700 bg-panel px-3 py-2 text-sm font-medium text-white outline-none focus:border-cyan"
-          onchange="changeCurrency(this.value)"
-        >
-          <option value="USD">USD ($)</option>
-          <option value="KES">KES (KSh)</option>
-        </select>
-        <button
-          onclick="openModal('historyModal')"
-          class="w-1/3 rounded-lg border border-emerald/50 bg-emerald/10 px-2 py-2 text-xs font-semibold text-emerald"
-        >
-          Submissions
-        </button>
-        <button
-          onclick="openModal('helpModal')"
-          class="w-1/3 rounded-lg border border-cyan/50 bg-cyan/10 px-2 py-2 text-xs font-semibold text-cyan"
-        >
-          Help
-        </button>
+      <div>
+        <h2 class="text-lg font-bold text-white">Welcome to Apex Task Studio</h2>
+        <p class="text-xs text-emerald-300/60 mt-0.5">Set up your worker profile to start earning</p>
       </div>
+    </div>
+    <form id="onboardingForm" class="space-y-3">
+      <div>
+        <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Full Name</label>
+        <input type="text" id="onboardName" placeholder="Enter your full name" required class="input-field" />
+      </div>
+      <div>
+        <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Email Address</label>
+        <input type="email" id="onboardEmail" placeholder="Enter your email address" required class="input-field" />
+      </div>
+      <div>
+        <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">M-Pesa Phone Number</label>
+        <input type="tel" id="onboardPhone" placeholder="e.g. 0712345678" required class="input-field" />
+      </div>
+      <button type="submit" class="btn-primary w-full py-3 rounded-lg text-sm mt-2">Save Profile & Continue</button>
+    </form>
+  </div>
+</div>
 
-      <!-- Banner -->
-      <section class="relative overflow-hidden rounded-3xl border border-emerald/25 bg-gradient-to-br from-emerald/20 via-panel to-cyan/15 p-6 shadow-glow sm:p-9">
-        <div class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-cyan/20 blur-3xl"></div>
-        <div class="absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-emerald/20 blur-3xl"></div>
+<!-- ============ EDIT PROFILE MODAL ============ -->
+<div id="editProfileModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <span class="badge badge-emerald mb-2">Worker Profile</span>
+        <h2 class="text-lg font-bold text-white mt-1">Edit your profile</h2>
+        <p class="text-xs text-emerald-300/60 mt-0.5">Add your details to access work and M-Pesa withdrawal requests.</p>
+      </div>
+      <button onclick="closeModal('editProfileModal')" class="text-emerald-300 hover:text-white text-2xl">&times;</button>
+    </div>
+    <form id="editProfileForm" class="space-y-3">
+      <div>
+        <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Full Name</label>
+        <input type="text" id="editName" class="input-field" required />
+      </div>
+      <div>
+        <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Email Address</label>
+        <input type="email" id="editEmail" class="input-field" required />
+      </div>
+      <div>
+        <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">M-Pesa Phone Number</label>
+        <input type="tel" id="editPhone" class="input-field" required />
+      </div>
+      <button type="submit" class="btn-primary w-full py-3 rounded-lg text-sm mt-2">Save Profile & Continue</button>
+    </form>
+  </div>
+</div>
 
-        <div class="relative max-w-3xl">
-          <span class="inline-flex rounded-full border border-emerald/40 bg-emerald/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald">
-            Worldwide remote opportunities
-          </span>
+<!-- ============ HELP CENTER MODAL ============ -->
+<div id="helpModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="flex justify-between items-start mb-4">
+      <h2 class="text-lg font-bold text-white">❓ Help Center</h2>
+      <button onclick="closeModal('helpModal')" class="text-emerald-300 hover:text-white text-2xl">&times;</button>
+    </div>
+    <div class="space-y-3 text-sm">
+      <div class="glass rounded-lg p-3">
+        <h3 class="font-semibold text-emerald-400 mb-1">📌 How do I get paid?</h3>
+        <p class="text-xs text-slate-300">Once your task is approved, the payout is added to your balance. Withdraw via M-Pesa.</p>
+      </div>
+      <div class="glass rounded-lg p-3">
+        <h3 class="font-semibold text-emerald-400 mb-1">📌 Why is a task locked?</h3>
+        <p class="text-xs text-slate-300">Your first task is free. Premium tasks require a small unlock fee to maintain quality.</p>
+      </div>
+      <div class="glass rounded-lg p-3">
+        <h3 class="font-semibold text-emerald-400 mb-1">📌 How long do withdrawals take?</h3>
+        <p class="text-xs text-slate-300">M-Pesa withdrawals are processed within 24 hours.</p>
+      </div>
+      <div class="pt-2 border-t border-emerald-500/15">
+        <a href="https://wa.me/254107246326" target="_blank" class="btn-primary w-full py-3 rounded-lg text-sm flex items-center justify-center gap-2">
+          💬 Chat on WhatsApp
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
 
-          <h2 class="mt-4 text-2xl font-black leading-tight text-white sm:text-4xl">
-            Welcome to remote microtask platform where you can work at home and it is worldwide. It supports M-Pesa withdraw.
-          </h2>
+<!-- ============ SUBMISSION MODAL ============ -->
+<div id="submissionModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="flex justify-between items-start mb-4">
+      <div class="pr-4">
+        <span class="badge badge-emerald mb-2" id="modalCategory">Category</span>
+        <h2 class="text-lg font-bold text-white mt-2" id="modalTitle">Task Title</h2>
+      </div>
+      <button onclick="closeModal('submissionModal')" class="text-emerald-300 hover:text-white text-2xl">&times;</button>
+    </div>
+    <div class="glass rounded-lg p-3 mb-4">
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div><p class="text-xs text-emerald-300/50">Payout</p><p class="text-sm font-bold text-emerald-400" id="modalPayout">$0.00</p></div>
+        <div><p class="text-xs text-emerald-300/50">Time</p><p class="text-sm font-bold text-white" id="modalTime">5 min</p></div>
+        <div><p class="text-xs text-emerald-300/50">Worker</p><p class="text-sm font-bold text-white truncate" id="modalWorker">—</p></div>
+      </div>
+    </div>
+    <div class="mb-4">
+      <p class="text-xs text-emerald-200/70 font-medium mb-2">📋 Description</p>
+      <div class="glass rounded-lg p-3 text-xs text-slate-200/90 max-h-32 overflow-y-auto" id="modalDescription">—</div>
+    </div>
+    <div>
+      <label class="text-xs text-emerald-200/70 block mb-1.5 font-medium">Your Proof / Submission</label>
+      <textarea id="modalProof" rows="5" placeholder="Paste your transcription, verification code, or output here..." class="input-field resize-none"></textarea>
+    </div>
+    <div class="flex gap-2 mt-5">
+      <button onclick="closeModal('submissionModal')" class="btn-ghost flex-1 py-3 rounded-lg text-sm">Cancel</button>
+      <button onclick="submitTaskProof()" id="submitProofBtn" class="btn-primary flex-1 py-3 rounded-lg text-sm">Submit Task</button>
+    </div>
+  </div>
+</div>
 
-          <p class="mt-4 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
-            Complete simple verified tasks, submit your work, track earnings, and request M-Pesa withdrawals when your balance is available.
-          </p>
+<!-- ============ UNLOCK MODAL ============ -->
+<div id="unlockModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <span class="badge badge-amber mb-2">🔒 Task Locked</span>
+    <h2 class="text-lg font-bold text-white mt-2 mb-1">Unlock this task</h2>
+    <p class="text-xs text-emerald-200/60 mb-4" id="unlockTaskTitle">"Task name" needs a one-time unlock fee before starting.</p>
+    <div class="glass rounded-lg p-4 mb-4 space-y-2">
+      <div class="flex justify-between"><span class="text-sm text-slate-300">Unlock fee</span><span class="text-sm font-bold text-amber-400" id="unlockFeeDisplay">$1.50</span></div>
+      <div class="flex justify-between"><span class="text-sm text-slate-300">Your balance</span><span class="text-sm font-bold text-emerald-400" id="unlockBalanceDisplay">$0.00</span></div>
+    </div>
+    <div class="flex gap-2">
+      <button onclick="closeModal('unlockModal')" class="btn-ghost flex-1 py-3 rounded-lg text-sm">Cancel</button>
+      <button onclick="confirmUnlock()" id="unlockConfirmBtn" class="btn-primary flex-1 py-3 rounded-lg text-sm">Unlock Now</button>
+    </div>
+  </div>
+</div>
 
-          <div class="mt-6 flex flex-wrap gap-3">
-            <button
-              onclick="document.getElementById('tasks').scrollIntoView({ behavior: 'smooth' })"
-              class="rounded-xl bg-emerald px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-emerald-400"
-            >
-              Browse Work
-            </button>
+<!-- ============ WITHDRAWAL MODAL ============ -->
+<div id="withdrawModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <h2 class="text-lg font-bold text-white">💸 M-Pesa Withdrawal</h2>
+        <p class="text-xs text-emerald-300/60 mt-0.5">Cash out your approved balance</p>
+      </div>
+      <button onclick="closeModal('withdrawModal')" class="text-emerald-300 hover:text-white text-2xl">&times;</button>
+    </div>
+    <div class="glass rounded-lg p-3 mb-4 flex justify-between items-center">
+      <span class="text-xs text-emerald-200/70">Available Balance</span>
+      <span class="text-lg font-bold text-emerald-400" id="withdrawAvailable">$0.00</span>
+    </div>
+    <div class="space-y-3">
+      <div>
+        <label class="text-xs text-emerald-200/70 block mb-1.5 font-medium">M-Pesa Mobile Number</label>
+        <input type="tel" id="withdrawPhone" placeholder="e.g. 0712345678" class="input-field" />
+      </div>
+      <div>
+        <label class="text-xs text-emerald-200/70 block mb-1.5 font-medium">Amount (USD)</label>
+        <input type="number" id="withdrawAmount" placeholder="10.00" step="0.01" min="1" class="input-field" />
+      </div>
+      <button onclick="submitWithdrawal()" id="withdrawBtn" class="btn-primary w-full py-3 rounded-lg text-sm">Request Withdrawal</button>
+      <p class="text-xs text-emerald-300/40 text-center">Minimum: $1.00 · Processed within 24 hours</p>
+    </div>
+  </div>
+</div>
 
-            <button
-              onclick="openWithdrawalModal()"
-              class="rounded-xl border border-cyan/60 bg-cyan/10 px-5 py-3 text-sm font-bold text-cyan transition hover:bg-cyan hover:text-slate-950"
-            >
-              Withdraw via M-Pesa
-            </button>
-          </div>
+<!-- ============ MY WORK HISTORY MODAL ============ -->
+<div id="historyModal" class="modal-overlay hidden">
+  <div class="modal-content" style="max-width: 700px;">
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <span class="badge badge-emerald mb-2">Submissions</span>
+        <h2 class="text-lg font-bold text-white mt-1">My Work History</h2>
+        <p class="text-xs text-emerald-300/60 mt-0.5">Track the review status and earnings for your submitted tasks.</p>
+      </div>
+      <button onclick="closeModal('historyModal')" class="text-emerald-300 hover:text-white text-2xl">&times;</button>
+    </div>
+    <div id="historyContent">
+      <div class="text-center py-8"><div class="loading-spinner"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MAIN APP ============ -->
+<div class="max-w-6xl mx-auto p-4 pb-16">
+
+  <!-- HEADER -->
+  <header class="flex flex-wrap items-center justify-between gap-3 mb-5">
+    <div class="flex items-center gap-3">
+      <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);">
+        <span class="text-xl">⚡</span>
+      </div>
+      <div>
+        <h1 class="text-lg font-extrabold text-white">Apex Task Studio</h1>
+        <p class="text-xs text-emerald-300/60">Remote work, simplified</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 flex-wrap">
+      <select id="currencySelector" onchange="changeCurrency(this.value)" class="input-field !w-auto !py-2 !px-3 text-xs font-semibold cursor-pointer">
+        <option value="USD">USD ($)</option>
+        <option value="KES">KES (KSh)</option>
+      </select>
+      <button onclick="openHistory()" class="btn-ghost px-3 py-2 rounded-lg text-xs font-semibold">My Submissions</button>
+      <button onclick="openModal('helpModal')" class="btn-ghost px-3 py-2 rounded-lg text-xs font-semibold">Help Center</button>
+      <button onclick="openEditProfile()" class="glass rounded-full pl-1.5 pr-4 py-1.5 flex items-center gap-2.5">
+        <div class="avatar" id="headerAvatar">?</div>
+        <div class="text-left hidden sm:block">
+          <p class="text-xs font-bold text-white leading-tight" id="headerName">Set Profile</p>
+          <p class="text-[10px] text-emerald-300/60 leading-tight" id="headerPhone">Tap to onboard</p>
         </div>
-      </section>
+      </button>
+    </div>
+  </header>
 
-      <!-- Worker Earnings Analytics Grid -->
-      <section class="mt-6 grid gap-4 grid-cols-2 lg:grid-cols-5">
-        <div class="rounded-2xl border border-slate-700 bg-panel p-5">
-          <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Available Balance</p>
-          <p id="balanceDisplay" class="mt-2 text-2xl font-black text-emerald">$0.00</p>
-          <p class="mt-1 text-xs text-slate-500">Ready to withdraw</p>
-        </div>
-
-        <div class="rounded-2xl border border-slate-700 bg-panel p-5">
-          <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Pending Review</p>
-          <p id="pendingBalanceDisplay" class="mt-2 text-2xl font-black text-amber-400">$0.00</p>
-          <p class="mt-1 text-xs text-slate-500">Under verification</p>
-        </div>
-
-        <div class="rounded-2xl border border-slate-700 bg-panel p-5">
-          <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Lifetime Earned</p>
-          <p id="lifetimeEarnedDisplay" class="mt-2 text-2xl font-black text-cyan">$0.00</p>
-          <p class="mt-1 text-xs text-slate-500">Total approved work</p>
-        </div>
-
-        <div class="rounded-2xl border border-slate-700 bg-panel p-5">
-          <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Withdrawn</p>
-          <p id="totalWithdrawnDisplay" class="mt-2 text-2xl font-black text-white">$0.00</p>
-          <p class="mt-1 text-xs text-slate-500">Paid to M-Pesa</p>
-        </div>
-
-        <div class="col-span-2 lg:col-span-1 rounded-2xl border border-slate-700 bg-panel p-5">
-          <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Tasks Started</p>
-          <p id="startedTasksDisplay" class="mt-2 text-2xl font-black text-white">0</p>
-          <p id="unlockStatus" class="mt-1 text-xs text-slate-500">First task free</p>
-        </div>
-      </section>
-
-      <!-- Categories -->
-      <section id="tasks" class="mt-10">
-        <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-          <div>
-            <p class="text-sm font-bold uppercase tracking-widest text-cyan">Active Work Assignment Grid</p>
-            <h2 class="mt-2 text-2xl font-black text-white sm:text-3xl">Choose a task and get started</h2>
-            <p class="mt-2 text-sm text-slate-400">Quality submissions are reviewed before earnings are approved.</p>
-          </div>
-        </div>
-
-        <div class="mt-6 flex flex-wrap gap-2" id="categoryTabs">
-          <button class="category-tab tab-active rounded-xl border border-slate-700 bg-panel px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:border-emerald hover:text-white" data-category="All Work">
-            All Work
-          </button>
-          <button class="category-tab rounded-xl border border-slate-700 bg-panel px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:border-emerald hover:text-white" data-category="Audio Transcription">
-            Audio Transcription
-          </button>
-          <button class="category-tab rounded-xl border border-slate-700 bg-panel px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:border-emerald hover:text-white" data-category="Data Annotation">
-            Data Annotation
-          </button>
-          <button class="category-tab rounded-xl border border-slate-700 bg-panel px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:border-emerald hover:text-white" data-category="Surveys & Polls">
-            Surveys & Polls
-          </button>
-          <button class="category-tab rounded-xl border border-slate-700 bg-panel px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:border-emerald hover:text-white" data-category="RLHF & AI Training">
-            RLHF & AI Training
-          </button>
-          <button class="category-tab rounded-xl border border-slate-700 bg-panel px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:border-emerald hover:text-white" data-category="Microtasks">
-            Microtasks
-          </button>
-        </div>
-
-        <div id="comingSoonBanner" class="hidden mt-5 rounded-2xl border border-cyan/50 bg-cyan/10 px-5 py-4 text-cyan">
-          <span class="font-black">Coming Soon:</span>
-          <span id="comingSoonText">Tasks in this category are being prepared for workers.</span>
-        </div>
-
-        <div id="taskGrid" class="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3"></div>
-      </section>
-
-      <section class="mt-10 rounded-3xl border border-slate-700 bg-panel p-6 sm:p-8">
-        <div class="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p class="text-sm font-bold uppercase tracking-widest text-emerald">M-Pesa Withdrawals</p>
-            <h2 class="mt-2 text-2xl font-black text-white">Ready to cash out?</h2>
-            <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
-              Submit a withdrawal request using your registered M-Pesa number. Requests are recorded securely for processing.
-            </p>
-          </div>
-
-          <button
-            onclick="openWithdrawalModal()"
-            class="whitespace-nowrap rounded-xl bg-cyan px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-cyan-300"
-          >
-            Request Withdrawal
-          </button>
-        </div>
-      </section>
-    </main>
+  <!-- STATS GRID -->
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-5">
+    <div class="stat-card">
+      <p class="text-xs text-emerald-200/60 uppercase tracking-wider font-medium">Available Balance</p>
+      <p class="text-2xl font-extrabold text-emerald-400 mt-1" id="statAvailable">$0.00</p>
+      <p class="text-xs text-emerald-300/50 mt-0.5">Ready to withdraw</p>
+    </div>
+    <div class="stat-card">
+      <p class="text-xs text-emerald-200/60 uppercase tracking-wider font-medium">Pending Review</p>
+      <p class="text-2xl font-extrabold text-amber-400 mt-1" id="statPending">$0.00</p>
+      <p class="text-xs text-emerald-300/50 mt-0.5">Under verification</p>
+    </div>
+    <div class="stat-card">
+      <p class="text-xs text-emerald-200/60 uppercase tracking-wider font-medium">Lifetime Earned</p>
+      <p class="text-2xl font-extrabold text-white mt-1" id="statLifetime">$0.00</p>
+      <p class="text-xs text-emerald-300/50 mt-0.5">Total approved work</p>
+    </div>
+    <div class="stat-card">
+      <p class="text-xs text-emerald-200/60 uppercase tracking-wider font-medium">Total Withdrawn</p>
+      <p class="text-2xl font-extrabold text-white mt-1" id="statWithdrawn">$0.00</p>
+      <p class="text-xs text-emerald-300/50 mt-0.5">Paid to M-Pesa</p>
+    </div>
+    <div class="stat-card">
+      <p class="text-xs text-emerald-200/60 uppercase tracking-wider font-medium">Tasks Started</p>
+      <p class="text-2xl font-extrabold text-white mt-1" id="statTasks">0</p>
+      <p class="text-xs text-emerald-300/50 mt-0.5">First task free</p>
+    </div>
   </div>
 
-  <!-- Submission History Modal -->
-  <div id="historyModal" class="modal-backdrop fixed inset-0 z-50 hidden-modal items-center justify-center overflow-y-auto p-4">
-    <div class="w-full max-w-3xl rounded-3xl border border-slate-700 bg-panel p-6 shadow-2xl sm:p-8">
-      <div class="flex items-start justify-between gap-4">
-        <div>
-          <span class="inline-flex rounded-full bg-emerald/10 px-3 py-1 text-xs font-bold text-emerald">Submissions</span>
-          <h2 class="mt-3 text-2xl font-black text-white">My Work History</h2>
-          <p class="mt-1 text-sm text-slate-400">Track the review status and earnings for your submitted tasks.</p>
-        </div>
-        <button onclick="closeModal('historyModal')" class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white" aria-label="Close">✕</button>
-      </div>
+  <!-- WELCOME BANNER -->
+  <div class="glass rounded-2xl p-6 mb-5">
+    <span class="badge badge-emerald mb-3">WORLDWIDE REMOTE OPPORTUNITIES</span>
+    <h2 class="text-xl md:text-2xl font-extrabold text-white leading-snug mb-2 mt-3">
+      Welcome to remote microtask platform where you can work at home and it is worldwide. It supports M-Pesa withdraw.
+    </h2>
+    <p class="text-sm text-emerald-200/70 mb-4">Complete simple verified tasks, submit your work, track earnings, and request M-Pesa withdrawals when your balance is available.</p>
+    <div class="flex gap-2 flex-wrap">
+      <button onclick="scrollToTasks()" class="btn-primary px-5 py-2.5 rounded-lg text-sm">Browse Work</button>
+      <button onclick="openWithdraw()" class="btn-ghost px-5 py-2.5 rounded-lg text-sm">Withdraw via M-Pesa</button>
+    </div>
+  </div>
 
-      <div class="mt-6 max-h-96 overflow-y-auto pr-1">
-        <table class="w-full text-left text-sm text-slate-300">
-          <thead class="border-b border-slate-700 bg-slatebase/50 text-xs font-bold uppercase text-slate-400">
-            <tr>
-              <th class="p-3">Task Title</th>
-              <th class="p-3">Payout</th>
-              <th class="p-3">Status</th>
-              <th class="p-3">Submitted</th>
+  <!-- CATEGORY TABS -->
+  <div class="flex gap-2 mb-4 overflow-x-auto" style="scrollbar-width: none;">
+    <button onclick="setCategory('All Work')" class="cat-tab active" data-cat="All Work">All Work</button>
+    <button onclick="setCategory('Audio Transcription')" class="cat-tab" data-cat="Audio Transcription">Audio Transcription</button>
+    <button onclick="setCategory('Data Annotation')" class="cat-tab" data-cat="Data Annotation">Data Annotation</button>
+    <button onclick="setCategory('Surveys & Polls')" class="cat-tab" data-cat="Surveys & Polls">Surveys & Polls</button>
+    <button onclick="setCategory('RLHF & AI Training')" class="cat-tab" data-cat="RLHF & AI Training">RLHF & AI Training</button>
+    <button onclick="setCategory('Microtasks')" class="cat-tab" data-cat="Microtasks">Microtasks</button>
+  </div>
+
+  <!-- COMING SOON BANNER -->
+  <div id="comingSoonBanner" class="hidden glass rounded-xl p-5 mb-5 text-center">
+    <span class="badge badge-soon mb-2">🚧 COMING SOON</span>
+    <h3 class="text-base font-bold text-white mb-1" id="comingSoonTitle">New Tasks Incoming</h3>
+    <p class="text-xs text-emerald-200/70 max-w-md mx-auto">We're preparing high-paying tasks for this category. Check back soon!</p>
+  </div>
+
+  <!-- TASK GRID -->
+  <div class="mb-3">
+    <h2 class="text-lg font-bold text-white">📋 Active Work Assignment Grid</h2>
+    <p class="text-xs text-emerald-300/60 mt-0.5 mb-4">Quality submissions are reviewed before earnings are approved.</p>
+  </div>
+
+  <div id="taskGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div class="col-span-full text-center py-12"><div class="loading-spinner"></div><p class="text-sm text-emerald-300/50 mt-3">Loading tasks...</p></div>
+  </div>
+
+  <!-- WITHDRAWAL PANEL -->
+  <div class="glass rounded-2xl p-6 mt-8">
+    <span class="badge badge-emerald mb-2">M-PESA WITHDRAWALS</span>
+    <h2 class="text-xl font-extrabold text-white mt-3 mb-2">Ready to cash out?</h2>
+    <p class="text-sm text-emerald-200/70 mb-4">Submit a withdrawal request using your registered M-Pesa number. Requests are recorded securely for processing.</p>
+    <button onclick="openWithdraw()" class="btn-primary px-6 py-3 rounded-lg text-sm">Request Withdrawal</button>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="mt-10 pt-6 border-t border-emerald-500/10">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div>
+        <h3 class="text-white font-bold mb-2">Apex Task Studio</h3>
+        <p class="text-xs text-emerald-300/60 leading-relaxed">Empowering workers with fast microtasks, simplified remote work, and direct M-Pesa payouts.</p>
+      </div>
+      <div>
+        <h3 class="text-white font-bold mb-2 text-sm">QUICK LINKS</h3>
+        <ul class="space-y-1 text-xs text-emerald-300/60">
+          <li><button onclick="scrollToTasks()" class="hover:text-emerald-400">Browse Tasks</button></li>
+          <li><button onclick="openHistory()" class="hover:text-emerald-400">My Submissions</button></li>
+          <li><button onclick="openWithdraw()" class="hover:text-emerald-400">M-Pesa Withdrawals</button></li>
+          <li><button onclick="openModal('helpModal')" class="hover:text-emerald-400">Help Center</button></li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="text-white font-bold mb-2 text-sm">SUPPORT CONTACT</h3>
+        <p class="text-xs text-emerald-300/60">Email: collinsmagu00@gmail.com</p>
+        <p class="text-xs text-emerald-300/60 mt-1">M-Pesa Support: +254 107 246 326</p>
+      </div>
+    </div>
+    <p class="text-center text-xs text-emerald-300/40">© 2026 Apex Task Studio. All rights reserved.</p>
+  </footer>
+</div>
+
+<script type="module">
+  // ============================================================
+  // SUPABASE
+  // ============================================================
+  const db = window.supabaseClient;
+
+  const STORAGE_KEYS = {
+    PROFILE: 'apexTaskStudioProfile',
+    WALLET: 'apexTaskStudioWallet',
+    SUBMISSIONS: 'apexTaskStudioSubmissions',
+    RESERVATIONS: 'apexTaskStudioReservations',
+    CURRENCY: 'apexTaskStudioCurrency'
+  };
+
+  const RESERVATION_MS = 30 * 60 * 1000;
+  const RATES = { USD: 1, KES: 130 };
+  const SYMBOLS = { USD: '$', KES: 'KSh ' };
+
+  let allTasks = [];
+  let userProfile = null;
+  let wallet = null;
+  let submissions = [];
+  let reservations = [];
+  let currentCurrency = 'USD';
+  let currentCategory = 'All Work';
+  let activeTaskForModal = null;
+
+  // ============================================================
+  // HELPERS
+  // ============================================================
+  function lsGet(key, fallback) {
+    try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+    catch (e) { return fallback; }
+  }
+  function lsSet(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
+
+  function esc(s) {
+    if (s === null || s === undefined) return '';
+    return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  function fmtMoney(usd) {
+    const rate = RATES[currentCurrency] || 1;
+    const sym = SYMBOLS[currentCurrency] || '$';
+    const n = Number(usd || 0) * rate;
+    return currentCurrency === 'KES' ? sym + n.toFixed(0) : sym + n.toFixed(2);
+  }
+
+  function toast(msg, isErr) {
+    const c = document.getElementById('toastContainer');
+    const el = document.createElement('div');
+    el.className = 'toast' + (isErr ? ' toast-error' : '');
+    el.textContent = msg;
+    c.appendChild(el);
+    setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 0.3s'; setTimeout(() => el.remove(), 300); }, 3200);
+  }
+
+  function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+  function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+  window.openModal = openModal;
+  window.closeModal = closeModal;
+
+  function getInitials(name) {
+    if (!name) return '?';
+    return name.trim().split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  }
+
+  // ============================================================
+  // WALLET / SUBMISSIONS / RESERVATIONS
+  // ============================================================
+  function initWallet() {
+    wallet = lsGet(STORAGE_KEYS.WALLET, null);
+    if (!wallet || typeof wallet !== 'object') {
+      wallet = { baseBalanceUSD: 0, totalWithdrawnUSD: 0, totalUnlockFeesPaidUSD: 0 };
+    }
+    wallet.baseBalanceUSD = Number(wallet.baseBalanceUSD) || 0;
+    wallet.totalWithdrawnUSD = Number(wallet.totalWithdrawnUSD) || 0;
+    wallet.totalUnlockFeesPaidUSD = Number(wallet.totalUnlockFeesPaidUSD) || 0;
+    lsSet(STORAGE_KEYS.WALLET, wallet);
+  }
+
+  function saveWallet() { lsSet(STORAGE_KEYS.WALLET, wallet); }
+
+  function initSubmissions() {
+    submissions = lsGet(STORAGE_KEYS.SUBMISSIONS, []);
+    if (!Array.isArray(submissions)) submissions = [];
+    submissions = submissions.map(s => ({
+      task_id: s.task_id || s.id || null,
+      task_title: s.task_title || s.title || 'Untitled',
+      payout: Number(s.payout) || 0,
+      status: (s.status || 'pending').toLowerCase(),
+      proof: s.proof || '',
+      submitted_at: s.submitted_at || new Date().toISOString()
+    }));
+  }
+
+  function saveSubmissions() { lsSet(STORAGE_KEYS.SUBMISSIONS, submissions); }
+
+  function initReservations() {
+    reservations = lsGet(STORAGE_KEYS.RESERVATIONS, []);
+    if (!Array.isArray(reservations)) reservations = [];
+    const now = Date.now();
+    reservations = reservations.filter(r => r.expires_at > now);
+    lsSet(STORAGE_KEYS.RESERVATIONS, reservations);
+  }
+
+  function reserveTask(taskId) {
+    initReservations();
+    reservations = reservations.filter(r => String(r.task_id) !== String(taskId));
+    reservations.push({ task_id: taskId, reserved_at: Date.now(), expires_at: Date.now() + RESERVATION_MS });
+    lsSet(STORAGE_KEYS.RESERVATIONS, reservations);
+  }
+
+  function clearReservation(taskId) {
+    reservations = reservations.filter(r => String(r.task_id) !== String(taskId));
+    lsSet(STORAGE_KEYS.RESERVATIONS, reservations);
+  }
+
+  function isReservedByMe(taskId) {
+    initReservations();
+    return reservations.some(r => String(r.task_id) === String(taskId));
+  }
+
+  // ============================================================
+  // BALANCE CALCULATION (THE FIX)
+  // ============================================================
+  function getCalculatedBalances() {
+    initWallet();
+    initSubmissions();
+
+    const approved = submissions.filter(s => s.status === 'approved' || s.status === 'accepted')
+      .reduce((sum, s) => sum + (Number(s.payout) || 0), 0);
+    const pending = submissions.filter(s => s.status === 'pending')
+      .reduce((sum, s) => sum + (Number(s.payout) || 0), 0);
+    const rejected = submissions.filter(s => s.status === 'rejected')
+      .reduce((sum, s) => sum + (Number(s.payout) || 0), 0);
+
+    const available = Math.max(0,
+      wallet.baseBalanceUSD + approved - wallet.totalUnlockFeesPaidUSD - wallet.totalWithdrawnUSD
+    );
+
+    return {
+      baseWalletUSD: wallet.baseBalanceUSD,
+      approvedEarningsUSD: approved,
+      pendingEarningsUSD: pending,
+      rejectedEarningsUSD: rejected,
+      unlockFeesPaidUSD: wallet.totalUnlockFeesPaidUSD,
+      totalWithdrawnUSD: wallet.totalWithdrawnUSD,
+      availableBalanceUSD: available,
+      lifetimeEarnedUSD: approved + pending
+    };
+  }
+
+  // ============================================================
+  // UI STATS
+  // ============================================================
+  function updateUIStats() {
+    const b = getCalculatedBalances();
+    const el = id => document.getElementById(id);
+    if (el('statAvailable')) el('statAvailable').textContent = fmtMoney(b.availableBalanceUSD);
+    if (el('statPending')) el('statPending').textContent = fmtMoney(b.pendingEarningsUSD);
+    if (el('statLifetime')) el('statLifetime').textContent = fmtMoney(b.lifetimeEarnedUSD);
+    if (el('statWithdrawn')) el('statWithdrawn').textContent = fmtMoney(b.totalWithdrawnUSD);
+    if (el('statTasks')) el('statTasks').textContent = submissions.length;
+    if (el('withdrawAvailable')) el('withdrawAvailable').textContent = fmtMoney(b.availableBalanceUSD);
+    if (el('unlockBalanceDisplay')) el('unlockBalanceDisplay').textContent = fmtMoney(b.availableBalanceUSD);
+  }
+
+  // ============================================================
+  // CURRENCY
+  // ============================================================
+  function changeCurrency(cur) {
+    currentCurrency = cur;
+    lsSet(STORAGE_KEYS.CURRENCY, cur);
+    updateUIStats();
+    renderTasks();
+  }
+  window.changeCurrency = changeCurrency;
+
+  // ============================================================
+  // PROFILE
+  // ============================================================
+  function loadProfile() {
+    userProfile = lsGet(STORAGE_KEYS.PROFILE, null);
+    if (userProfile) {
+      const init = getInitials(userProfile.full_name);
+      if (document.getElementById('headerAvatar')) document.getElementById('headerAvatar').textContent = init;
+      if (document.getElementById('headerName')) document.getElementById('headerName').textContent = userProfile.full_name.split(' ')[0];
+      if (document.getElementById('headerPhone')) document.getElementById('headerPhone').textContent = userProfile.mpesa_phone || userProfile.email;
+      if (document.getElementById('withdrawPhone')) document.getElementById('withdrawPhone').value = userProfile.mpesa_phone || '';
+    } else {
+      openModal('onboardingModal');
+    }
+  }
+
+  function openEditProfile() {
+    if (!userProfile) { openModal('onboardingModal'); return; }
+    document.getElementById('editName').value = userProfile.full_name || '';
+    document.getElementById('editEmail').value = userProfile.email || '';
+    document.getElementById('editPhone').value = userProfile.mpesa_phone || '';
+    openModal('editProfileModal');
+  }
+  window.openEditProfile = openEditProfile;
+
+  async function saveProfile(data) {
+    userProfile = data;
+    lsSet(STORAGE_KEYS.PROFILE, data);
+    loadProfile();
+    try { await db.from('profiles').insert([data]); } catch (e) { console.warn('Profile sync:', e); }
+  }
+
+  document.getElementById('onboardingForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const full_name = document.getElementById('onboardName').value.trim();
+    const email = document.getElementById('onboardEmail').value.trim();
+    const mpesa_phone = document.getElementById('onboardPhone').value.trim();
+    if (!full_name || !email || !mpesa_phone) { toast('Please fill in all fields', true); return; }
+    await saveProfile({ full_name, email, mpesa_phone });
+    closeModal('onboardingModal');
+    toast('Profile saved! Welcome to Apex Task Studio.');
+  });
+
+  document.getElementById('editProfileForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const full_name = document.getElementById('editName').value.trim();
+    const email = document.getElementById('editEmail').value.trim();
+    const mpesa_phone = document.getElementById('editPhone').value.trim();
+    if (!full_name || !email || !mpesa_phone) { toast('Please fill in all fields', true); return; }
+    await saveProfile({ full_name, email, mpesa_phone });
+    closeModal('editProfileModal');
+    toast('Profile updated!');
+  });
+
+  // ============================================================
+  // TASK AVAILABILITY
+  // ============================================================
+  function isTaskAvailable(task) {
+    const mySub = submissions.find(s => String(s.task_id) === String(task.id));
+    if (mySub) return false;
+    return true;
+  }
+
+  // ============================================================
+  // RENDER TASKS
+  // ============================================================
+  function renderTasks() {
+    const grid = document.getElementById('taskGrid');
+    if (!grid) return;
+
+    const banner = document.getElementById('comingSoonBanner');
+    const comingSoonCats = ['RLHF & AI Training', 'Microtasks'];
+    if (comingSoonCats.includes(currentCategory)) {
+      banner.classList.remove('hidden');
+      document.getElementById('comingSoonTitle').textContent = currentCategory + ' — Coming Soon';
+    } else {
+      banner.classList.add('hidden');
+    }
+
+    let tasks = allTasks.filter(isTaskAvailable);
+    if (currentCategory !== 'All Work') {
+      tasks = tasks.filter(t => t.category === currentCategory);
+    }
+
+    if (tasks.length === 0) {
+      grid.innerHTML = '<div class="col-span-full text-center py-12 text-emerald-300/50 text-sm">No tasks available in this category right now.</div>';
+      return;
+    }
+
+    grid.innerHTML = tasks.map(task => {
+      const reserved = isReservedByMe(task.id);
+      const needsUnlock = Number(task.lock_fee) > 0 && !reserved;
+      return `
+        <div class="glass rounded-xl p-5 transition">
+          <div class="flex justify-between items-start mb-3">
+            <div class="flex gap-1.5 flex-wrap">
+              <span class="badge badge-emerald">${esc(task.category)}</span>
+              <span class="badge badge-slate">BEGINNER</span>
+            </div>
+            <span class="badge badge-cyan">Available</span>
+          </div>
+          <h3 class="text-white font-bold mb-2">${esc(task.title)}</h3>
+          <div class="flex items-center gap-3 text-xs text-emerald-300/60 mb-2">
+            <span>⏱ ${task.time || 5} min</span>
+            <span>⭐ 5.0 / 5.0</span>
+          </div>
+          <p class="text-xs text-slate-400 mb-4 leading-relaxed">${esc(task.description || 'No description provided.')}</p>
+          <div class="flex justify-between items-center pt-3 border-t border-emerald-500/10">
+            <div>
+              <p class="text-xs text-emerald-300/50">PAYOUT</p>
+              <p class="text-lg font-extrabold text-emerald-400">${fmtMoney(task.payout)}</p>
+            </div>
+            <button onclick="${needsUnlock ? `promptUnlock('${task.id}')` : `acceptAndStart('${task.id}')`}"
+              class="${needsUnlock ? 'btn-ghost' : 'btn-primary'} px-4 py-2 rounded-lg text-xs font-semibold">
+              ${needsUnlock ? '🔒 Unlock ' + fmtMoney(task.lock_fee) : 'Start & Submit'}
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ============================================================
+  // TASK ACTIONS
+  // ============================================================
+  function acceptAndStart(taskId) {
+    const task = allTasks.find(t => String(t.id) === String(taskId));
+    if (!task) return;
+    reserveTask(taskId);
+    openSubmissionModal(task);
+  }
+  window.acceptAndStart = acceptAndStart;
+
+  function promptUnlock(taskId) {
+    const task = allTasks.find(t => String(t.id) === String(taskId));
+    if (!task) return;
+    activeTaskForModal = task;
+    const b = getCalculatedBalances();
+    document.getElementById('unlockTaskTitle').textContent = `"${task.title}" needs a one-time unlock fee before starting.`;
+    document.getElementById('unlockFeeDisplay').textContent = '$' + Number(task.lock_fee).toFixed(2);
+    document.getElementById('unlockBalanceDisplay').textContent = fmtMoney(b.availableBalanceUSD);
+    document.getElementById('unlockConfirmBtn').onclick = () => confirmUnlock(task);
+    openModal('unlockModal');
+  }
+  window.promptUnlock = promptUnlock;
+
+  function confirmUnlock(task) {
+    const fee = Number(task.lock_fee) || 0;
+    const b = getCalculatedBalances();
+    if (b.availableBalanceUSD < fee) {
+      toast('Insufficient available balance to unlock this task.', true);
+      return;
+    }
+    // FIX: deduct by ADDING to totalUnlockFeesPaidUSD (which is subtracted in balance calc)
+    wallet.totalUnlockFeesPaidUSD = Number(wallet.totalUnlockFeesPaidUSD) + fee;
+    saveWallet();
+    reserveTask(task.id);
+    closeModal('unlockModal');
+    updateUIStats();
+    renderTasks();
+    toast(`Task unlocked! ${fmtMoney(fee)} deducted.`);
+    openSubmissionModal(task);
+  }
+  window.confirmUnlock = confirmUnlock;
+
+  // ============================================================
+  // SUBMISSION MODAL
+  // ============================================================
+  function openSubmissionModal(task) {
+    if (!userProfile) { openModal('onboardingModal'); return; }
+    activeTaskForModal = task;
+    document.getElementById('modalCategory').textContent = task.category || 'General';
+    document.getElementById('modalTitle').textContent = task.title || 'Untitled';
+    document.getElementById('modalPayout').textContent = fmtMoney(task.payout);
+    document.getElementById('modalTime').textContent = (task.time || 5) + ' min';
+    document.getElementById('modalWorker').textContent = userProfile.full_name || 'You';
+    document.getElementById('modalDescription').textContent = task.description || 'No description provided.';
+    document.getElementById('modalProof').value = '';
+    openModal('submissionModal');
+  }
+
+  async function submitTaskProof() {
+    if (!activeTaskForModal) return;
+    const proof = document.getElementById('modalProof').value.trim();
+    if (!proof) { toast('Please enter your proof before submitting.', true); return; }
+
+    const sub = {
+      task_id: activeTaskForModal.id,
+      task_title: activeTaskForModal.title,
+      payout: Number(activeTaskForModal.payout) || 0,
+      status: 'pending',
+      proof: proof,
+      submitted_at: new Date().toISOString()
+    };
+    submissions.push(sub);
+    saveSubmissions();
+    clearReservation(activeTaskForModal.id);
+
+    try {
+      await db.from('submissions').insert([{
+        task_id: activeTaskForModal.id,
+        task_title: activeTaskForModal.title,
+        worker_name: userProfile.full_name || 'Anonymous',
+        proof: proof,
+        status: 'pending'
+      }]);
+    } catch (e) { console.warn('Supabase sync failed:', e); }
+
+    closeModal('submissionModal');
+    updateUIStats();
+    renderTasks();
+    toast('✅ Task submitted! Pending review.');
+    activeTaskForModal = null;
+  }
+  window.submitTaskProof = submitTaskProof;
+
+  // ============================================================
+  // WITHDRAWAL
+  // ============================================================
+  function openWithdraw() {
+    if (!userProfile) { openModal('onboardingModal'); return; }
+    const b = getCalculatedBalances();
+    if (b.availableBalanceUSD < 1) {
+      toast('Minimum withdrawal is $1.00. Keep working!', true);
+      return;
+    }
+    document.getElementById('withdrawAvailable').textContent = fmtMoney(b.availableBalanceUSD);
+    document.getElementById('withdrawPhone').value = userProfile.mpesa_phone || '';
+    document.getElementById('withdrawAmount').value = '';
+    openModal('withdrawModal');
+  }
+  window.openWithdraw = openWithdraw;
+
+  async function submitWithdrawal() {
+    const phone = document.getElementById('withdrawPhone').value.trim();
+    const amount = parseFloat(document.getElementById('withdrawAmount').value);
+    const b = getCalculatedBalances();
+
+    if (!phone || phone.length < 9) { toast('Enter a valid M-Pesa number.', true); return; }
+    if (!amount || amount < 1) { toast('Minimum amount is $1.00.', true); return; }
+    if (amount > b.availableBalanceUSD) { toast('Amount exceeds available balance.', true); return; }
+
+    wallet.totalWithdrawnUSD = Number(wallet.totalWithdrawnUSD) + amount;
+    saveWallet();
+
+    try {
+      await db.from('withdrawals').insert([{
+        worker_name: userProfile.full_name,
+        mpesa_number: phone,
+        amount: amount,
+        status: 'pending'
+      }]);
+    } catch (e) { console.warn('Withdrawal sync failed:', e); }
+
+    closeModal('withdrawModal');
+    updateUIStats();
+    toast(`✅ Withdrawal request of ${fmtMoney(amount)} sent to ${phone}.`);
+  }
+  window.submitWithdrawal = submitWithdrawal;
+
+  // ============================================================
+  // MY WORK HISTORY
+  // ============================================================
+  async function openHistory() {
+    openModal('historyModal');
+    const c = document.getElementById('historyContent');
+    c.innerHTML = '<div class="text-center py-8"><div class="loading-spinner"></div></div>';
+
+    // Try Supabase first, fall back to localStorage
+    let rows = [];
+    try {
+      if (userProfile?.full_name) {
+        const { data, error } = await db.from('submissions').select('*').eq('worker_name', userProfile.full_name).order('created_at', { ascending: false });
+        if (!error && data) rows = data;
+      }
+    } catch (e) { console.warn(e); }
+
+    if (rows.length === 0) rows = submissions;
+
+    if (rows.length === 0) {
+      c.innerHTML = '<p class="text-center text-emerald-300/50 py-8 text-sm">No submissions yet.</p>';
+      return;
+    }
+
+    c.innerHTML = `
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead>
+            <tr class="text-emerald-300/50 uppercase text-[10px] border-b border-emerald-500/15">
+              <th class="text-left py-2">Task Title</th>
+              <th class="text-left py-2">Payout</th>
+              <th class="text-left py-2">Status</th>
+              <th class="text-left py-2">Submitted</th>
             </tr>
           </thead>
-          <tbody id="historyTableBody" class="divide-y divide-slate-800">
-            <!-- Rendered via JS -->
+          <tbody>
+            ${rows.map(r => {
+              const status = (r.status || 'pending').toLowerCase();
+              const cls = status === 'accepted' || status === 'approved' ? 'badge-emerald' : status === 'rejected' ? 'badge-amber' : 'badge-cyan';
+              const date = r.submitted_at ? new Date(r.submitted_at).toLocaleDateString() : (r.created_at ? new Date(r.created_at).toLocaleDateString() : '—');
+              return `
+                <tr class="border-b border-emerald-500/5">
+                  <td class="py-2 text-white">${esc(r.task_title || 'Untitled')}</td>
+                  <td class="py-2 text-emerald-400 font-semibold">${fmtMoney(r.payout)}</td>
+                  <td class="py-2"><span class="badge ${cls}">${status}</span></td>
+                  <td class="py-2 text-slate-400">${date}</td>
+                </tr>
+              `;
+            }).join('')}
           </tbody>
         </table>
       </div>
-    </div>
-  </div>
-
-  <!-- Profile Modal -->
-  <div id="profileModal" class="modal-backdrop fixed inset-0 z-50 hidden-modal items-center justify-center overflow-y-auto p-4">
-    <div class="w-full max-w-lg rounded-3xl border border-slate-700 bg-panel p-6 shadow-2xl sm:p-8">
-      <div class="flex items-start justify-between gap-4">
-        <div>
-          <span class="inline-flex rounded-full bg-emerald/10 px-3 py-1 text-xs font-bold text-emerald">Worker Profile</span>
-          <h2 id="profileModalTitle" class="mt-3 text-2xl font-black text-white">Create your profile</h2>
-          <p class="mt-2 text-sm leading-6 text-slate-400">
-            Add your details to access work and M-Pesa withdrawal requests.
-          </p>
-        </div>
-
-        <button
-          id="closeProfileButton"
-          onclick="closeProfileModal()"
-          class="hidden rounded-lg p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white"
-          aria-label="Close"
-        >
-          ✕
-        </button>
-      </div>
-
-      <form id="profileForm" class="mt-6 space-y-4">
-        <div>
-          <label for="fullName" class="mb-2 block text-sm font-semibold text-slate-200">Full Name</label>
-          <input
-            id="fullName"
-            type="text"
-            required
-            placeholder="Enter your full name"
-            class="w-full rounded-xl border border-slate-700 bg-slatebase px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-emerald"
-          />
-        </div>
-
-        <div>
-          <label for="emailAddress" class="mb-2 block text-sm font-semibold text-slate-200">Email Address</label>
-          <input
-            id="emailAddress"
-            type="email"
-            required
-            placeholder="Enter your email address"
-            class="w-full rounded-xl border border-slate-700 bg-slatebase px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-emerald"
-          />
-        </div>
-
-        <div>
-          <label for="mpesaPhone" class="mb-2 block text-sm font-semibold text-slate-200">M-Pesa Phone Number</label>
-          <input
-            id="mpesaPhone"
-            type="tel"
-            required
-            placeholder="e.g. 0712345678"
-            class="w-full rounded-xl border border-slate-700 bg-slatebase px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-emerald"
-          />
-        </div>
-
-        <p id="profileError" class="hidden rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300"></p>
-
-        <button
-          type="submit"
-          class="w-full rounded-xl bg-emerald px-5 py-3.5 font-black text-slate-950 transition hover:bg-emerald-400"
-        >
-          Save Profile & Continue
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Help Modal -->
-  <div id="helpModal" class="modal-backdrop fixed inset-0 z-50 hidden-modal items-center justify-center overflow-y-auto p-4">
-    <div class="w-full max-w-2xl rounded-3xl border border-slate-700 bg-panel p-6 shadow-2xl sm:p-8">
-      <div class="flex items-start justify-between gap-4">
-        <div>
-          <span class="inline-flex rounded-full bg-cyan/10 px-3 py-1 text-xs font-bold text-cyan">Support</span>
-          <h2 class="mt-3 text-2xl font-black text-white">Help Center</h2>
-          <p class="mt-2 text-sm text-slate-400">Quick answers for Apex Task Studio workers.</p>
-        </div>
-        <button onclick="closeModal('helpModal')" class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white" aria-label="Close">✕</button>
-      </div>
-
-      <div class="mt-6 space-y-4">
-        <article class="rounded-2xl border border-slate-700 bg-slatebase p-4">
-          <h3 class="font-bold text-white">How do I start a task?</h3>
-          <p class="mt-2 text-sm leading-6 text-slate-400">Select an available task, press “Start & Submit,” complete the instructions, paste your proof, and submit it for review.</p>
-        </article>
-
-        <article class="rounded-2xl border border-slate-700 bg-slatebase p-4">
-          <h3 class="font-bold text-white">Why are some tasks locked?</h3>
-          <p class="mt-2 text-sm leading-6 text-slate-400">Your first task is free. Additional work may require a one-time task unlock fee between $1.50 and $2.00, deducted from your available balance.</p>
-        </article>
-
-        <article class="rounded-2xl border border-slate-700 bg-slatebase p-4">
-          <h3 class="font-bold text-white">How do M-Pesa withdrawals work?</h3>
-          <p class="mt-2 text-sm leading-6 text-slate-400">Open the withdrawal form, confirm your registered M-Pesa number, enter an amount within your available balance, and submit the request.</p>
-        </article>
-
-        <article class="rounded-2xl border border-emerald/30 bg-emerald/5 p-4">
-          <h3 class="font-bold text-emerald">Support contact</h3>
-          <p class="mt-2 text-sm leading-6 text-slate-300">Email: support@collinsmagu00@gmail.com</p>
-          <p class="text-sm leading-6 text-slate-300">M-Pesa support line: +254 107 246 326</p>
-        </article>
-      </div>
-    </div>
-  </div>
-
-  <!-- Submission Modal -->
-  <div id="submissionModal" class="modal-backdrop fixed inset-0 z-50 hidden-modal items-center justify-center overflow-y-auto p-4">
-    <div class="w-full max-w-2xl rounded-3xl border border-slate-700 bg-panel p-6 shadow-2xl sm:p-8">
-      <div class="flex items-start justify-between gap-4">
-        <div>
-          <span id="submissionCategory" class="inline-flex rounded-full bg-cyan/10 px-3 py-1 text-xs font-bold text-cyan">Task</span>
-          <h2 id="submissionTitle" class="mt-3 text-2xl font-black text-white">Task Submission</h2>
-          <p id="submissionMeta" class="mt-1 text-sm text-slate-400"></p>
-          <div class="mt-2 flex items-center gap-2">
-            <span class="text-xs font-semibold uppercase text-amber-400">Time Remaining:</span>
-            <span id="taskTimerDisplay" class="font-mono text-sm font-bold text-emerald">05:00</span>
-          </div>
-        </div>
-        <button onclick="closeModal('submissionModal')" class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white" aria-label="Close">✕</button>
-      </div>
-
-      <div class="mt-6 rounded-2xl border border-slate-700 bg-slatebase p-4">
-        <h3 class="text-sm font-bold uppercase tracking-wider text-emerald">Instructions</h3>
-        <p id="submissionInstructions" class="mt-2 text-sm leading-6 text-slate-300"></p>
-      </div>
-
-      <form id="submissionForm" class="mt-5">
-        <input id="submissionTaskId" type="hidden" />
-
-        <!-- Audio Asset Section -->
-        <div id="taskAudioContainer" class="mb-5 hidden rounded-xl border border-slate-700/60 bg-slate-800/50 p-4">
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-xs font-semibold uppercase tracking-wider text-emerald">Task Audio Asset</span>
-            <a 
-              id="audioDownloadLink"
-              href="#" 
-              download 
-              class="inline-flex items-center gap-1.5 text-xs font-medium text-cyan hover:underline"
-            >
-              Download Audio (.MP3)
-            </a>
-          </div>
-          
-          <audio id="audioPlayer" controls class="w-full rounded-lg bg-slate-900">
-            <source id="audioSource" src="" type="audio/mpeg">
-            Your browser does not support the audio element.
-          </audio>
-        </div>  
-
-        <!-- Multiple Choice / Survey Section -->
-        <div id="surveyQuestionsContainer" class="mb-5 hidden space-y-4"></div>
-
-        <!-- Standard Proof Textarea -->
-        <div id="proofTextareaContainer">
-          <label for="workProof" class="mb-2 block text-sm font-semibold text-slate-200">
-            Paste your work proof or completed response
-          </label>
-
-          <textarea
-            id="workProof"
-            rows="5"
-            placeholder="Paste your transcription, annotation result, task link, or other proof here..."
-            class="w-full resize-y rounded-xl border border-slate-700 bg-slatebase px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-cyan"
-          ></textarea>
-        </div>
-
-        <p id="submissionStatus" class="hidden mt-3 rounded-lg px-3 py-2 text-sm"></p>
-
-        <button
-          id="submitWorkButton"
-          type="submit"
-          class="mt-4 w-full rounded-xl bg-emerald px-5 py-3.5 font-black text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          Submit Work to Review
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Withdrawal Modal -->
-  <div id="withdrawalModal" class="modal-backdrop fixed inset-0 z-50 hidden-modal items-center justify-center overflow-y-auto p-4">
-    <div class="w-full max-w-lg rounded-3xl border border-slate-700 bg-panel p-6 shadow-2xl sm:p-8">
-      <div class="flex items-start justify-between gap-4">
-        <div>
-          <span class="inline-flex rounded-full bg-emerald/10 px-3 py-1 text-xs font-bold text-emerald">M-Pesa Cashout</span>
-          <h2 class="mt-3 text-2xl font-black text-white">Withdrawal Request</h2>
-          <p class="mt-2 text-sm text-slate-400">Available balance: <span id="withdrawalBalance" class="font-bold text-emerald">$0.00</span></p>
-        </div>
-        <button onclick="closeModal('withdrawalModal')" class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white" aria-label="Close">✕</button>
-      </div>
-
-      <form id="withdrawalForm" class="mt-6 space-y-4">
-        <div>
-          <label for="withdrawalPhone" class="mb-2 block text-sm font-semibold text-slate-200">M-Pesa Phone Number</label>
-          <input
-            id="withdrawalPhone"
-            type="tel"
-            required
-            placeholder="e.g. 0712345678"
-            class="w-full rounded-xl border border-slate-700 bg-slatebase px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-emerald"
-          />
-        </div>
-
-        <div>
-          <label for="withdrawalAmount" class="mb-2 block text-sm font-semibold text-slate-200">Amount (USD)</label>
-          <input
-            id="withdrawalAmount"
-            type="number"
-            min="0.01"
-            step="0.01"
-            required
-            placeholder="Enter amount"
-            class="w-full rounded-xl border border-slate-700 bg-slatebase px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-emerald"
-          />
-          <p class="mt-2 text-xs text-slate-500">The request is stored in USD. Display currency may differ.</p>
-        </div>
-
-        <p id="withdrawalStatus" class="hidden rounded-lg px-3 py-2 text-sm"></p>
-
-        <button
-          id="withdrawalButton"
-          type="submit"
-          class="w-full rounded-xl bg-cyan px-5 py-3.5 font-black text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          Submit M-Pesa Withdrawal Request
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Unlock Modal -->
-  <div id="unlockModal" class="modal-backdrop fixed inset-0 z-[60] hidden-modal items-center justify-center overflow-y-auto p-4">
-    <div class="w-full max-w-md rounded-3xl border border-slate-700 bg-panel p-6 shadow-2xl">
-      <span class="inline-flex rounded-full bg-amber-400/10 px-3 py-1 text-xs font-bold text-amber-300">Task Locked</span>
-      <h2 class="mt-3 text-2xl font-black text-white">Unlock this task</h2>
-      <p id="unlockMessage" class="mt-3 text-sm leading-6 text-slate-400"></p>
-
-      <div class="mt-5 rounded-2xl border border-slate-700 bg-slatebase p-4">
-        <div class="flex items-center justify-between">
-          <span class="text-sm text-slate-400">Unlock fee</span>
-          <span id="unlockFeeDisplay" class="text-xl font-black text-amber-300">$1.50</span>
-        </div>
-        <div class="mt-2 flex items-center justify-between">
-          <span class="text-sm text-slate-400">Your balance</span>
-          <span id="unlockBalanceDisplay" class="font-bold text-white">$0.00</span>
-        </div>
-      </div>
-
-      <p id="unlockStatusMessage" class="hidden mt-4 rounded-lg px-3 py-2 text-sm"></p>
-
-      <div class="mt-5 flex gap-3">
-        <button onclick="closeModal('unlockModal')" class="w-1/2 rounded-xl border border-slate-700 px-4 py-3 font-bold text-slate-300 transition hover:bg-slate-800">
-          Cancel
-        </button>
-        <button id="confirmUnlockButton" class="w-1/2 rounded-xl bg-emerald px-4 py-3 font-black text-slate-950 transition hover:bg-emerald-400">
-          Unlock Now
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Footer -->
-  <footer class="mt-16 border-t border-slate-700/60 bg-slatebase/95 pt-10 pb-8 text-slate-400">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-        <div>
-          <h3 class="text-lg font-bold text-white">Apex Task Studio</h3>
-          <p class="mt-2 text-sm leading-6">
-            Empowering workers with fast microtasks, simplified remote work, and direct M-Pesa payouts.
-          </p>
-        </div>
-
-        <div>
-          <h4 class="text-sm font-semibold uppercase tracking-wider text-slate-200">Quick Links</h4>
-          <ul class="mt-3 space-y-2 text-sm">
-            <li>
-              <button onclick="document.getElementById('tasks').scrollIntoView({ behavior: 'smooth' })" class="transition hover:text-emerald">
-                Browse Tasks
-              </button>
-            </li>
-            <li>
-              <button onclick="openModal('historyModal')" class="transition hover:text-emerald">
-                My Submissions
-              </button>
-            </li>
-            <li>
-              <button onclick="openWithdrawalModal()" class="transition hover:text-cyan">
-                M-Pesa Withdrawals
-              </button>
-            </li>
-            <li>
-              <button onclick="openModal('helpModal')" class="transition hover:text-cyan">
-                Help Center
-              </button>
-            </li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 class="text-sm font-semibold uppercase tracking-wider text-slate-200">Support Contact</h4>
-          <p class="mt-3 text-sm">
-            Email: <a href="mailto:collinsmagu00@gmail.com" class="text-emerald hover:underline">collinsmagu00@gmail.com</a>
-          </p>
-          <p class="mt-1 text-sm">
-            M-Pesa Support: <a href="tel:+254107246326" class="text-cyan hover:underline">+254 107 246 326</a>
-          </p>
-        </div>
-      </div>
-
-      <div class="mt-10 border-t border-slate-800 pt-6 text-center text-xs text-slate-500">
-        &copy; 2026 Apex Task Studio. All rights reserved.
-      </div>
-    </div>
-  </footer>
-
-  <script type="module">
-    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
-
-    const SUPABASE_URL = "https://dwdtvasykhorrvmwmnhb.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3ZHR2YXN5a2hvcnJ2bXdtbmhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUzNzQsImV4cCI6MjEwNjUzMTM3NH0.vt_I7uvUqsjv5e8RTgREMoXJiZqq_80a9fVOqVyW6Lk";
-
-    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const EXCHANGE_RATE = 130;
-    const PROFILE_KEY = "apexTaskStudioProfile";
-    const WALLET_KEY = "apexTaskStudioWallet";
-    const STARTED_TASKS_KEY = "apexTaskStudioStartedTasks";
-    const UNLOCKED_TASKS_KEY = "apexTaskStudioUnlockedTasks";
-    const TOTAL_WITHDRAWN_KEY = "apexTaskStudioTotalWithdrawn";
-
-    let selectedCurrency = localStorage.getItem("apexTaskStudioCurrency") || "USD";
-    let selectedTask = null;
-    let pendingUnlockTask = null;
-    let countdownInterval = null;
-    let allAvailableTasks = [];
-    let userSubmissions = [];
-
-    const defaultTasks = [
-      {
-        id: "audio-001",
-        category: "Audio Transcription",
-        skill: "Beginner",
-        title: "Short English Audio Transcription",
-        duration: "5 min",
-        rating: "4.8 / 5.0",
-        description: "Listen to a short audio sample and accurately transcribe the spoken English into clear text.",
-        instructions: "Transcribe the supplied audio accurately. Include natural punctuation and paste the transcript.",
-        payout: 1.2,
-        unlockFee: 0,
-        audio_url: "audio/sample-transcription.mp3"
-      },
-      {
-        id: "survey-001",
-        category: "Surveys & Polls",
-        skill: "Beginner",
-        title: "Consumer Mobile App Preference Poll",
-        duration: "3 min",
-        rating: "4.9 / 5.0",
-        description: "Complete a 2-question survey regarding your smartphone daily usage preferences.",
-        instructions: "Select your honest feedback from the choices below and submit.",
-        payout: 0.85,
-        unlockFee: 0,
-        survey_questions: [
-          {
-            id: "q1",
-            question: "What is your primary mobile operating system?",
-            options: ["Android", "iOS / Apple", "Other"]
-          },
-          {
-            id: "q2",
-            question: "How many hours per day do you spend on remote task apps?",
-            options: ["Less than 1 hour", "1 to 3 hours", "More than 3 hours"]
-          }
-        ]
-      },
-      {
-        id: "data-001",
-        category: "Data Annotation",
-        skill: "Intermediate",
-        title: "Image Object Labelling",
-        duration: "8 min",
-        rating: "4.9 / 5.0",
-        description: "Review images and identify the requested objects using the required labels and format.",
-        instructions: "Follow the image labelling guide carefully. Mark every requested object and paste your labels link.",
-        payout: 1.8,
-        unlockFee: 1.5
-      },
-      {
-        id: "audio-002",
-        category: "Audio Transcription",
-        skill: "Advanced",
-        title: "Customer Call Quality Check",
-        duration: "10 min",
-        rating: "4.7 / 5.0",
-        description: "Transcribe selected parts of a customer call and identify key service-related phrases.",
-        instructions: "Provide the requested transcript excerpts and list the specified service phrases.",
-        payout: 2.2,
-        unlockFee: 1.75,
-        audio_url: "audio/sample-transcription.mp3"
-      }
-    ];
-
-    function showToast(message, type = "info") {
-      const container = document.getElementById("toastContainer");
-      const toast = document.createElement("div");
-      
-      const bgColors = {
-        success: "bg-emerald text-slate-950 border-emerald-400",
-        error: "bg-red-500 text-white border-red-400",
-        info: "bg-cyan text-slate-950 border-cyan-300"
-      };
-
-      toast.className = `toast flex items-center gap-2 rounded-xl border px-4 py-3 font-semibold shadow-lg text-xs sm:text-sm ${bgColors[type] || bgColors.info}`;
-      toast.innerHTML = `<span>${type === "success" ? "✓" : "ℹ"}</span><span>${message}</span>`;
-
-      container.appendChild(toast);
-      setTimeout(() => toast.remove(), 4000);
-    }
-
-    function getProfile() {
-      try { return JSON.parse(localStorage.getItem(PROFILE_KEY)); } catch { return null; }
-    }
-
-    function getWalletBalance() {
-      return Number(localStorage.getItem(WALLET_KEY) || 0);
-    }
-
-    function setWalletBalance(amount) {
-      localStorage.setItem(WALLET_KEY, String(Math.max(0, Number(amount))));
-      renderDashboard();
-    }
-
-    function getTotalWithdrawn() {
-      return Number(localStorage.getItem(TOTAL_WITHDRAWN_KEY) || 0);
-    }
-
-    function setTotalWithdrawn(amount) {
-      localStorage.setItem(TOTAL_WITHDRAWN_KEY, String(Math.max(0, Number(amount))));
-      renderDashboard();
-    }
-
-    function getStartedTasks() {
-      try { return JSON.parse(localStorage.getItem(STARTED_TASKS_KEY)) || []; } catch { return []; }
-    }
-
-    function setStartedTasks(value) {
-      localStorage.setItem(STARTED_TASKS_KEY, JSON.stringify(value));
-      renderDashboard();
-    }
-
-    function getUnlockedTasks() {
-      try { return JSON.parse(localStorage.getItem(UNLOCKED_TASKS_KEY)) || []; } catch { return []; }
-    }
-
-    function setUnlockedTasks(value) {
-      localStorage.setItem(UNLOCKED_TASKS_KEY, JSON.stringify(value));
-      renderTasks(currentCategory);
-      renderDashboard();
-    }
-
-    function initialsFromName(name) {
-      return name.trim().split(/\s+/).map(part => part.charAt(0).toUpperCase()).slice(0, 2).join("") || "?";
-    }
-
-    function formatMoney(usdAmount) {
-      if (selectedCurrency === "KES") {
-        return `KSh ${(usdAmount * EXCHANGE_RATE).toLocaleString("en-KE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-      }
-      return `$${usdAmount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    }
-
-    function updateProfileUI() {
-      const profile = getProfile();
-      const initial = document.getElementById("profileInitial");
-      const name = document.getElementById("profileName");
-      const phone = document.getElementById("profilePhone");
-
-      if (profile) {
-        initial.textContent = initialsFromName(profile.fullName);
-        name.textContent = profile.fullName;
-        phone.textContent = profile.phone;
-      } else {
-        initial.textContent = "?";
-        name.textContent = "Create Profile";
-        phone.textContent = "Tap to begin";
-      }
-    }
-
-    async function fetchUserSubmissions() {
-      const profile = getProfile();
-      if (!profile) return;
-
-      try {
-        const { data, error } = await supabaseClient
-          .from("submissions")
-          .select("*")
-          .eq("worker_email", profile.email)
-          .order("created_at", { ascending: false });
-
-        if (!error && data) {
-          userSubmissions = data;
-          renderSubmissionsHistory();
-          renderDashboard();
-        }
-      } catch (err) {
-        console.error("Submissions load error:", err);
-      }
-    }
-
-    function renderSubmissionsHistory() {
-      const tableBody = document.getElementById("historyTableBody");
-      if (userSubmissions.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">No submissions found yet.</td></tr>`;
-        return;
-      }
-
-      tableBody.innerHTML = userSubmissions.map(sub => {
-        const statusColors = {
-          approved: "bg-emerald/10 text-emerald border-emerald/30",
-          rejected: "bg-red-500/10 text-red-400 border-red-500/30",
-          pending: "bg-amber-400/10 text-amber-300 border-amber-400/30"
-        };
-
-        const statusBadge = `<span class="rounded-full border px-2.5 py-0.5 text-xs font-bold ${statusColors[sub.status] || statusColors.pending}">${sub.status}</span>`;
-
-        return `
-          <tr>
-            <td class="p-3 font-semibold text-white">${sub.task_title || "Task"}</td>
-            <td class="p-3 font-bold text-emerald">${formatMoney(Number(sub.payout_usd || 0))}</td>
-            <td class="p-3">${statusBadge}</td>
-            <td class="p-3 text-xs text-slate-400">${new Date(sub.created_at || Date.now()).toLocaleDateString()}</td>
-          </tr>
-        `;
-      }).join("");
-    }
-
-   function renderDashboard() {
-  const balance = getWalletBalance();
-  const started = getStartedTasks();
-  const withdrawn = getTotalWithdrawn();
-
-  // 1. Calculate approved earnings from submissions
-  const approvedTotal = userSubmissions
-    .filter(s => s.status === 'approved' || s.status === 'accepted')
-    .reduce((sum, s) => sum + Number(s.payout_usd || s.reward || 0), 0);
-
-  // 2. Calculate pending earnings from submissions
-  const pendingBalance = userSubmissions
-    .filter(s => s.status === "pending")
-    .reduce((sum, s) => sum + Number(s.payout_usd || s.reward || 0), 0);
-
-  // 3. Add approved task earnings to initial balance
-  const finalAvailable = balance + approvedTotal;
-
-  // 4. Update elements on screen
-  if (document.getElementById("balanceDisplay")) {
-    document.getElementById("balanceDisplay").textContent = formatMoney(finalAvailable);
+    `;
   }
-  if (document.getElementById("pendingBalanceDisplay")) {
-    document.getElementById("pendingBalanceDisplay").textContent = formatMoney(pendingBalance);
+  window.openHistory = openHistory;
+
+  // ============================================================
+  // CATEGORY
+  // ============================================================
+  function setCategory(cat) {
+    currentCategory = cat;
+    document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.cat-tab[data-cat="${cat}"]`)?.classList.add('active');
+    renderTasks();
   }
-  if (document.getElementById("lifetimeEarnedDisplay")) {
-    document.getElementById("lifetimeEarnedDisplay").textContent = formatMoney(approvedTotal);
+  window.setCategory = setCategory;
+
+  function scrollToTasks() {
+    document.getElementById('taskGrid').scrollIntoView({ behavior: 'smooth' });
   }
-  if (document.getElementById("totalWithdrawnDisplay")) {
-    document.getElementById("totalWithdrawnDisplay").textContent = formatMoney(withdrawn);
+  window.scrollToTasks = scrollToTasks;
+
+  // ============================================================
+  // LOAD TASKS FROM SUPABASE
+  // ============================================================
+  async function loadTasks() {
+    try {
+      const { data, error } = await db.from('tasks').select('*').eq('status', 'active').order('created_at', { ascending: false });
+      if (error) throw error;
+      allTasks = (data || []).map(t => ({
+        id: t.id,
+        title: t.title || 'Untitled',
+        category: t.category || 'Microtasks',
+        payout: Number(t.payout) || 0,
+        time: t.time || 5,
+        description: t.description || '',
+        lock_fee: Number(t.lock_fee) || 0,
+        is_locked: !!t.is_locked,
+        status: t.status || 'active'
+      }));
+    } catch (e) {
+      console.error('Load failed:', e);
+      allTasks = [];
+    }
+    renderTasks();
+    updateUIStats();
   }
-  if (document.getElementById("startedTasksDisplay")) {
-    document.getElementById("startedTasksDisplay").textContent = started.length;
-  }
-}
 
-    let currentCategory = "All Work";
-
-    async function fetchTasksFromSupabase() {
-      try {
-        const { data: dbTasks, error } = await supabaseClient
-          .from("tasks")
-          .select("*")
-          .eq("is_locked", false)
-          .order("created_at", { ascending: false });
-
-        if (error || !dbTasks || dbTasks.length === 0) {
-          allAvailableTasks = defaultTasks;
-        } else {
-          allAvailableTasks = dbTasks.map(t => ({
-            id: String(t.id),
-            category: t.category || "Microtasks",
-            skill: t.skill_level || "Beginner",
-            title: t.title || "Untitled Task",
-            duration: `${t.duration_mins || 5} min`,
-            duration_mins: t.duration_mins || 5,
-            rating: `${t.rating || 5.0} / 5.0`,
-            description: t.instructions || "No description provided.",
-            instructions: t.instructions || "Follow directions carefully.",
-            payout: Number(t.payout_usd || 1.0),
-            unlockFee: Number(t.unlock_fee || 1.5),
-            audio_url: t.audio_url || null,
-            survey_questions: t.survey_questions || null
-          }));
-        }
-      } catch (err) {
-        allAvailableTasks = defaultTasks;
-      }
-
-      renderTasks(currentCategory);
-    }
-
-    function taskCard(task) {
-      const startedTasks = getStartedTasks();
-      const unlockedTasks = getUnlockedTasks();
-      const isFirstFreeTask = startedTasks.length === 0;
-      const isUnlocked = unlockedTasks.includes(task.id);
-      const isFree = task.unlockFee === 0 || isFirstFreeTask || isUnlocked;
-
-      const skillColors = {
-        Beginner: "border-emerald/40 bg-emerald/10 text-emerald",
-        Intermediate: "border-cyan/40 bg-cyan/10 text-cyan",
-        Advanced: "border-purple-400/40 bg-purple-400/10 text-purple-300"
-      };
-
-      const skillBadge = `<span class="rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${skillColors[task.skill] || skillColors.Beginner}">${task.skill || "Beginner"}</span>`;
-
-      const status = isFree
-        ? `<span class="rounded-full border border-emerald/35 bg-emerald/10 px-2.5 py-1 text-xs font-bold text-emerald">${startedTasks.length === 0 ? "First Task Free" : "Available"}</span>`
-        : `<span class="rounded-full border border-amber-400/35 bg-amber-400/10 px-2.5 py-1 text-xs font-bold text-amber-300">Unlock: ${formatMoney(task.unlockFee)}</span>`;
-
-      return `
-        <article class="task-card flex flex-col rounded-2xl border border-slate-700 bg-panel p-5">
-          <div class="flex items-start justify-between gap-2">
-            <div class="flex flex-wrap gap-1.5 items-center">
-              <span class="rounded-full border border-cyan/30 bg-cyan/10 px-2.5 py-1 text-xs font-bold text-cyan">${task.category}</span>
-              ${skillBadge}
-            </div>
-            ${status}
-          </div>
-
-          <h3 class="mt-4 text-xl font-black leading-tight text-white">${task.title}</h3>
-
-          <div class="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs font-semibold text-slate-400">
-            <span>⏱ ${task.duration}</span>
-            <span>⭐ ${task.rating}</span>
-          </div>
-
-          <p class="mt-4 flex-1 text-sm leading-6 text-slate-400">${task.description}</p>
-
-          <div class="mt-5 flex items-end justify-between gap-3 border-t border-slate-700 pt-4">
-            <div>
-              <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Payout</p>
-              <p class="mt-1 text-2xl font-black text-emerald">${formatMoney(task.payout)}</p>
-            </div>
-
-            <button
-              class="start-task-button rounded-xl bg-emerald px-4 py-3 text-sm font-black text-slate-950 transition hover:bg-emerald-400"
-              data-task-id="${task.id}"
-            >
-              Start & Submit
-            </button>
-          </div>
-        </article>
-      `;
-    }
-
-    function renderTasks(category = "All Work") {
-      currentCategory = category;
-      const taskGrid = document.getElementById("taskGrid");
-      const comingSoonBanner = document.getElementById("comingSoonBanner");
-      const comingSoonText = document.getElementById("comingSoonText");
-
-      if (category === "RLHF & AI Training" || category === "Microtasks") {
-        comingSoonBanner.classList.remove("hidden");
-        comingSoonText.textContent = `${category} tasks are coming soon. Check back for new worldwide opportunities.`;
-        taskGrid.innerHTML = `
-          <div class="col-span-full rounded-3xl border border-dashed border-cyan/40 bg-cyan/5 p-10 text-center">
-            <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan/15 text-2xl">🚀</div>
-            <h3 class="mt-4 text-xl font-black text-white">Coming Soon</h3>
-            <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-400">
-              We are preparing quality ${category} assignments. Explore active categories while you wait.
-            </p>
-          </div>
-        `;
-        return;
-      }
-
-      comingSoonBanner.classList.add("hidden");
-
-      const visibleTasks = category === "All Work"
-        ? allAvailableTasks
-        : allAvailableTasks.filter(task => task.category === category);
-
-      if (visibleTasks.length === 0) {
-        taskGrid.innerHTML = `
-          <div class="col-span-full py-12 text-center text-sm text-slate-400">
-            No active tasks available in this category right now.
-          </div>
-        `;
-        return;
-      }
-
-      taskGrid.innerHTML = visibleTasks.map(taskCard).join("");
-
-      document.querySelectorAll(".start-task-button").forEach(button => {
-        button.addEventListener("click", () => {
-          const task = allAvailableTasks.find(item => String(item.id) === String(button.dataset.taskId));
-          if (task) handleStartTask(task);
-        });
-      });
-    }
-
-    function requireProfile() {
-      if (!getProfile()) {
-        openProfileModal();
-        return false;
-      }
-      return true;
-    }
-
-    function handleStartTask(task) {
-      if (!requireProfile()) return;
-
-      const startedTasks = getStartedTasks();
-      const unlockedTasks = getUnlockedTasks();
-
-      const canStartFree = startedTasks.length === 0;
-      const isUnlocked = unlockedTasks.includes(task.id);
-      const noUnlockRequired = task.unlockFee === 0;
-
-      if (canStartFree || isUnlocked || noUnlockRequired) {
-        openSubmissionModal(task);
-        return;
-      }
-
-pendingUnlockTask = task;
-
-  // Calculate total balance (Base wallet + approved task earnings)
-  const approvedTotal = userSubmissions
-    .filter(s => s.status === 'approved' || s.status === 'accepted')
-    .reduce((sum, s) => sum + Number(s.payout_usd || s.reward || 0), 0);
-
-  const totalBalance = getWalletBalance() + approvedTotal;
-
-  document.getElementById("unlockFeeDisplay").textContent = formatMoney(task.unlockFee || 1.50);
-  document.getElementById("unlockBalanceDisplay").textContent = formatMoney(totalBalance);
-  document.getElementById("unlockMessage").textContent = 
-    `"${task.title}" needs a one-time unlock fee before starting.`;
-      const unlockStatus = document.getElementById("unlockStatusMessage");
-      unlockStatus.classList.add("hidden");
-      openModal("unlockModal");
-    }
-
-    function startTaskTimer(minutes) {
-      clearInterval(countdownInterval);
-      let totalSeconds = minutes * 60;
-      const timerDisplay = document.getElementById("taskTimerDisplay");
-
-      countdownInterval = setInterval(() => {
-        if (totalSeconds <= 0) {
-          clearInterval(countdownInterval);
-          if (timerDisplay) timerDisplay.textContent = "00:00 (Expired)";
-          showToast("Time limit reached for this task!", "error");
-          return;
-        }
-
-        totalSeconds--;
-        const mins = Math.floor(totalSeconds / 60);
-        const secs = totalSeconds % 60;
-        if (timerDisplay) {
-          timerDisplay.textContent = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-        }
-      }, 1000);
-    }
-
-    function openSubmissionModal(task) {
-      selectedTask = task;
-
-      const startedTasks = getStartedTasks();
-      if (!startedTasks.includes(task.id)) {
-        setStartedTasks([...startedTasks, task.id]);
-      }
-
-      document.getElementById("submissionCategory").textContent = task.category;
-      document.getElementById("submissionTitle").textContent = task.title;
-      document.getElementById("submissionMeta").textContent =
-        `${task.duration} • ⭐ ${task.rating} • Payout: ${formatMoney(task.payout)}`;
-      document.getElementById("submissionInstructions").textContent = task.instructions;
-      document.getElementById("submissionTaskId").value = task.id;
-      document.getElementById("workProof").value = "";
-
-      // Handle Audio Asset Setup
-      const audioContainer = document.getElementById("taskAudioContainer");
-      const audioSource = document.getElementById("audioSource");
-      const audioPlayer = document.getElementById("audioPlayer");
-      const audioDownload = document.getElementById("audioDownloadLink");
-
-      if (task.audio_url) {
-        audioContainer.classList.remove("hidden");
-        audioSource.src = task.audio_url;
-        audioDownload.href = task.audio_url;
-        audioPlayer.load();
-      } else {
-        audioContainer.classList.add("hidden");
-      }
-
-      // Handle Survey Questions Render
-      const surveyContainer = document.getElementById("surveyQuestionsContainer");
-      const textareaContainer = document.getElementById("proofTextareaContainer");
-
-      if (task.survey_questions && task.survey_questions.length > 0) {
-        textareaContainer.classList.add("hidden");
-        surveyContainer.classList.remove("hidden");
-
-        surveyContainer.innerHTML = task.survey_questions.map((q, idx) => `
-          <div class="rounded-xl border border-slate-700/60 bg-slatebase p-4">
-            <p class="text-sm font-bold text-white mb-3">${idx + 1}. ${q.question}</p>
-            <div class="space-y-2">
-              ${q.options.map(opt => `
-                <label class="flex items-center gap-3 text-sm text-slate-300 hover:text-white cursor-pointer">
-                  <input type="radio" name="survey_${q.id}" value="${opt}" class="accent-emerald" required />
-                  <span>${opt}</span>
-                </label>
-              `).join("")}
-            </div>
-          </div>
-        `).join("");
-      } else {
-        surveyContainer.classList.add("hidden");
-        textareaContainer.classList.remove("hidden");
-      }
-
-      startTaskTimer(task.duration_mins || 5);
-
-      const status = document.getElementById("submissionStatus");
-      status.classList.add("hidden");
-
-      openModal("submissionModal");
-    }
-
-    async function submitWork(event) {
-      event.preventDefault();
-
-      if (!requireProfile() || !selectedTask) return;
-
-      const profile = getProfile();
-      let proof = "";
-
-      if (selectedTask.survey_questions && selectedTask.survey_questions.length > 0) {
-        const answers = selectedTask.survey_questions.map((q, idx) => {
-          const selectedOption = document.querySelector(`input[name="survey_${q.id}"]:checked`);
-          return `Q${idx + 1} (${q.question}): ${selectedOption ? selectedOption.value : "No Answer"}`;
-        });
-        proof = answers.join("\n");
-      } else {
-        proof = document.getElementById("workProof").value.trim();
-      }
-
-      const status = document.getElementById("submissionStatus");
-      const button = document.getElementById("submitWorkButton");
-
-      if (!proof) {
-        showToast("Please provide your completed work or choices.", "error");
-        return;
-      }
-
-      button.disabled = true;
-      button.textContent = "Submitting...";
-
-      const submissionData = {
-        task_id: selectedTask.id,
-        task_title: selectedTask.title,
-        task_category: selectedTask.category,
-        worker_name: profile.fullName,
-        worker_email: profile.email,
-        worker_phone: profile.phone,
-        proof: proof,
-        payout_usd: selectedTask.payout,
-        status: "pending"
-      };
-
-      const { error } = await supabaseClient
-        .from("submissions")
-        .insert([submissionData]);
-
-      if (error) {
-        showToast(`Submission failed: ${error.message}`, "error");
-        button.disabled = false;
-        button.textContent = "Submit Work to Review";
-        return;
-      }
-
-      clearInterval(countdownInterval);
-
-      showToast("Work submitted successfully!", "success");
-      button.textContent = "Submitted Successfully";
-
-      setTimeout(() => {
-        closeModal("submissionModal");
-        button.disabled = false;
-        button.textContent = "Submit Work to Review";
-        fetchUserSubmissions();
-        renderTasks(currentCategory);
-      }, 1200);
-    }
-
-    async function submitWithdrawal(event) {
-      event.preventDefault();
-
-      if (!requireProfile()) return;
-
-      const profile = getProfile();
-      const phone = document.getElementById("withdrawalPhone").value.trim();
-      const amount = Number(document.getElementById("withdrawalAmount").value);
-      const balances = getCalculatedBalances();
-    const balance = balances.availableBalance;
-      const withdrawn = getTotalWithdrawn();
-      const button = document.getElementById("withdrawalButton");
-
-      if (!phone || !amount || amount <= 0) {
-        showToast("Enter a valid M-Pesa phone number and amount.", "error");
-        return;
-      }
-
-      if (amount > balance) {
-        showToast("Amount exceeds your available balance.", "error");
-        return;
-      }
-
-      button.disabled = true;
-      button.textContent = "Submitting request...";
-
-      const withdrawalData = {
-        worker_name: profile.fullName,
-        worker_email: profile.email,
-        worker_phone: phone,
-        amount_usd: amount,
-        status: "pending"
-      };
-
-      const { error } = await supabaseClient
-        .from("withdrawals")
-        .insert([withdrawalData]);
-
-      if (error) {
-        showToast(`Withdrawal failed: ${error.message}`, "error");
-        button.disabled = false;
-        button.textContent = "Submit M-Pesa Withdrawal Request";
-        return;
-      }
-
-      setWalletBalance(balance - amount);
-      setTotalWithdrawn(withdrawn + amount);
-
-      showToast("M-Pesa withdrawal request submitted!", "success");
-      document.getElementById("withdrawalAmount").value = "";
-
-      setTimeout(() => {
-        closeModal("withdrawalModal");
-        button.disabled = false;
-        button.textContent = "Submit M-Pesa Withdrawal Request";
-      }, 1200);
-    }
-
-    async function confirmUnlock() {
-      if (!pendingUnlockTask) return;
-
-   // Calculate total balance (Base wallet + approved task earnings)
-  const approvedTotal = userSubmissions
-    .filter(s => s.status === 'approved' || s.status === 'accepted')
-    .reduce((sum, s) => sum + Number(s.payout_usd || s.reward || 0), 0);
-
-  const balance = getWalletBalance() + approvedTotal;
-      const fee = pendingUnlockTask.unlockFee;
-      const button = document.getElementById("confirmUnlockButton");
-
-      if (balance < fee) {
-        showToast(`Insufficient balance. Fee is ${formatMoney(fee)}`, "error");
-        return;
-      }
-
-      button.disabled = true;
-      button.textContent = "Unlocking...";
-
-      setWalletBalance(balance - fee);
-
-      const unlocked = getUnlockedTasks();
-      if (!unlocked.includes(pendingUnlockTask.id)) {
-        setUnlockedTasks([...unlocked, pendingUnlockTask.id]);
-      }
-
-      const taskToOpen = pendingUnlockTask;
-      pendingUnlockTask = null;
-
-      closeModal("unlockModal");
-      button.disabled = false;
-      button.textContent = "Unlock Now";
-
-      showToast("Task unlocked successfully!", "success");
-      openSubmissionModal(taskToOpen);
-    }
-
-    function saveProfile(event) {
-      event.preventDefault();
-
-      const fullName = document.getElementById("fullName").value.trim();
-      const email = document.getElementById("emailAddress").value.trim();
-      const phone = document.getElementById("mpesaPhone").value.trim();
-
-      if (!fullName || !email || !phone) {
-        showToast("Please complete all profile fields.", "error");
-        return;
-      }
-
-      localStorage.setItem(PROFILE_KEY, JSON.stringify({ fullName, email, phone }));
-      showToast("Profile saved!", "success");
-
-      updateProfileUI();
-      closeProfileModal();
-      fetchUserSubmissions();
-    }
-
-    function openModal(id) {
-      if (id === "historyModal") renderSubmissionsHistory();
-      const modal = document.getElementById(id);
-      modal.classList.remove("hidden-modal");
-      modal.classList.add("flex");
-      document.body.classList.add("overflow-hidden");
-    }
-
-    function closeModal(id) {
-      if (id === "submissionModal") clearInterval(countdownInterval);
-      const modal = document.getElementById(id);
-      modal.classList.add("hidden-modal");
-      modal.classList.remove("flex");
-
-      const anyOpen = [...document.querySelectorAll(".modal-backdrop")].some(
-        item => !item.classList.contains("hidden-modal")
-      );
-
-      if (!anyOpen) document.body.classList.remove("overflow-hidden");
-    }
-
-    function openProfileModal() {
-      const profile = getProfile();
-      const closeButton = document.getElementById("closeProfileButton");
-
-      document.getElementById("profileModalTitle").textContent =
-        profile ? "Edit your profile" : "Create your profile";
-
-      document.getElementById("fullName").value = profile?.fullName || "";
-      document.getElementById("emailAddress").value = profile?.email || "";
-      document.getElementById("mpesaPhone").value = profile?.phone || "";
-
-      if (profile) closeButton.classList.remove("hidden");
-      else closeButton.classList.add("hidden");
-
-      openModal("profileModal");
-    }
-
-    function closeProfileModal() {
-      if (getProfile()) closeModal("profileModal");
-    }
-
-    function openWithdrawalModal() {
-      if (!requireProfile()) return;
-
-      const profile = getProfile();
-      document.getElementById("withdrawalPhone").value = profile?.phone || "";
-      document.getElementById("withdrawalAmount").value = "";
-
-      renderDashboard();
-      openModal("withdrawalModal");
-    }
-
-    function changeCurrency(currency) {
-      selectedCurrency = currency;
-      localStorage.setItem("apexTaskStudioCurrency", currency);
-
-      document.getElementById("currencySwitcher").value = currency;
-      document.getElementById("currencySwitcherMobile").value = currency;
-
-      renderDashboard();
-      renderSubmissionsHistory();
-      renderTasks(currentCategory);
-    }
-
-    function scrollToTop() {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    window.openModal = openModal;
-    window.closeModal = closeModal;
-    window.openProfileModal = openProfileModal;
-    window.closeProfileModal = closeProfileModal;
-    window.openWithdrawalModal = openWithdrawalModal;
-    window.changeCurrency = changeCurrency;
-    window.scrollToTop = scrollToTop;
-
-    document.getElementById("profileForm").addEventListener("submit", saveProfile);
-    document.getElementById("submissionForm").addEventListener("submit", submitWork);
-    document.getElementById("withdrawalForm").addEventListener("submit", submitWithdrawal);
-    document.getElementById("confirmUnlockButton").addEventListener("click", confirmUnlock);
-
-    document.querySelectorAll(".category-tab").forEach(tab => {
-      tab.addEventListener("click", () => {
-        document.querySelectorAll(".category-tab").forEach(item => item.classList.remove("tab-active"));
-        tab.classList.add("tab-active");
-        renderTasks(tab.dataset.category);
-      });
-    });
-
-    document.querySelectorAll(".modal-backdrop").forEach(modal => {
-      modal.addEventListener("click", event => {
-        if (event.target !== modal) return;
-        if (modal.id === "profileModal" && !getProfile()) return;
-        closeModal(modal.id);
-      });
-    });
-
-    selectedCurrency = ["USD", "KES"].includes(selectedCurrency) ? selectedCurrency : "USD";
-    document.getElementById("currencySwitcher").value = selectedCurrency;
-    document.getElementById("currencySwitcherMobile").value = selectedCurrency;
-
-  updateProfileUI();
-    fetchTasksFromSupabase();
-    fetchUserSubmissions().then(() => {
-      renderDashboard();
-    });
-
-   if (!getProfile()) {
-    openProfileModal();
-}
-  </script>
+  // ============================================================
+  // BOOTSTRAP
+  // ============================================================
+  document.addEventListener('DOMContentLoaded', () => {
+    initWallet();
+    initSubmissions();
+    initReservations();
+    currentCurrency = lsGet(STORAGE_KEYS.CURRENCY, 'USD');
+    document.getElementById('currencySelector').value = currentCurrency;
+    loadProfile();
+    updateUIStats();
+    loadTasks();
+  });
+
+  // Close modals on overlay click
+  document.querySelectorAll('.modal-overlay').forEach(o => {
+    o.addEventListener('click', e => { if (e.target === o) o.classList.add('hidden'); });
+  });
+</script>
 </body>
 </html>

@@ -879,7 +879,7 @@
   // ============================================================
   // LOAD TASKS FROM SUPABASE
   // ============================================================
-  async function loadTasks() {
+   async function loadTasks() {
     try {
       const { data, error } = await db.from('tasks').select('*').eq('status', 'active').order('created_at', { ascending: false });
       if (error) throw error;
@@ -903,18 +903,60 @@
   }
 
   // ============================================================
+  // SYNC SUBMISSIONS FROM SUPABASE (the fix)
+  // ============================================================
+  async function syncSubmissionsFromSupabase() {
+    if (!userProfile?.full_name) return;
+    try {
+      const { data, error } = await db
+        .from('submissions')
+        .select('*')
+        .eq('worker_name', userProfile.full_name);
+      if (error) throw error;
+      if (!data || data.length === 0) return;
+
+      const supaMap = {};
+      data.forEach(s => {
+        const key = String(s.task_id) + '|' + (s.proof || '').slice(0, 20);
+        supaMap[key] = s;
+      });
+
+      const updated = submissions.map(local => {
+        const key = String(local.task_id) + '|' + (local.proof || '').slice(0, 20);
+        const remote = supaMap[key];
+        if (remote) {
+          return {
+            ...local,
+            status: (remote.status || local.status || 'pending').toLowerCase(),
+            payout: Number(remote.payout) || local.payout
+          };
+        }
+        return local;
+      });
+
+      submissions = updated;
+      saveSubmissions();
+      updateUIStats();
+      console.log('[Apex] Synced submissions from Supabase:', submissions.length);
+    } catch (e) {
+      console.warn('[Apex] Supabase sync failed, using local data:', e);
+    }
+  }
+
+  // ============================================================
   // BOOTSTRAP
   // ============================================================
-  document.addEventListener('DOMContentLoaded', () => {
-    initWallet();
-    initSubmissions();
-    initReservations();
-    currentCurrency = lsGet(STORAGE_KEYS.CURRENCY, 'USD');
-    document.getElementById('currencySelector').value = currentCurrency;
-    loadProfile();
-    updateUIStats();
-    loadTasks();
-  });
+ document.addEventListener('DOMContentLoaded', async () => {
+  initWallet();
+  initSubmissions();
+  initReservations();
+  currentCurrency = lsGet(STORAGE_KEYS.CURRENCY, 'USD');
+  document.getElementById('currencySelector').value = currentCurrency;
+  loadProfile();
+  updateUIStats();
+  await syncSubmissionsFromSupabase();
+  await loadTasks();
+});
 
   // Close modals on overlay click
   document.querySelectorAll('.modal-overlay').forEach(o => {

@@ -873,28 +873,41 @@
       }).join("");
     }
 
-    function renderDashboard() {
-      const balance = getWalletBalance();
-      const started = getStartedTasks();
-      const withdrawn = getTotalWithdrawn();
+   function renderDashboard() {
+  const balance = getWalletBalance();
+  const started = getStartedTasks();
+  const withdrawn = getTotalWithdrawn();
 
-      const pendingBalance = userSubmissions
-        .filter(s => s.status === "pending")
-        .reduce((sum, s) => sum + Number(s.payout_usd || 0), 0);
+  // 1. Calculate approved earnings from submissions
+  const approvedTotal = userSubmissions
+    .filter(s => s.status === 'approved' || s.status === 'accepted')
+    .reduce((sum, s) => sum + Number(s.payout_usd || s.reward || 0), 0);
 
-      const lifetimeEarned = userSubmissions
-        .filter(s => s.status === "approved")
-        .reduce((sum, s) => sum + Number(s.payout_usd || 0), 0);
+  // 2. Calculate pending earnings from submissions
+  const pendingBalance = userSubmissions
+    .filter(s => s.status === "pending")
+    .reduce((sum, s) => sum + Number(s.payout_usd || s.reward || 0), 0);
 
-      document.getElementById("balanceDisplay").textContent = formatMoney(balance);
-      document.getElementById("pendingBalanceDisplay").textContent = formatMoney(pendingBalance);
-      document.getElementById("lifetimeEarnedDisplay").textContent = formatMoney(lifetimeEarned);
-      document.getElementById("totalWithdrawnDisplay").textContent = formatMoney(withdrawn);
-      document.getElementById("startedTasksDisplay").textContent = started.length;
-      document.getElementById("unlockStatus").textContent = started.length === 0 ? "First task free" : "Unlock needed";
+  // 3. Add approved task earnings to initial balance
+  const finalAvailable = balance + approvedTotal;
 
-      document.getElementById("withdrawalBalance").textContent = formatMoney(balance);
-    }
+  // 4. Update elements on screen
+  if (document.getElementById("balanceDisplay")) {
+    document.getElementById("balanceDisplay").textContent = formatMoney(finalAvailable);
+  }
+  if (document.getElementById("pendingBalanceDisplay")) {
+    document.getElementById("pendingBalanceDisplay").textContent = formatMoney(pendingBalance);
+  }
+  if (document.getElementById("lifetimeEarnedDisplay")) {
+    document.getElementById("lifetimeEarnedDisplay").textContent = formatMoney(approvedTotal);
+  }
+  if (document.getElementById("totalWithdrawnDisplay")) {
+    document.getElementById("totalWithdrawnDisplay").textContent = formatMoney(withdrawn);
+  }
+  if (document.getElementById("startedTasksDisplay")) {
+    document.getElementById("startedTasksDisplay").textContent = started.length;
+  }
+}
 
     let currentCategory = "All Work";
 
@@ -1432,14 +1445,15 @@
     document.getElementById("currencySwitcher").value = selectedCurrency;
     document.getElementById("currencySwitcherMobile").value = selectedCurrency;
 
-    updateProfileUI();
-    renderDashboard();
+  updateProfileUI();
     fetchTasksFromSupabase();
-    fetchUserSubmissions();
+    fetchUserSubmissions().then(() => {
+      renderDashboard();
+    });
 
-    if (!getProfile()) {
-      openProfileModal();
-    }
+   if (!getProfile()) {
+    openProfileModal();
+}
   </script>
 </body>
 </html>

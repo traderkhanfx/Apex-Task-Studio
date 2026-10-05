@@ -214,7 +214,6 @@
             <p class="mt-2 text-sm text-slate-400">Quality submissions are reviewed before earnings are approved.</p>
           </div>
         </div>
-        <div id="tasksFeed" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6"></div>
 
         <div class="mt-6 flex flex-wrap gap-2" id="categoryTabs">
           <button class="category-tab tab-active rounded-xl border border-slate-700 bg-panel px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:border-emerald hover:text-white" data-category="All Work">
@@ -263,7 +262,7 @@
     </main>
   </div>
 
-  <!-- Onboarding / Profile Modal -->
+  <!-- Profile Modal -->
   <div id="profileModal" class="modal-backdrop fixed inset-0 z-50 hidden-modal items-center justify-center overflow-y-auto p-4">
     <div class="w-full max-w-lg rounded-3xl border border-slate-700 bg-panel p-6 shadow-2xl sm:p-8">
       <div class="flex items-start justify-between gap-4">
@@ -376,6 +375,10 @@
           <span id="submissionCategory" class="inline-flex rounded-full bg-cyan/10 px-3 py-1 text-xs font-bold text-cyan">Task</span>
           <h2 id="submissionTitle" class="mt-3 text-2xl font-black text-white">Task Submission</h2>
           <p id="submissionMeta" class="mt-1 text-sm text-slate-400"></p>
+          <div class="mt-2 flex items-center gap-2">
+            <span class="text-xs font-semibold uppercase text-amber-400">Time Remaining:</span>
+            <span id="taskTimerDisplay" class="font-mono text-sm font-bold text-emerald">05:00</span>
+          </div>
         </div>
         <button onclick="closeModal('submissionModal')" class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white" aria-label="Close">✕</button>
       </div>
@@ -388,36 +391,37 @@
       <form id="submissionForm" class="mt-5">
         <input id="submissionTaskId" type="hidden" />
 
+        <!-- Audio Asset Section -->
+        <div id="taskAudioContainer" class="mb-5 rounded-xl border border-slate-700/60 bg-slate-800/50 p-4">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-semibold uppercase tracking-wider text-emerald">Task Audio Asset</span>
+            <a 
+              id="audioDownloadLink"
+              href="audio/sample-transcription.mp3" 
+              download 
+              class="inline-flex items-center gap-1.5 text-xs font-medium text-cyan hover:underline"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+              Download Audio (.MP3)
+            </a>
+          </div>
+          
+          <audio id="audioPlayer" controls class="w-full rounded-lg bg-slate-900">
+            <source id="audioSource" src="audio/sample-transcription.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+          </audio>
+        </div>  
+
         <label for="workProof" class="mb-2 block text-sm font-semibold text-slate-200">
-          <!-- Audio Asset & Download Section -->
-<div class="mb-5 rounded-xl border border-slate-700/60 bg-slate-800/50 p-4">
-  <div class="flex items-center justify-between mb-3">
-    <span class="text-xs font-semibold uppercase tracking-wider text-emerald">Task Asset</span>
-    <a 
-      href="audio/sample-transcription.mp3" 
-      download 
-      class="inline-flex items-center gap-1.5 text-xs font-medium text-cyan hover:underline"
-    >
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-      </svg>
-      Download Audio (.MP3)
-    </a>
-  </div>
-  
-  <!-- Embedded HTML5 Audio Player -->
-  <audio controls class="w-full rounded-lg bg-slate-900">
-    <source src="audio/sample-transcription.mp3" type="audio/mpeg">
-    Your browser does not support the audio element.
-  </audio>
-</div>  
           Paste your work proof or completed response
         </label>
 
         <textarea
           id="workProof"
           required
-          rows="7"
+          rows="6"
           placeholder="Paste your transcription, annotation result, task link, or other proof here..."
           class="w-full resize-y rounded-xl border border-slate-700 bg-slatebase px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-cyan"
         ></textarea>
@@ -516,60 +520,56 @@
       </div>
     </div>
   </div>
-<!-- Footer -->
-    <footer class="mt-16 border-t border-slate-700/60 bg-slatebase/95 pt-10 pb-8 text-slate-400">
-      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          
-          <!-- Column 1: Brand -->
-          <div>
-            <h3 class="text-lg font-bold text-white">Apex Task Studio</h3>
-            <p class="mt-2 text-sm leading-6">
-              Empowering workers with fast microtasks, simplified remote work, and direct M-Pesa payouts.
-            </p>
-          </div>
 
-          <!-- Column 2: Quick Links -->
-          <div>
-            <h4 class="text-sm font-semibold uppercase tracking-wider text-slate-200">Quick Links</h4>
-            <ul class="mt-3 space-y-2 text-sm">
-              <li>
-                <button onclick="document.getElementById('tasks').scrollIntoView({ behavior: 'smooth' })" class="transition hover:text-emerald">
-                  Browse Tasks
-                </button>
-              </li>
-              <li>
-                <button onclick="openWithdrawalModal()" class="transition hover:text-cyan">
-                  M-Pesa Withdrawals
-                </button>
-              </li>
-              <li>
-                <button onclick="openModal('helpModal')" class="transition hover:text-cyan">
-                  Help Center
-                </button>
-              </li>
-            </ul>
-          </div>
-
-          <!-- Column 3: Contact -->
-          <div>
-            <h4 class="text-sm font-semibold uppercase tracking-wider text-slate-200">Support Contact</h4>
-            <p class="mt-3 text-sm">
-              Email: <a href="mailto:collinsmagu00@gmail.com" class="text-emerald hover:underline">collinsmagu00@gmail.com</a>
-            </p>
-            <p class="mt-1 text-sm">
-              M-Pesa Support: <a href="tel:+254107246326" class="text-cyan hover:underline">+254 107 246 326</a>
-            </p>
-          </div>
-
+  <!-- Footer -->
+  <footer class="mt-16 border-t border-slate-700/60 bg-slatebase/95 pt-10 pb-8 text-slate-400">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <div>
+          <h3 class="text-lg font-bold text-white">Apex Task Studio</h3>
+          <p class="mt-2 text-sm leading-6">
+            Empowering workers with fast microtasks, simplified remote work, and direct M-Pesa payouts.
+          </p>
         </div>
 
-        <!-- Copyright -->
-        <div class="mt-10 border-t border-slate-800 pt-6 text-center text-xs text-slate-500">
-          &copy; 2026 Apex Task Studio. All rights reserved.Terms and conditions apply
+        <div>
+          <h4 class="text-sm font-semibold uppercase tracking-wider text-slate-200">Quick Links</h4>
+          <ul class="mt-3 space-y-2 text-sm">
+            <li>
+              <button onclick="document.getElementById('tasks').scrollIntoView({ behavior: 'smooth' })" class="transition hover:text-emerald">
+                Browse Tasks
+              </button>
+            </li>
+            <li>
+              <button onclick="openWithdrawalModal()" class="transition hover:text-cyan">
+                M-Pesa Withdrawals
+              </button>
+            </li>
+            <li>
+              <button onclick="openModal('helpModal')" class="transition hover:text-cyan">
+                Help Center
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="text-sm font-semibold uppercase tracking-wider text-slate-200">Support Contact</h4>
+          <p class="mt-3 text-sm">
+            Email: <a href="mailto:collinsmagu00@gmail.com" class="text-emerald hover:underline">collinsmagu00@gmail.com</a>
+          </p>
+          <p class="mt-1 text-sm">
+            M-Pesa Support: <a href="tel:+254107246326" class="text-cyan hover:underline">+254 107 246 326</a>
+          </p>
         </div>
       </div>
-    </footer>
+
+      <div class="mt-10 border-t border-slate-800 pt-6 text-center text-xs text-slate-500">
+        &copy; 2026 Apex Task Studio. All rights reserved. Terms and conditions apply
+      </div>
+    </div>
+  </footer>
+
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
@@ -587,118 +587,10 @@
     let selectedCurrency = localStorage.getItem("apexTaskStudioCurrency") || "USD";
     let selectedTask = null;
     let pendingUnlockTask = null;
-let countdownInterval;
+    let countdownInterval = null;
+    let allAvailableTasks = [];
 
-// 1. Submit New Task from Admin Form
-document.getElementById('adminTaskForm')?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  const newTask = {
-    title: document.getElementById('taskTitle').value,
-    category: document.getElementById('taskCategory').value,
-    payout_usd: parseFloat(document.getElementById('taskPayout').value),
-    instructions: document.getElementById('taskInstructions').value,
-    audio_url: document.getElementById('taskAudioUrl').value || null,
-    is_locked: false
-  };
-
-  const { data, error } = await supabaseClient.from('tasks').insert([newTask]);
-
-  if (error) {
-    alert("Error publishing task: " + error.message);
-  } else {
-    alert("Task published successfully!");
-    closeModal('adminTaskModal');
-    loadTasks();
-  }
-});
-
-// 2. Load Only Available (Unlocked) Tasks
-async function loadTasks() {
-  const taskContainer = document.getElementById('tasksFeed');
-  if (!taskContainer) return;
-
-  const { data: tasks, error } = await supabaseClient
-    .from('tasks')
-    .select('*')
-    .eq('is_locked', false)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error("Error loading tasks:", error);
-    return;
-  }
-
-  if (!tasks || tasks.length === 0) {
-    taskContainer.innerHTML = `<div class="col-span-full py-8 text-center text-sm text-slate-400">No active tasks available right now.</div>`;
-    return;
-  }
-
-  taskContainer.innerHTML = tasks.map(task => `
-    <div class="rounded-2xl border border-slate-700/60 bg-slate-800/40 p-5 shadow-lg">
-      <div class="flex items-center justify-between">
-        <span class="rounded-full bg-emerald/10 px-3 py-1 text-xs font-semibold text-emerald">${task.category}</span>
-        <span class="text-sm font-bold text-cyan">KSh ${(task.payout_usd * EXCHANGE_RATE).toFixed(2)}</span>
-      </div>
-      <h4 class="mt-3 text-lg font-bold text-white">${task.title}</h4>
-      <p class="mt-1 text-xs text-slate-400">${task.duration_mins || 5} min • ★ ${task.rating || 5.0} • Payout: $${task.payout_usd.toFixed(2)}</p>
-      
-      <button onclick='claimAndStartTask(${JSON.stringify(task).replace(/'/g, "&apos;")})' class="mt-4 w-full rounded-xl bg-slate-700 py-2.5 text-xs font-bold text-white transition hover:bg-emerald hover:text-slatebase">
-        Start & Submit Work
-      </button>
-    </div>
-  `).join('');
-}
-
-// 3. Claim Task & Run Live Timer
-async function claimAndStartTask(task) {
-  const { error } = await supabaseClient
-    .from('tasks')
-    .update({ is_locked: true })
-    .eq('id', task.id);
-
-  if (error) {
-    alert("Task was already claimed by another worker!");
-    loadTasks();
-    return;
-  }
-
-  const modalTitle = document.getElementById('modalTaskTitle');
-  const modalInstructions = document.getElementById('modalTaskInstructions');
-  if (modalTitle) modalTitle.textContent = task.title;
-  if (modalInstructions) modalInstructions.textContent = task.instructions;
-
-  startTaskTimer(task.duration_mins || 5);
-  openModal('taskDetailModal');
-  loadTasks();
-}
-
-// 4. Live Countdown Timer
-function startTaskTimer(minutes) {
-  clearInterval(countdownInterval);
-  let totalSeconds = minutes * 60;
-  const timerDisplay = document.getElementById('taskTimerDisplay');
-
-  countdownInterval = setInterval(() => {
-    if (totalSeconds <= 0) {
-      clearInterval(countdownInterval);
-      if (timerDisplay) timerDisplay.textContent = "00:00 (Expired)";
-      alert("Time limit reached for this task!");
-      return;
-    }
-
-    totalSeconds--;
-    const mins = Math.floor(totalSeconds / 60);
-    const secs = totalSeconds % 60;
-    if (timerDisplay) {
-      timerDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-    }
-  }, 1000);
-}
-
-// Initial task load
-loadTasks();
-    const tasks = [
+    const defaultTasks = [
       {
         id: "audio-001",
         category: "Audio Transcription",
@@ -708,7 +600,8 @@ loadTasks();
         description: "Listen to a short audio sample and accurately transcribe the spoken English into clear text.",
         instructions: "Transcribe the supplied audio accurately. Include natural punctuation, remove obvious filler words only where instructed, and paste the completed transcript as your proof.",
         payout: 1.2,
-        unlockFee: 0
+        unlockFee: 0,
+        audio_url: "audio/sample-transcription.mp3"
       },
       {
         id: "data-001",
@@ -719,7 +612,8 @@ loadTasks();
         description: "Review images and identify the requested objects using the required labels and format.",
         instructions: "Follow the image labelling guide carefully. Mark every requested object, double-check category names, and paste your completed labels or proof link.",
         payout: 1.8,
-        unlockFee: 1.5
+        unlockFee: 1.5,
+        audio_url: null
       },
       {
         id: "audio-002",
@@ -730,7 +624,8 @@ loadTasks();
         description: "Transcribe selected parts of a customer call and identify key service-related phrases.",
         instructions: "Provide the requested transcript excerpts and list the specified service phrases. Keep all timestamps and notes in the requested format.",
         payout: 2.2,
-        unlockFee: 1.75
+        unlockFee: 1.75,
+        audio_url: "audio/sample-transcription.mp3"
       },
       {
         id: "data-002",
@@ -741,7 +636,8 @@ loadTasks();
         description: "Classify product feedback as positive, neutral, or negative based on the review text.",
         instructions: "Read each review carefully and assign one sentiment label per review. Paste your answers in the same order as the task list.",
         payout: 1.5,
-        unlockFee: 2.0
+        unlockFee: 2.0,
+        audio_url: null
       },
       {
         id: "audio-003",
@@ -752,7 +648,8 @@ loadTasks();
         description: "Convert a short Kiswahili spoken clip into clean written transcription.",
         instructions: "Write the full Kiswahili transcription as accurately as possible. Preserve important names and words, using punctuation for clarity.",
         payout: 1.65,
-        unlockFee: 1.5
+        unlockFee: 1.5,
+        audio_url: "audio/sample-transcription.mp3"
       },
       {
         id: "data-003",
@@ -763,7 +660,8 @@ loadTasks();
         description: "Judge whether search results are relevant to the given user query.",
         instructions: "For every query-result pair, mark the relevance level based on the provided guidelines. Add a short reason where requested.",
         payout: 2.0,
-        unlockFee: 1.8
+        unlockFee: 1.8,
+        audio_url: null
       }
     ];
 
@@ -865,6 +763,38 @@ loadTasks();
 
     let currentCategory = "All Work";
 
+    async function fetchTasksFromSupabase() {
+      try {
+        const { data: dbTasks, error } = await supabaseClient
+          .from("tasks")
+          .select("*")
+          .eq("is_locked", false)
+          .order("created_at", { ascending: false });
+
+        if (error || !dbTasks || dbTasks.length === 0) {
+          allAvailableTasks = defaultTasks;
+        } else {
+          allAvailableTasks = dbTasks.map(t => ({
+            id: String(t.id),
+            category: t.category || "Microtasks",
+            title: t.title || "Untitled Task",
+            duration: `${t.duration_mins || 5} min`,
+            duration_mins: t.duration_mins || 5,
+            rating: `${t.rating || 5.0} / 5.0`,
+            description: t.instructions || "No description provided.",
+            instructions: t.instructions || "Follow directions carefully.",
+            payout: Number(t.payout_usd || 1.0),
+            unlockFee: Number(t.unlock_fee || 1.5),
+            audio_url: t.audio_url || null
+          }));
+        }
+      } catch (err) {
+        allAvailableTasks = defaultTasks;
+      }
+
+      renderTasks(currentCategory);
+    }
+
     function taskCard(task) {
       const startedTasks = getStartedTasks();
       const unlockedTasks = getUnlockedTasks();
@@ -933,15 +863,24 @@ loadTasks();
       comingSoonBanner.classList.add("hidden");
 
       const visibleTasks = category === "All Work"
-        ? tasks
-        : tasks.filter(task => task.category === category);
+        ? allAvailableTasks
+        : allAvailableTasks.filter(task => task.category === category);
+
+      if (visibleTasks.length === 0) {
+        taskGrid.innerHTML = `
+          <div class="col-span-full py-12 text-center text-sm text-slate-400">
+            No active tasks available in this category right now.
+          </div>
+        `;
+        return;
+      }
 
       taskGrid.innerHTML = visibleTasks.map(taskCard).join("");
 
       document.querySelectorAll(".start-task-button").forEach(button => {
         button.addEventListener("click", () => {
-          const task = tasks.find(item => item.id === button.dataset.taskId);
-          handleStartTask(task);
+          const task = allAvailableTasks.find(item => String(item.id) === String(button.dataset.taskId));
+          if (task) handleStartTask(task);
         });
       });
     }
@@ -982,8 +921,36 @@ loadTasks();
       openModal("unlockModal");
     }
 
+    function startTaskTimer(minutes) {
+      clearInterval(countdownInterval);
+      let totalSeconds = minutes * 60;
+      const timerDisplay = document.getElementById("taskTimerDisplay");
+
+      countdownInterval = setInterval(() => {
+        if (totalSeconds <= 0) {
+          clearInterval(countdownInterval);
+          if (timerDisplay) timerDisplay.textContent = "00:00 (Expired)";
+          alert("Time limit reached for this task!");
+          return;
+        }
+
+        totalSeconds--;
+        const mins = Math.floor(totalSeconds / 60);
+        const secs = totalSeconds % 60;
+        if (timerDisplay) {
+          timerDisplay.textContent = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+        }
+      }, 1000);
+    }
+
     function openSubmissionModal(task) {
       selectedTask = task;
+
+      // Track Started Task in LocalStorage & update dashboard
+      const startedTasks = getStartedTasks();
+      if (!startedTasks.includes(task.id)) {
+        setStartedTasks([...startedTasks, task.id]);
+      }
 
       document.getElementById("submissionCategory").textContent = task.category;
       document.getElementById("submissionTitle").textContent = task.title;
@@ -992,6 +959,23 @@ loadTasks();
       document.getElementById("submissionInstructions").textContent = task.instructions;
       document.getElementById("submissionTaskId").value = task.id;
       document.getElementById("workProof").value = "";
+
+      // Handle Audio Asset setup
+      const audioContainer = document.getElementById("taskAudioContainer");
+      const audioSource = document.getElementById("audioSource");
+      const audioPlayer = document.getElementById("audioPlayer");
+      const audioDownload = document.getElementById("audioDownloadLink");
+
+      if (task.audio_url) {
+        audioContainer.classList.remove("hidden");
+        audioSource.src = task.audio_url;
+        audioDownload.href = task.audio_url;
+        audioPlayer.load();
+      } else {
+        audioContainer.classList.add("hidden");
+      }
+
+      startTaskTimer(task.duration_mins || 5);
 
       const status = document.getElementById("submissionStatus");
       status.classList.add("hidden");
@@ -1044,10 +1028,7 @@ loadTasks();
         return;
       }
 
-      const startedTasks = getStartedTasks();
-      if (!startedTasks.includes(selectedTask.id)) {
-        setStartedTasks([...startedTasks, selectedTask.id]);
-      }
+      clearInterval(countdownInterval);
 
       status.textContent = "Your work was submitted successfully and is pending review.";
       status.className = "mt-3 rounded-lg border border-emerald/40 bg-emerald/10 px-3 py-2 text-sm text-emerald";
@@ -1188,6 +1169,9 @@ loadTasks();
     }
 
     function closeModal(id) {
+      if (id === "submissionModal") {
+        clearInterval(countdownInterval);
+      }
       const modal = document.getElementById(id);
       modal.classList.add("hidden-modal");
       modal.classList.remove("flex");
@@ -1291,7 +1275,7 @@ loadTasks();
 
     updateProfileUI();
     renderDashboard();
-    renderTasks("All Work");
+    fetchTasksFromSupabase();
 
     if (!getProfile()) {
       openProfileModal();

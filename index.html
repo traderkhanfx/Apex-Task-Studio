@@ -1069,12 +1069,19 @@
         return;
       }
 
-      pendingUnlockTask = task;
-      document.getElementById("unlockFeeDisplay").textContent = formatMoney(task.unlockFee);
-      document.getElementById("unlockBalanceDisplay").textContent = formatMoney(getWalletBalance());
-      document.getElementById("unlockMessage").textContent =
-        `"${task.title}" needs a one-time unlock fee before starting.`;
+pendingUnlockTask = task;
 
+  // Calculate total balance (Base wallet + approved task earnings)
+  const approvedTotal = userSubmissions
+    .filter(s => s.status === 'approved' || s.status === 'accepted')
+    .reduce((sum, s) => sum + Number(s.payout_usd || s.reward || 0), 0);
+
+  const totalBalance = getWalletBalance() + approvedTotal;
+
+  document.getElementById("unlockFeeDisplay").textContent = formatMoney(task.unlockFee || 1.50);
+  document.getElementById("unlockBalanceDisplay").textContent = formatMoney(totalBalance);
+  document.getElementById("unlockMessage").textContent = 
+    `"${task.title}" needs a one-time unlock fee before starting.`;
       const unlockStatus = document.getElementById("unlockStatusMessage");
       unlockStatus.classList.add("hidden");
       openModal("unlockModal");
@@ -1293,7 +1300,12 @@
     async function confirmUnlock() {
       if (!pendingUnlockTask) return;
 
-      const balance = getWalletBalance();
+   // Calculate total balance (Base wallet + approved task earnings)
+  const approvedTotal = userSubmissions
+    .filter(s => s.status === 'approved' || s.status === 'accepted')
+    .reduce((sum, s) => sum + Number(s.payout_usd || s.reward || 0), 0);
+
+  const balance = getWalletBalance() + approvedTotal;
       const fee = pendingUnlockTask.unlockFee;
       const button = document.getElementById("confirmUnlockButton");
 

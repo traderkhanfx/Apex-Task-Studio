@@ -1248,7 +1248,8 @@ pendingUnlockTask = task;
       const profile = getProfile();
       const phone = document.getElementById("withdrawalPhone").value.trim();
       const amount = Number(document.getElementById("withdrawalAmount").value);
-      const balance = getWalletBalance();
+      const balances = getCalculatedBalances();
+    const balance = balances.availableBalance;
       const withdrawn = getTotalWithdrawn();
       const button = document.getElementById("withdrawalButton");
 

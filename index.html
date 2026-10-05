@@ -627,7 +627,10 @@
   // ============================================================
   // TASK AVAILABILITY
   // ============================================================
- function isTaskAvailable(task) {
+function isTaskAvailable(task) {
+  // If ANYONE already submitted this task (pending/accepted), hide it
+  if (task.alreadyTaken) return false;
+
   // Already submitted by me → hide
   const mySub = submissions.find(s => String(s.task_id) === String(task.id));
   if (mySub) return false;
@@ -994,32 +997,55 @@
   // LOAD TASKS FROM SUPABASE
   // ============================================================
   async function loadTasks() {
-  try {
-    const { data, error } = await db.from('tasks').select('*').eq('status', 'active').order('created_at', { ascending: false });
-    if (error) throw error;
-    allTasks = (data || []).map(t => ({
-      id: t.id,
-      title: t.title || 'Untitled',
-      category: t.category || 'Microtasks',
-      payout: Number(t.payout) || 0,
-      time: t.payout_time || t.time || 5,
-      description: t.description || '',
-      lock_fee: Number(t.lock_fee) || 0,
-      is_locked: !!t.is_locked,
-      status: t.status || 'active',
-      audio_url: t.audio_url || null,
-      image_url_1: t.image_url_1 || null,
-      image_url_2: t.image_url_2 || null,
-      reserved_until: t.reserved_until || null,
-      reserved_by: t.reserved_by || null
-    }));
-  } catch (e) {
-    console.error('Load failed:', e);
-    allTasks = [];
+    try {
+      // 1. Load all active tasks
+      const { data: tasks, error: taskErr } = await db
+        .from('tasks')
+        .select('*')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+      if (taskErr) throw taskErr;
+
+      // 2. Load all submissions (pending + accepted) to know what's already taken
+      const { data: allSubs, error: subErr } = await db
+        .from('submissions')
+        .select('task_id, status');
+      if (subErr) throw subErr;
+
+      // Build a set of task_ids that already have a pending or accepted submission
+      const takenTaskIds = new Set(
+        (allSubs || [])
+          .filter(s => {
+            const st = (s.status || '').toLowerCase();
+            return st === 'pending' || st === 'accepted' || st === 'approved';
+          })
+          .map(s => String(s.task_id))
+      );
+
+      allTasks = (tasks || []).map(t => ({
+        id: t.id,
+        title: t.title || 'Untitled',
+        category: t.category || 'Microtasks',
+        payout: Number(t.payout) || 0,
+        time: t.payout_time || t.time || 5,
+        description: t.description || '',
+        lock_fee: Number(t.lock_fee) || 0,
+        is_locked: !!t.is_locked,
+        status: t.status || 'active',
+        audio_url: t.audio_url || null,
+        image_url_1: t.image_url_1 || null,
+        image_url_2: t.image_url_2 || null,
+        reserved_until: t.reserved_until || null,
+        reserved_by: t.reserved_by || null,
+        alreadyTaken: takenTaskIds.has(String(t.id))
+      }));
+    } catch (e) {
+      console.error('Load failed:', e);
+      allTasks = [];
+    }
+    renderTasks();
+    updateUIStats();
   }
-  renderTasks();
-  updateUIStats();
-}
 
   // ============================================================
   // SYNC SUBMISSIONS FROM SUPABASE

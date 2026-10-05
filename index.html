@@ -475,19 +475,41 @@
     lsSet(STORAGE_KEYS.RESERVATIONS, reservations);
   }
 
-  function reserveTask(taskId) {
+    async function reserveTask(taskId) {
     initReservations();
+    const now = Date.now();
+    const expires = new Date(now + RESERVATION_MS).toISOString();
+
+    // Save locally (fallback)
     reservations = reservations.filter(r => String(r.task_id) !== String(taskId));
-    reservations.push({ task_id: taskId, reserved_at: Date.now(), expires_at: Date.now() + RESERVATION_MS });
+    reservations.push({ task_id: taskId, reserved_at: now, expires_at: now + RESERVATION_MS });
     lsSet(STORAGE_KEYS.RESERVATIONS, reservations);
+
+    // Save to Supabase (main lock for multi-device)
+    try {
+      await db.from('tasks').update({
+        reserved_until: expires,
+        reserved_by: userProfile?.full_name || 'Unknown'
+      }).eq('id', taskId);
+    } catch (e) {
+      console.warn('[Apex] Failed to reserve task in Supabase:', e);
+    }
   }
 
-  function clearReservation(taskId) {
+   async function clearReservation(taskId) {
     reservations = reservations.filter(r => String(r.task_id) !== String(taskId));
     lsSet(STORAGE_KEYS.RESERVATIONS, reservations);
-  }
 
-  function isReservedByMe(taskId) {
+    try {
+      await db.from('tasks').update({
+        reserved_until: null,
+        reserved_by: null
+      }).eq('id', taskId);
+    } catch (e) {
+      console.warn('[Apex] Failed to clear reservation in Supabase:', e);
+    }
+  }
+    function isReservedByMe(taskId) {
     initReservations();
     return reservations.some(r => String(r.task_id) === String(taskId));
   }
@@ -605,11 +627,21 @@
   // ============================================================
   // TASK AVAILABILITY
   // ============================================================
-  function isTaskAvailable(task) {
-    const mySub = submissions.find(s => String(s.task_id) === String(task.id));
-    if (mySub) return false;
-    return true;
+ function isTaskAvailable(task) {
+  // Already submitted by me → hide
+  const mySub = submissions.find(s => String(s.task_id) === String(task.id));
+  if (mySub) return false;
+
+  // Reserved by someone else (not expired) → hide
+  if (task.reserved_until && task.reserved_by) {
+    const reservedUntil = new Date(task.reserved_until).getTime();
+    const stillReserved = reservedUntil > Date.now();
+    const isMine = task.reserved_by === (userProfile?.full_name || '');
+    if (stillReserved && !isMine) return false;
   }
+
+  return true;
+}
 
   // ============================================================
   // RENDER TASKS (with audio/image download buttons)
@@ -725,12 +757,12 @@
   // ============================================================
   // TASK ACTIONS
   // ============================================================
-  function acceptAndStart(taskId) {
-    const task = allTasks.find(t => String(t.id) === String(taskId));
-    if (!task) return;
-    reserveTask(taskId);
-    openSubmissionModal(task);
-  }
+ async function acceptAndStart(taskId) {
+  const task = allTasks.find(t => String(t.id) === String(taskId));
+  if (!task) return;
+  await reserveTask(taskId);
+  openSubmissionModal(task);
+}
   window.acceptAndStart = acceptAndStart;
 
   function promptUnlock(taskId) {
@@ -746,22 +778,22 @@
   }
   window.promptUnlock = promptUnlock;
 
-  function confirmUnlock(task) {
-    const fee = Number(task.lock_fee) || 0;
-    const b = getCalculatedBalances();
-    if (b.availableBalanceUSD < fee) {
-      toast('Insufficient available balance to unlock this task.', true);
-      return;
-    }
-    wallet.totalUnlockFeesPaidUSD = Number(wallet.totalUnlockFeesPaidUSD) + fee;
-    saveWallet();
-    reserveTask(task.id);
-    closeModal('unlockModal');
-    updateUIStats();
-    renderTasks();
-    toast(`Task unlocked! ${fmtMoney(fee)} deducted.`);
-    openSubmissionModal(task);
+  async function confirmUnlock(task) {
+  const fee = Number(task.lock_fee) || 0;
+  const b = getCalculatedBalances();
+  if (b.availableBalanceUSD < fee) {
+    toast('Insufficient available balance to unlock this task.', true);
+    return;
   }
+  wallet.totalUnlockFeesPaidUSD = Number(wallet.totalUnlockFeesPaidUSD) + fee;
+  saveWallet();
+  await reserveTask(task.id);
+  closeModal('unlockModal');
+  updateUIStats();
+  renderTasks();
+  toast(`Task unlocked! ${fmtMoney(fee)} deducted.`);
+  openSubmissionModal(task);
+}
   window.confirmUnlock = confirmUnlock;
 
   // ============================================================
@@ -816,7 +848,7 @@
     };
     submissions.push(sub);
     saveSubmissions();
-    clearReservation(activeTaskForModal.id);
+    await clearReservation(activeTaskForModal.id);
 
     try {
       await db.from('submissions').insert([{
@@ -962,30 +994,32 @@
   // LOAD TASKS FROM SUPABASE
   // ============================================================
   async function loadTasks() {
-    try {
-      const { data, error } = await db.from('tasks').select('*').eq('status', 'active').order('created_at', { ascending: false });
-      if (error) throw error;
-      allTasks = (data || []).map(t => ({
-        id: t.id,
-        title: t.title || 'Untitled',
-        category: t.category || 'Microtasks',
-        payout: Number(t.payout) || 0,
-        time: t.payout_time || t.time || 5,
-        description: t.description || '',
-        lock_fee: Number(t.lock_fee) || 0,
-        is_locked: !!t.is_locked,
-        status: t.status || 'active',
-        audio_url: t.audio_url || null,
-        image_url_1: t.image_url_1 || null,
-        image_url_2: t.image_url_2 || null
-      }));
-    } catch (e) {
-      console.error('Load failed:', e);
-      allTasks = [];
-    }
-    renderTasks();
-    updateUIStats();
+  try {
+    const { data, error } = await db.from('tasks').select('*').eq('status', 'active').order('created_at', { ascending: false });
+    if (error) throw error;
+    allTasks = (data || []).map(t => ({
+      id: t.id,
+      title: t.title || 'Untitled',
+      category: t.category || 'Microtasks',
+      payout: Number(t.payout) || 0,
+      time: t.payout_time || t.time || 5,
+      description: t.description || '',
+      lock_fee: Number(t.lock_fee) || 0,
+      is_locked: !!t.is_locked,
+      status: t.status || 'active',
+      audio_url: t.audio_url || null,
+      image_url_1: t.image_url_1 || null,
+      image_url_2: t.image_url_2 || null,
+      reserved_until: t.reserved_until || null,
+      reserved_by: t.reserved_by || null
+    }));
+  } catch (e) {
+    console.error('Load failed:', e);
+    allTasks = [];
   }
+  renderTasks();
+  updateUIStats();
+}
 
   // ============================================================
   // SYNC SUBMISSIONS FROM SUPABASE

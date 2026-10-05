@@ -516,11 +516,28 @@ async function updateSub(id, status) {
   try {
     const { error } = await db.from('submissions').update({ status }).eq('id', id);
     if (error) throw error;
+
+    // If accepted or rejected, clear the task reservation so it opens for others
+    if (status === 'accepted' || status === 'rejected') {
+      try {
+        const { data: sub } = await db.from('submissions').select('task_id').eq('id', id).single();
+        if (sub?.task_id) {
+          await db.from('tasks').update({
+            reserved_until: null,
+            reserved_by: null
+          }).eq('id', sub.task_id);
+        }
+      } catch (e) {
+        console.warn('Failed to clear reservation after review:', e);
+      }
+    }
+
     toast(status === 'accepted' ? '✅ Submission accepted.' : 'Submission rejected.');
     fetchSubmissions();
     loadStats();
   } catch (err) { toast(err.message, true); }
 }
+
 window.updateSub = updateSub;
 
 // ============ BOOTSTRAP ============

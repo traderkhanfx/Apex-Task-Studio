@@ -51,8 +51,8 @@
 
 <div id="toastContainer"></div>
 
-<!-- ============ ONBOARDING MODAL ============ -->
-<div id="onboardingModal" class="modal-overlay hidden">
+<!-- ============ AUTH MODAL ============ -->
+<div id="authModal" class="modal-overlay hidden">
   <div class="modal-content">
     <div class="flex items-center gap-3 mb-5">
       <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);">
@@ -60,25 +60,57 @@
       </div>
       <div>
         <h2 class="text-lg font-bold text-white">Welcome to Apex Task Studio</h2>
-        <p class="text-xs text-emerald-300/60 mt-0.5">Set up your worker profile to start earning</p>
+        <p class="text-xs text-emerald-300/60 mt-0.5">Sign up or log in to start earning</p>
       </div>
     </div>
-    <form id="onboardingForm" class="space-y-3">
-      <div>
-        <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Full Name</label>
-        <input type="text" id="onboardName" placeholder="Enter your full name" required class="input-field" />
-        <p class="text-[10px] text-amber-400/80 mt-1.5 leading-tight">⚠️ This name becomes your permanent account ID. Do not use nicknames — use your real name as it appears on your ID.</p>
-      </div>
-      <div>
+
+    <div class="mb-4 p-3 rounded-lg" style="background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3);">
+      <p class="text-[11px] text-amber-400/90 leading-tight">⚠️ <strong>One account per person.</strong> Creating multiple accounts may lead to a permanent ban and forfeiture of earnings.</p>
+    </div>
+
+    <!-- STEP 1: Email input -->
+    <div id="authStep1">
+      <div class="mb-3">
         <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Email Address</label>
-        <input type="email" id="onboardEmail" placeholder="Enter your email address" required class="input-field" />
+        <input type="email" id="authEmail" placeholder="Enter your email address" required class="input-field" />
       </div>
-      <div>
+      <button id="authSendBtn" onclick="authSendCode()" class="btn-primary w-full py-3 rounded-lg text-sm">
+        Continue with Email
+      </button>
+      <p class="text-[10px] text-emerald-300/40 text-center mt-2">We'll send you a 6-digit code to verify.</p>
+    </div>
+
+    <!-- STEP 2: OTP code input -->
+    <div id="authStep2" class="hidden">
+      <p class="text-xs text-emerald-200/70 mb-2">Enter the 6-digit code sent to <span id="authEmailDisplay" class="text-white font-semibold"></span></p>
+      <div class="mb-3">
+        <input type="text" id="authCode" maxlength="6" placeholder="000000" required class="input-field text-center text-lg font-bold" style="letter-spacing: 0.5rem;" />
+      </div>
+      <button id="authVerifyBtn" onclick="authVerifyCode()" class="btn-primary w-full py-3 rounded-lg text-sm">
+        Verify Code
+      </button>
+      <div class="flex justify-between mt-3">
+        <button onclick="authBackToStep1()" class="text-xs text-emerald-300/60 hover:text-emerald-400">← Change email</button>
+        <button onclick="authSendCode()" class="text-xs text-emerald-300/60 hover:text-emerald-400">Resend code</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Profile completion (new users only) -->
+    <div id="authStep3" class="hidden">
+      <p class="text-xs text-emerald-200/70 mb-3">Almost done! Tell us a bit about yourself.</p>
+      <div class="mb-3">
+        <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Full Legal Name</label>
+        <input type="text" id="authName" placeholder="Enter your full name" required class="input-field" />
+        <p class="text-[10px] text-amber-400/80 mt-1.5 leading-tight">⚠️ This becomes your permanent account ID. Use your real name.</p>
+      </div>
+      <div class="mb-3">
         <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">M-Pesa Phone Number</label>
-        <input type="tel" id="onboardPhone" placeholder="e.g. 0712345678" required class="input-field" />
+        <input type="tel" id="authPhone" placeholder="e.g. 0712345678" required class="input-field" />
       </div>
-      <button type="submit" class="btn-primary w-full py-3 rounded-lg text-sm mt-2">Save Profile & Continue</button>
-    </form>
+      <button id="authCompleteBtn" onclick="authCompleteProfile()" class="btn-primary w-full py-3 rounded-lg text-sm">
+        Complete Profile & Start
+      </button>
+    </div>
   </div>
 </div>
 
@@ -107,7 +139,8 @@
         <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">M-Pesa Phone Number</label>
         <input type="tel" id="editPhone" class="input-field" required />
       </div>
-      <button type="submit" class="btn-primary w-full py-3 rounded-lg text-sm mt-2">Save Profile & Continue</button>
+             <button type="submit" class="btn-primary w-full py-3 rounded-lg text-sm mt-2">Save Profile & Continue</button>
+      <button type="button" onclick="authLogout()" class="w-full py-2.5 rounded-lg text-xs font-semibold text-red-400 hover:text-red-300 border border-red-500/30 hover:bg-red-500/10 mt-3">🚪 Log Out</button>      
     </form>
   </div>
 </div>
@@ -618,18 +651,45 @@
   // ============================================================
   // PROFILE
   // ============================================================
-  function loadProfile() {
-    userProfile = lsGet(STORAGE_KEYS.PROFILE, null);
-    if (userProfile) {
-      const init = getInitials(userProfile.full_name);
-      if (document.getElementById('headerAvatar')) document.getElementById('headerAvatar').textContent = init;
-      if (document.getElementById('headerName')) document.getElementById('headerName').textContent = userProfile.full_name.split(' ')[0];
-      if (document.getElementById('headerPhone')) document.getElementById('headerPhone').textContent = userProfile.mpesa_phone || userProfile.email;
-      if (document.getElementById('withdrawPhone')) document.getElementById('withdrawPhone').value = userProfile.mpesa_phone || '';
-    } else {
-      openModal('onboardingModal');
+ async function loadProfile() {
+  const { data: { session } } = await db.auth.getSession();
+
+  if (session && session.user) {
+    const email = session.user.email;
+    let profile = lsGet(STORAGE_KEYS.PROFILE, null);
+
+    if (!profile || profile.email !== email) {
+      const { data } = await db
+        .from('profiles')
+        .select('*')
+        .eq('email', email)
+        .maybeSingle();
+      if (data && data.full_name) {
+        profile = {
+          full_name: data.full_name,
+          email: data.email,
+          mpesa_phone: data.mpesa_phone || ''
+        };
+        lsSet(STORAGE_KEYS.PROFILE, profile);
+      }
     }
+
+    userProfile = profile;
+
+    if (!userProfile) {
+      authEmailTemp = email;
+      openModal('authModal');
+      document.getElementById('authStep1').classList.add('hidden');
+      document.getElementById('authStep2').classList.add('hidden');
+      document.getElementById('authStep3').classList.remove('hidden');
+      return;
+    }
+
+    applyProfileToUI();
+  } else {
+    openModal('authModal');
   }
+}
 
   function openEditProfile() {
     if (!userProfile) { openModal('onboardingModal'); return; }
@@ -646,17 +706,154 @@
     loadProfile();
     try { await db.from('profiles').insert([data]); } catch (e) { console.warn('Profile sync:', e); }
   }
+// ============================================================
+// AUTHENTICATION (Email OTP)
+// ============================================================
+let authEmailTemp = '';
 
-  document.getElementById('onboardingForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const full_name = document.getElementById('onboardName').value.trim();
-    const email = document.getElementById('onboardEmail').value.trim();
-    const mpesa_phone = document.getElementById('onboardPhone').value.trim();
-    if (!full_name || !email || !mpesa_phone) { toast('Please fill in all fields', true); return; }
-    await saveProfile({ full_name, email, mpesa_phone });
-    closeModal('onboardingModal');
-    toast('Profile saved! Welcome to Apex Task Studio.');
-  });
+async function authSendCode() {
+  const email = document.getElementById('authEmail').value.trim();
+  if (!email || !email.includes('@')) {
+    toast('Please enter a valid email address.', true);
+    return;
+  }
+  const btn = document.getElementById('authSendBtn');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+
+  try {
+    const { error } = await db.auth.signInWithOtp({ email });
+    if (error) throw error;
+    authEmailTemp = email;
+    document.getElementById('authEmailDisplay').textContent = email;
+    document.getElementById('authStep1').classList.add('hidden');
+    document.getElementById('authStep2').classList.remove('hidden');
+    toast('✅ Code sent! Check your email.');
+  } catch (e) {
+    console.error(e);
+    toast('Failed to send code: ' + e.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Continue with Email';
+  }
+}
+window.authSendCode = authSendCode;
+
+function authBackToStep1() {
+  document.getElementById('authStep1').classList.remove('hidden');
+  document.getElementById('authStep2').classList.add('hidden');
+  document.getElementById('authStep3').classList.add('hidden');
+}
+window.authBackToStep1 = authBackToStep1;
+
+async function authVerifyCode() {
+  const code = document.getElementById('authCode').value.trim();
+  if (!code || code.length < 6) {
+    toast('Enter the 6-digit code.', true);
+    return;
+  }
+  const btn = document.getElementById('authVerifyBtn');
+  btn.disabled = true;
+  btn.textContent = 'Verifying...';
+
+  try {
+    const { data, error } = await db.auth.verifyOtp({
+      email: authEmailTemp,
+      token: code,
+      type: 'email'
+    });
+    if (error) throw error;
+
+    // Check if profile exists for this email
+    const { data: existingProfile } = await db
+      .from('profiles')
+      .select('*')
+      .eq('email', authEmailTemp)
+      .maybeSingle();
+
+    if (existingProfile && existingProfile.full_name) {
+      // Returning user
+      const profile = {
+        full_name: existingProfile.full_name,
+        email: existingProfile.email,
+        mpesa_phone: existingProfile.mpesa_phone || ''
+      };
+      userProfile = profile;
+      lsSet(STORAGE_KEYS.PROFILE, profile);
+      applyProfileToUI();
+      closeModal('authModal');
+      toast('Welcome back, ' + profile.full_name.split(' ')[0] + '!');
+      await syncSubmissionsFromSupabase();
+      await loadTasks();
+    } else {
+      // New user — complete profile
+      document.getElementById('authStep2').classList.add('hidden');
+      document.getElementById('authStep3').classList.remove('hidden');
+    }
+  } catch (e) {
+    console.error(e);
+    toast('Verification failed: ' + e.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Verify Code';
+  }
+}
+window.authVerifyCode = authVerifyCode;
+
+async function authCompleteProfile() {
+  const name = document.getElementById('authName').value.trim();
+  const phone = document.getElementById('authPhone').value.trim();
+  if (!name || !phone) {
+    toast('Please fill in all fields.', true);
+    return;
+  }
+  if (phone.replace(/\D/g, '').length < 9) {
+    toast('Enter a valid M-Pesa number.', true);
+    return;
+  }
+
+  const btn = document.getElementById('authCompleteBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  try {
+    const profile = { full_name: name, email: authEmailTemp, mpesa_phone: phone };
+    await db.from('profiles').insert([profile]);
+
+    userProfile = profile;
+    lsSet(STORAGE_KEYS.PROFILE, profile);
+    applyProfileToUI();
+
+    closeModal('authModal');
+    toast('✅ Profile created! Welcome to Apex Task Studio.');
+    await syncSubmissionsFromSupabase();
+    await loadTasks();
+  } catch (e) {
+    console.error(e);
+    toast('Failed to save profile: ' + e.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Complete Profile & Start';
+  }
+}
+window.authCompleteProfile = authCompleteProfile;
+
+async function authLogout() {
+  await db.auth.signOut();
+  userProfile = null;
+  localStorage.removeItem(STORAGE_KEYS.PROFILE);
+  location.reload();
+}
+window.authLogout = authLogout;
+
+function applyProfileToUI() {
+  if (!userProfile) return;
+  const init = getInitials(userProfile.full_name);
+  if (document.getElementById('headerAvatar')) document.getElementById('headerAvatar').textContent = init;
+  if (document.getElementById('headerName')) document.getElementById('headerName').textContent = userProfile.full_name.split(' ')[0];
+  if (document.getElementById('headerPhone')) document.getElementById('headerPhone').textContent = userProfile.mpesa_phone || userProfile.email;
+  if (document.getElementById('withdrawPhone')) document.getElementById('withdrawPhone').value = userProfile.mpesa_phone || '';
+}
 
   document.getElementById('editProfileForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -1146,17 +1343,17 @@
   // ============================================================
   // BOOTSTRAP
   // ============================================================
-  document.addEventListener('DOMContentLoaded', async () => {
-    initWallet();
-    initSubmissions();
-    initReservations();
-    currentCurrency = lsGet(STORAGE_KEYS.CURRENCY, 'USD');
-    document.getElementById('currencySelector').value = currentCurrency;
-    loadProfile();
-    updateUIStats();
-    await syncSubmissionsFromSupabase();
-    await loadTasks();
-  });
+ document.addEventListener('DOMContentLoaded', async () => {
+  initWallet();
+  initSubmissions();
+  initReservations();
+  currentCurrency = lsGet(STORAGE_KEYS.CURRENCY, 'USD');
+  document.getElementById('currencySelector').value = currentCurrency;
+  await loadProfile();
+  updateUIStats();
+  await syncSubmissionsFromSupabase();
+  await loadTasks();
+});
 
   document.querySelectorAll('.modal-overlay').forEach(o => {
     o.addEventListener('click', e => { if (e.target === o) o.classList.add('hidden'); });

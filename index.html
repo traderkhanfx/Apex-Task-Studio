@@ -1089,10 +1089,13 @@ function isTaskAvailable(task) {
     renderTasks();
     updateUIStats();
   }
+
+  // ============================================================
+  // SYNC SUBMISSIONS FROM SUPABASE
+  // ============================================================
   async function syncSubmissionsFromSupabase() {
     if (!userProfile?.full_name) return;
     try {
-      // Fetch all submissions from Supabase for this worker
       const { data, error } = await db
         .from('submissions')
         .select('*')
@@ -1100,14 +1103,12 @@ function isTaskAvailable(task) {
       if (error) throw error;
       if (!data || data.length === 0) return;
 
-      // Build a key for each Supabase submission
       const supaMap = {};
       data.forEach(s => {
         const key = String(s.task_id) + '|' + (s.proof || '').slice(0, 20);
         supaMap[key] = s;
       });
 
-      // 1) Update existing local submissions with fresh status/payout from Supabase
       const updated = submissions.map(local => {
         const key = String(local.task_id) + '|' + (local.proof || '').slice(0, 20);
         const remote = supaMap[key];
@@ -1123,7 +1124,6 @@ function isTaskAvailable(task) {
         return local;
       });
 
-      // 2) Find Supabase submissions that DON'T exist locally → add them
       const localKeys = new Set(
         submissions.map(s => String(s.task_id) + '|' + (s.proof || '').slice(0, 20))
       );
@@ -1150,26 +1150,21 @@ function isTaskAvailable(task) {
       console.warn('[Apex] Supabase sync failed, using local data:', e);
     }
   }
-  // ============================================================
-  // SYNC SUBMISSIONS FROM SUPABASE
-  // ============================================================
-
-  }
 
   // ============================================================
   // BOOTSTRAP
   // ============================================================
   document.addEventListener('DOMContentLoaded', async () => {
-    initWallet();
-    initSubmissions();
-    initReservations();
-    currentCurrency = lsGet(STORAGE_KEYS.CURRENCY, 'USD');
-    document.getElementById('currencySelector').value = currentCurrency;
-    loadProfile();
-    updateUIStats();
-    await syncSubmissionsFromSupabase();
-    await loadTasks();
-  });
+  initWallet();
+  initSubmissions();
+  initReservations();
+  currentCurrency = lsGet(STORAGE_KEYS.CURRENCY, 'USD');
+  document.getElementById('currencySelector').value = currentCurrency;
+  loadProfile();
+  updateUIStats();
+  await syncSubmissionsFromSupabase();
+  await loadTasks();
+});
 
   // Close modals on overlay click
   document.querySelectorAll('.modal-overlay').forEach(o => {

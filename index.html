@@ -49,8 +49,6 @@
 </head>
 <body>
 
-<div id="toastContainer"></div>
-
 <!-- ============ AUTH MODAL ============ -->
 <div id="authModal" class="modal-overlay hidden">
   <div class="modal-content">
@@ -59,8 +57,8 @@
         <span class="text-2xl">⚡</span>
       </div>
       <div>
-        <h2 class="text-lg font-bold text-white">Welcome to Apex Task Studio</h2>
-        <p class="text-xs text-emerald-300/60 mt-0.5">Set up your worker profile to start earning</p>
+        <h2 class="text-lg font-bold text-white" id="authModalTitle">Welcome to Apex Task Studio</h2>
+        <p class="text-xs text-emerald-300/60 mt-0.5" id="authModalSubtitle">Log in or sign up to start earning</p>
       </div>
     </div>
 
@@ -68,25 +66,48 @@
       <p class="text-[11px] text-amber-400/90 leading-tight">⚠️ <strong>One account per person.</strong> Multiple accounts may lead to a permanent ban. Use your real legal name — not a nickname.</p>
     </div>
 
-    <form id="authForm" class="space-y-3">
+    <!-- Tabs -->
+    <div class="flex gap-1 mb-5 border-b border-emerald-500/20">
+      <button id="tabLogin" onclick="switchAuthTab('login')" class="flex-1 py-2.5 text-sm font-semibold text-white border-b-2 border-emerald-400">Log In</button>
+      <button id="tabSignup" onclick="switchAuthTab('signup')" class="flex-1 py-2.5 text-sm font-semibold text-emerald-300/50 border-b-2 border-transparent hover:text-white">Sign Up</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <form id="loginForm" class="space-y-3">
+      <div>
+        <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Email Address</label>
+        <input type="email" id="loginEmail" placeholder="Enter your email" required class="input-field" />
+      </div>
+      <div>
+        <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Password</label>
+        <input type="password" id="loginPassword" placeholder="Enter your password" required class="input-field" />
+      </div>
+      <button type="submit" id="loginBtn" class="btn-primary w-full py-3 rounded-lg text-sm mt-2">Log In</button>
+    </form>
+
+    <!-- SIGNUP FORM -->
+    <form id="signupForm" class="space-y-3 hidden">
       <div>
         <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Full Legal Name</label>
-        <input type="text" id="authName" placeholder="Enter your full legal name" required class="input-field" />
+        <input type="text" id="signupName" placeholder="Enter your full legal name" required class="input-field" />
         <p class="text-[10px] text-amber-400/80 mt-1.5 leading-tight">⚠️ This becomes your permanent account ID. Use the name on your ID.</p>
       </div>
       <div>
         <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Email Address</label>
-        <input type="email" id="authEmail" placeholder="Enter your email address" required class="input-field" />
+        <input type="email" id="signupEmail" placeholder="Enter your email" required class="input-field" />
       </div>
       <div>
         <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">M-Pesa Phone Number</label>
-        <input type="tel" id="authPhone" placeholder="e.g. 0712345678" required class="input-field" />
+        <input type="tel" id="signupPhone" placeholder="e.g. 0712345678" required class="input-field" />
       </div>
-      <button type="submit" class="btn-primary w-full py-3 rounded-lg text-sm mt-2">Create Profile & Start</button>
+      <div>
+        <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Password</label>
+        <input type="password" id="signupPassword" placeholder="At least 6 characters" required class="input-field" />
+      </div>
+      <button type="submit" id="signupBtn" class="btn-primary w-full py-3 rounded-lg text-sm mt-2">Create Account</button>
     </form>
   </div>
 </div>
-
 <!-- ============ EDIT PROFILE MODAL ============ -->
 <div id="editProfileModal" class="modal-overlay hidden">
   <div class="modal-content">
@@ -624,11 +645,42 @@
   // ============================================================
   // PROFILE
   // ============================================================
- function loadProfile() {
-  userProfile = lsGet(STORAGE_KEYS.PROFILE, null);
-  if (userProfile) {
-    applyProfileToUI();
-  } else {
+ async function loadProfile() {
+  try {
+    const { data: { session } } = await db.auth.getSession();
+
+    if (session && session.user) {
+      const email = session.user.email;
+      let profile = lsGet(STORAGE_KEYS.PROFILE, null);
+
+      if (!profile || profile.email !== email) {
+        const { data } = await db
+          .from('profiles')
+          .select('*')
+          .eq('email', email)
+          .maybeSingle();
+        if (data && data.full_name) {
+          profile = {
+            full_name: data.full_name,
+            email: data.email,
+            mpesa_phone: data.mpesa_phone || ''
+          };
+          lsSet(STORAGE_KEYS.PROFILE, profile);
+        }
+      }
+
+      userProfile = profile;
+
+      if (userProfile) {
+        applyProfileToUI();
+      } else {
+        openModal('authModal');
+      }
+    } else {
+      openModal('authModal');
+    }
+  } catch (e) {
+    console.warn('loadProfile error:', e);
     openModal('authModal');
   }
 }
@@ -649,7 +701,7 @@
     try { await db.from('profiles').insert([data]); } catch (e) { console.warn('Profile sync:', e); }
   }
 // ============================================================
-// AUTHENTICATION (Simple Profile Signup)
+// AUTHENTICATION (Login + Signup with Supabase Auth)
 // ============================================================
 function applyProfileToUI() {
   if (!userProfile) return;
@@ -660,7 +712,34 @@ function applyProfileToUI() {
   if (document.getElementById('withdrawPhone')) document.getElementById('withdrawPhone').value = userProfile.mpesa_phone || '';
 }
 
-function authLogout() {
+function switchAuthTab(tab) {
+  const tabLogin = document.getElementById('tabLogin');
+  const tabSignup = document.getElementById('tabSignup');
+  const loginForm = document.getElementById('loginForm');
+  const signupForm = document.getElementById('signupForm');
+  const title = document.getElementById('authModalTitle');
+  const subtitle = document.getElementById('authModalSubtitle');
+
+  if (tab === 'login') {
+    tabLogin.className = 'flex-1 py-2.5 text-sm font-semibold text-white border-b-2 border-emerald-400';
+    tabSignup.className = 'flex-1 py-2.5 text-sm font-semibold text-emerald-300/50 border-b-2 border-transparent hover:text-white';
+    loginForm.classList.remove('hidden');
+    signupForm.classList.add('hidden');
+    title.textContent = 'Welcome back';
+    subtitle.textContent = 'Log in to your account';
+  } else {
+    tabSignup.className = 'flex-1 py-2.5 text-sm font-semibold text-white border-b-2 border-emerald-400';
+    tabLogin.className = 'flex-1 py-2.5 text-sm font-semibold text-emerald-300/50 border-b-2 border-transparent hover:text-white';
+    signupForm.classList.remove('hidden');
+    loginForm.classList.add('hidden');
+    title.textContent = 'Create your account';
+    subtitle.textContent = 'Sign up to start earning';
+  }
+}
+window.switchAuthTab = switchAuthTab;
+
+async function authLogout() {
+  try { await db.auth.signOut(); } catch (e) { console.warn(e); }
   userProfile = null;
   localStorage.removeItem(STORAGE_KEYS.PROFILE);
   localStorage.removeItem(STORAGE_KEYS.WALLET);
@@ -670,13 +749,15 @@ function authLogout() {
 }
 window.authLogout = authLogout;
 
-document.getElementById('authForm').addEventListener('submit', async (e) => {
+// ---- SIGNUP ----
+document.getElementById('signupForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const full_name = document.getElementById('authName').value.trim();
-  const email = document.getElementById('authEmail').value.trim();
-  const mpesa_phone = document.getElementById('authPhone').value.trim();
+  const full_name = document.getElementById('signupName').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const mpesa_phone = document.getElementById('signupPhone').value.trim();
+  const password = document.getElementById('signupPassword').value;
 
-  if (!full_name || !email || !mpesa_phone) {
+  if (!full_name || !email || !mpesa_phone || !password) {
     toast('Please fill in all fields.', true);
     return;
   }
@@ -688,22 +769,90 @@ document.getElementById('authForm').addEventListener('submit', async (e) => {
     toast('Enter a valid email address.', true);
     return;
   }
-
-  const profile = { full_name, email, mpesa_phone };
-  userProfile = profile;
-  lsSet(STORAGE_KEYS.PROFILE, profile);
-  applyProfileToUI();
-
-  try {
-    await db.from('profiles').insert([profile]);
-  } catch (e) {
-    console.warn('Profile sync failed:', e);
+  if (password.length < 6) {
+    toast('Password must be at least 6 characters.', true);
+    return;
   }
 
-  closeModal('authModal');
-  toast('✅ Welcome, ' + full_name.split(' ')[0] + '!');
-  await syncSubmissionsFromSupabase();
-  await loadTasks();
+  const btn = document.getElementById('signupBtn');
+  btn.disabled = true;
+  btn.textContent = 'Creating account...';
+
+  try {
+    const { data, error } = await db.auth.signUp({ email, password });
+    if (error) throw error;
+
+    // Save profile to profiles table
+    const profile = { full_name, email, mpesa_phone };
+    await db.from('profiles').insert([profile]);
+
+    userProfile = profile;
+    lsSet(STORAGE_KEYS.PROFILE, profile);
+    applyProfileToUI();
+
+    closeModal('authModal');
+    toast('✅ Account created! Welcome, ' + full_name.split(' ')[0] + '!');
+    await syncSubmissionsFromSupabase();
+    await loadTasks();
+  } catch (err) {
+    console.error(err);
+    toast('Signup failed: ' + err.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Create Account';
+  }
+});
+
+// ---- LOGIN ----
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+
+  if (!email || !password) {
+    toast('Please enter email and password.', true);
+    return;
+  }
+
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true;
+  btn.textContent = 'Logging in...';
+
+  try {
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+
+    // Fetch profile from Supabase
+    const { data: profileData } = await db
+      .from('profiles')
+      .select('*')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (profileData && profileData.full_name) {
+      const profile = {
+        full_name: profileData.full_name,
+        email: profileData.email,
+        mpesa_phone: profileData.mpesa_phone || ''
+      };
+      userProfile = profile;
+      lsSet(STORAGE_KEYS.PROFILE, profile);
+      applyProfileToUI();
+
+      closeModal('authModal');
+      toast('✅ Welcome back, ' + profile.full_name.split(' ')[0] + '!');
+      await syncSubmissionsFromSupabase();
+      await loadTasks();
+    } else {
+      toast('Account found but no profile. Contact support.', true);
+    }
+  } catch (err) {
+    console.error(err);
+    toast('Login failed: ' + err.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Log In';
+  }
 });
 
   document.getElementById('editProfileForm').addEventListener('submit', async (e) => {
@@ -1200,7 +1349,7 @@ document.getElementById('authForm').addEventListener('submit', async (e) => {
   initReservations();
   currentCurrency = lsGet(STORAGE_KEYS.CURRENCY, 'USD');
   document.getElementById('currencySelector').value = currentCurrency;
-  loadProfile();
+  await loadProfile();
   updateUIStats();
   await syncSubmissionsFromSupabase();
   await loadTasks();

@@ -1089,13 +1089,10 @@ function isTaskAvailable(task) {
     renderTasks();
     updateUIStats();
   }
-
-  // ============================================================
-  // SYNC SUBMISSIONS FROM SUPABASE
-  // ============================================================
   async function syncSubmissionsFromSupabase() {
     if (!userProfile?.full_name) return;
     try {
+      // Fetch all submissions from Supabase for this worker
       const { data, error } = await db
         .from('submissions')
         .select('*')
@@ -1103,12 +1100,14 @@ function isTaskAvailable(task) {
       if (error) throw error;
       if (!data || data.length === 0) return;
 
+      // Build a key for each Supabase submission
       const supaMap = {};
       data.forEach(s => {
         const key = String(s.task_id) + '|' + (s.proof || '').slice(0, 20);
         supaMap[key] = s;
       });
 
+      // 1) Update existing local submissions with fresh status/payout from Supabase
       const updated = submissions.map(local => {
         const key = String(local.task_id) + '|' + (local.proof || '').slice(0, 20);
         const remote = supaMap[key];
@@ -1116,10 +1115,31 @@ function isTaskAvailable(task) {
           return {
             ...local,
             status: (remote.status || local.status || 'pending').toLowerCase(),
-            payout: Number(remote.payout_usd) || Number(remote.payout) || local.payout
+            payout: Number(remote.payout_usd) || Number(remote.payout) || local.payout || 0,
+            task_title: remote.task_title || local.task_title,
+            submitted_at: remote.created_at || remote.submitted_at || local.submitted_at
           };
         }
         return local;
+      });
+
+      // 2) Find Supabase submissions that DON'T exist locally → add them
+      const localKeys = new Set(
+        submissions.map(s => String(s.task_id) + '|' + (s.proof || '').slice(0, 20))
+      );
+
+      data.forEach(remote => {
+        const key = String(remote.task_id) + '|' + (remote.proof || '').slice(0, 20);
+        if (!localKeys.has(key)) {
+          updated.push({
+            task_id: remote.task_id,
+            task_title: remote.task_title || 'Untitled',
+            payout: Number(remote.payout_usd) || Number(remote.payout) || 0,
+            status: (remote.status || 'pending').toLowerCase(),
+            proof: remote.proof || '',
+            submitted_at: remote.created_at || remote.submitted_at || new Date().toISOString()
+          });
+        }
       });
 
       submissions = updated;
@@ -1129,6 +1149,11 @@ function isTaskAvailable(task) {
     } catch (e) {
       console.warn('[Apex] Supabase sync failed, using local data:', e);
     }
+  }
+  // ============================================================
+  // SYNC SUBMISSIONS FROM SUPABASE
+  // ============================================================
+
   }
 
   // ============================================================

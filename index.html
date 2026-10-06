@@ -65,11 +65,9 @@
     </div>
     <form id="onboardingForm" class="space-y-3">
       <div>
-             <div>
         <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Full Name</label>
         <input type="text" id="onboardName" placeholder="Enter your full name" required class="input-field" />
         <p class="text-[10px] text-amber-400/80 mt-1.5 leading-tight">⚠️ This name becomes your permanent account ID. Do not use nicknames — use your real name as it appears on your ID.</p>
-      </div>
       </div>
       <div>
         <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Email Address</label>
@@ -97,7 +95,6 @@
     </div>
     <form id="editProfileForm" class="space-y-3">
       <div>
-              <div>
         <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Full Name</label>
         <input type="text" id="editName" class="input-field !opacity-60 !cursor-not-allowed" readonly />
         <p class="text-[10px] text-amber-400/80 mt-1.5 leading-tight">⚠️ Your name is locked. It's your permanent account ID.</p>
@@ -239,46 +236,47 @@
     </div>
   </div>
 </div>
-  <!-- ============ TERMS & CONDITIONS MODAL ============ -->
-  <div id="termsModal" class="modal-overlay hidden">
-    <div class="modal-content" style="max-width: 640px;">
-      <div class="flex justify-between items-start mb-4">
-        <div>
-          <span class="badge badge-emerald mb-2">Terms & Conditions</span>
-          <h2 class="text-lg font-bold text-white mt-1">Apex Task Studio Rules</h2>
-          <p class="text-xs text-emerald-300/60 mt-0.5">Please read carefully before working on tasks.</p>
-        </div>
-        <button onclick="closeModal('termsModal')" class="text-emerald-300 hover:text-white text-2xl">&times;</button>
+
+<!-- ============ TERMS & CONDITIONS MODAL ============ -->
+<div id="termsModal" class="modal-overlay hidden">
+  <div class="modal-content" style="max-width: 640px;">
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <span class="badge badge-emerald mb-2">Terms & Conditions</span>
+        <h2 class="text-lg font-bold text-white mt-1">Apex Task Studio Rules</h2>
+        <p class="text-xs text-emerald-300/60 mt-0.5">Please read carefully before working on tasks.</p>
       </div>
-      <div class="space-y-3 text-sm text-slate-300 leading-relaxed max-h-96 overflow-y-auto pr-2">
-        <div class="glass rounded-lg p-3">
-          <h3 class="font-semibold text-emerald-400 mb-1 text-sm">1. One Account Per Person</h3>
-          <p class="text-xs">Each worker is allowed only ONE account. Multiple accounts using the same name, email, phone number, or M-Pesa number will be flagged and may result in account suspension and forfeiture of earnings.</p>
-        </div>
-        <div class="glass rounded-lg p-3">
-          <h3 class="font-semibold text-emerald-400 mb-1 text-sm">2. Real Information Required</h3>
-          <p class="text-xs">You must register with your real name, valid email, and a personal M-Pesa number in your own name. Fake identities or impersonation will lead to a permanent ban.</p>
-        </div>
-        <div class="glass rounded-lg p-3">
-          <h3 class="font-semibold text-emerald-400 mb-1 text-sm">3. Quality Submissions</h3>
-          <p class="text-xs">All work must be genuine, accurate, and completed by you. Copying, AI-generated content without disclosure, or submitting work that does not match the task will be rejected.</p>
-        </div>
-        <div class="glass rounded-lg p-3">
-          <h3 class="font-semibold text-emerald-400 mb-1 text-sm">4. Task Reservations</h3>
-          <p class="text-xs">When you start a task, it is reserved for 30 minutes. If you do not submit within that time, the task reopens for other workers.</p>
-        </div>
-        <div class="glass rounded-lg p-3">
-          <h3 class="font-semibold text-emerald-400 mb-1 text-sm">5. Payouts</h3>
-          <p class="text-xs">Payments are processed via M-Pesa within 24 hours of approval. Minimum withdrawal is $1.00. All payouts are subject to task approval by our QA team.</p>
-        </div>
-        <div class="glass rounded-lg p-3">
-          <h3 class="font-semibold text-emerald-400 mb-1 text-sm">6. Account Suspension</h3>
-          <p class="text-xs">Violation of any of these terms may result in the suspension or termination of your account without notice. Pending earnings may be forfeited in cases of fraud.</p>
-        </div>
-      </div>
-      <button onclick="closeModal('termsModal')" class="btn-primary w-full py-3 rounded-lg text-sm mt-5">I Understand</button>
+      <button onclick="closeModal('termsModal')" class="text-emerald-300 hover:text-white text-2xl">&times;</button>
     </div>
+    <div class="space-y-3 text-sm text-slate-300 leading-relaxed max-h-96 overflow-y-auto pr-2">
+      <div class="glass rounded-lg p-3">
+        <h3 class="font-semibold text-emerald-400 mb-1 text-sm">1. One Account Per Person</h3>
+        <p class="text-xs">Each worker is allowed only ONE account. Multiple accounts using the same name, email, phone number, or M-Pesa number will be flagged and may result in account suspension and forfeiture of earnings.</p>
+      </div>
+      <div class="glass rounded-lg p-3">
+        <h3 class="font-semibold text-emerald-400 mb-1 text-sm">2. Real Information Required</h3>
+        <p class="text-xs">You must register with your real name, valid email, and a personal M-Pesa number in your own name. Fake identities or impersonation will lead to a permanent ban.</p>
+      </div>
+      <div class="glass rounded-lg p-3">
+        <h3 class="font-semibold text-emerald-400 mb-1 text-sm">3. Quality Submissions</h3>
+        <p class="text-xs">All work must be genuine, accurate, and completed by you. Copying, AI-generated content without disclosure, or submitting work that does not match the task will be rejected.</p>
+      </div>
+      <div class="glass rounded-lg p-3">
+        <h3 class="font-semibold text-emerald-400 mb-1 text-sm">4. Task Reservations</h3>
+        <p class="text-xs">When you start a task, it is reserved for 30 minutes. If you do not submit within that time, the task reopens for other workers.</p>
+      </div>
+      <div class="glass rounded-lg p-3">
+        <h3 class="font-semibold text-emerald-400 mb-1 text-sm">5. Payouts</h3>
+        <p class="text-xs">Payments are processed via M-Pesa within 24 hours of approval. Minimum withdrawal is $1.00. All payouts are subject to task approval by our QA team.</p>
+      </div>
+      <div class="glass rounded-lg p-3">
+        <h3 class="font-semibold text-emerald-400 mb-1 text-sm">6. Account Suspension</h3>
+        <p class="text-xs">Violation of any of these terms may result in the suspension or termination of your account without notice. Pending earnings may be forfeited in cases of fraud.</p>
+      </div>
+    </div>
+    <button onclick="closeModal('termsModal')" class="btn-primary w-full py-3 rounded-lg text-sm mt-5">I Understand</button>
   </div>
+</div>
 
 <!-- ============ MAIN APP ============ -->
 <div class="max-w-6xl mx-auto p-4 pb-16">
@@ -410,10 +408,10 @@
         <p class="text-xs text-emerald-300/60 mt-1">M-Pesa Support: +254 107 246 326</p>
       </div>
     </div>
-  <p class="text-center text-xs text-emerald-300/40">
-  © 2026 Apex Task Studio. All rights reserved. · 
-  <button onclick="openModal('termsModal')" class="hover:text-emerald-400 underline">Terms & Conditions</button>
-</p>
+    <p class="text-center text-xs text-emerald-300/40">
+      © 2026 Apex Task Studio. All rights reserved. ·
+      <button onclick="openModal('termsModal')" class="hover:text-emerald-400 underline">Terms & Conditions</button>
+    </p>
   </footer>
 </div>
 
@@ -523,17 +521,15 @@
     lsSet(STORAGE_KEYS.RESERVATIONS, reservations);
   }
 
-    async function reserveTask(taskId) {
+  async function reserveTask(taskId) {
     initReservations();
     const now = Date.now();
     const expires = new Date(now + RESERVATION_MS).toISOString();
 
-    // Save locally (fallback)
     reservations = reservations.filter(r => String(r.task_id) !== String(taskId));
     reservations.push({ task_id: taskId, reserved_at: now, expires_at: now + RESERVATION_MS });
     lsSet(STORAGE_KEYS.RESERVATIONS, reservations);
 
-    // Save to Supabase (main lock for multi-device)
     try {
       await db.from('tasks').update({
         reserved_until: expires,
@@ -544,7 +540,7 @@
     }
   }
 
-   async function clearReservation(taskId) {
+  async function clearReservation(taskId) {
     reservations = reservations.filter(r => String(r.task_id) !== String(taskId));
     lsSet(STORAGE_KEYS.RESERVATIONS, reservations);
 
@@ -557,7 +553,8 @@
       console.warn('[Apex] Failed to clear reservation in Supabase:', e);
     }
   }
-    function isReservedByMe(taskId) {
+
+  function isReservedByMe(taskId) {
     initReservations();
     return reservations.some(r => String(r.task_id) === String(taskId));
   }
@@ -675,27 +672,21 @@
   // ============================================================
   // TASK AVAILABILITY
   // ============================================================
-function isTaskAvailable(task) {
-  // If ANYONE already submitted this task (pending/accepted), hide it
-  if (task.alreadyTaken) return false;
-
-  // Already submitted by me → hide
-  const mySub = submissions.find(s => String(s.task_id) === String(task.id));
-  if (mySub) return false;
-
-  // Reserved by someone else (not expired) → hide
-  if (task.reserved_until && task.reserved_by) {
-    const reservedUntil = new Date(task.reserved_until).getTime();
-    const stillReserved = reservedUntil > Date.now();
-    const isMine = task.reserved_by === (userProfile?.full_name || '');
-    if (stillReserved && !isMine) return false;
+  function isTaskAvailable(task) {
+    if (task.alreadyTaken) return false;
+    const mySub = submissions.find(s => String(s.task_id) === String(task.id));
+    if (mySub) return false;
+    if (task.reserved_until && task.reserved_by) {
+      const reservedUntil = new Date(task.reserved_until).getTime();
+      const stillReserved = reservedUntil > Date.now();
+      const isMine = task.reserved_by === (userProfile?.full_name || '');
+      if (stillReserved && !isMine) return false;
+    }
+    return true;
   }
 
-  return true;
-}
-
   // ============================================================
-  // RENDER TASKS (with audio/image download buttons)
+  // RENDER TASKS
   // ============================================================
   function renderTasks() {
     const grid = document.getElementById('taskGrid');
@@ -808,12 +799,12 @@ function isTaskAvailable(task) {
   // ============================================================
   // TASK ACTIONS
   // ============================================================
- async function acceptAndStart(taskId) {
-  const task = allTasks.find(t => String(t.id) === String(taskId));
-  if (!task) return;
-  await reserveTask(taskId);
-  openSubmissionModal(task);
-}
+  async function acceptAndStart(taskId) {
+    const task = allTasks.find(t => String(t.id) === String(taskId));
+    if (!task) return;
+    await reserveTask(taskId);
+    openSubmissionModal(task);
+  }
   window.acceptAndStart = acceptAndStart;
 
   function promptUnlock(taskId) {
@@ -830,21 +821,21 @@ function isTaskAvailable(task) {
   window.promptUnlock = promptUnlock;
 
   async function confirmUnlock(task) {
-  const fee = Number(task.lock_fee) || 0;
-  const b = getCalculatedBalances();
-  if (b.availableBalanceUSD < fee) {
-    toast('Insufficient available balance to unlock this task.', true);
-    return;
+    const fee = Number(task.lock_fee) || 0;
+    const b = getCalculatedBalances();
+    if (b.availableBalanceUSD < fee) {
+      toast('Insufficient available balance to unlock this task.', true);
+      return;
+    }
+    wallet.totalUnlockFeesPaidUSD = Number(wallet.totalUnlockFeesPaidUSD) + fee;
+    saveWallet();
+    await reserveTask(task.id);
+    closeModal('unlockModal');
+    updateUIStats();
+    renderTasks();
+    toast(`Task unlocked! ${fmtMoney(fee)} deducted.`);
+    openSubmissionModal(task);
   }
-  wallet.totalUnlockFeesPaidUSD = Number(wallet.totalUnlockFeesPaidUSD) + fee;
-  saveWallet();
-  await reserveTask(task.id);
-  closeModal('unlockModal');
-  updateUIStats();
-  renderTasks();
-  toast(`Task unlocked! ${fmtMoney(fee)} deducted.`);
-  openSubmissionModal(task);
-}
   window.confirmUnlock = confirmUnlock;
 
   // ============================================================
@@ -861,7 +852,6 @@ function isTaskAvailable(task) {
     document.getElementById('modalDescription').textContent = task.description || 'No description provided.';
     document.getElementById('modalProof').value = '';
 
-    // Build asset buttons for the modal too
     const assetsEl = document.getElementById('modalAssets');
     let assetsHtml = '';
     if (task.audio_url) {
@@ -1046,7 +1036,6 @@ function isTaskAvailable(task) {
   // ============================================================
   async function loadTasks() {
     try {
-      // 1. Load all active tasks
       const { data: tasks, error: taskErr } = await db
         .from('tasks')
         .select('*')
@@ -1054,13 +1043,11 @@ function isTaskAvailable(task) {
         .order('created_at', { ascending: false });
       if (taskErr) throw taskErr;
 
-      // 2. Load all submissions (pending + accepted) to know what's already taken
       const { data: allSubs, error: subErr } = await db
         .from('submissions')
         .select('task_id, status');
       if (subErr) throw subErr;
 
-      // Build a set of task_ids that already have a pending or accepted submission
       const takenTaskIds = new Set(
         (allSubs || [])
           .filter(s => {
@@ -1160,18 +1147,17 @@ function isTaskAvailable(task) {
   // BOOTSTRAP
   // ============================================================
   document.addEventListener('DOMContentLoaded', async () => {
-  initWallet();
-  initSubmissions();
-  initReservations();
-  currentCurrency = lsGet(STORAGE_KEYS.CURRENCY, 'USD');
-  document.getElementById('currencySelector').value = currentCurrency;
-  loadProfile();
-  updateUIStats();
-  await syncSubmissionsFromSupabase();
-  await loadTasks();
-});
+    initWallet();
+    initSubmissions();
+    initReservations();
+    currentCurrency = lsGet(STORAGE_KEYS.CURRENCY, 'USD');
+    document.getElementById('currencySelector').value = currentCurrency;
+    loadProfile();
+    updateUIStats();
+    await syncSubmissionsFromSupabase();
+    await loadTasks();
+  });
 
-  // Close modals on overlay click
   document.querySelectorAll('.modal-overlay').forEach(o => {
     o.addEventListener('click', e => { if (e.target === o) o.classList.add('hidden'); });
   });

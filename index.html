@@ -48,7 +48,7 @@
 </style>
 </head>
 <body>
-  
+
   <div id="toastContainer"></div>
 
 <!-- ============ AUTH MODAL ============ -->
@@ -372,7 +372,17 @@
       <p class="text-xs text-emerald-300/50 mt-0.5">First task free</p>
     </div>
   </div>
-
+<!-- Announcement Banner (populated by JS) -->
+<div id="announcementBanner" class="hidden glass rounded-xl p-4 mb-5" style="border-color: rgba(251,191,36,0.4); background: rgba(251,191,36,0.08);">
+  <div class="flex items-start gap-3">
+    <span class="text-xl">📢</span>
+    <div class="flex-1">
+      <p class="text-xs font-bold text-amber-400 mb-1">ANNOUNCEMENT</p>
+      <p class="text-sm text-white" id="announcementText">—</p>
+    </div>
+    <button onclick="document.getElementById('announcementBanner').classList.add('hidden')" class="text-amber-300/50 hover:text-amber-300 text-xl leading-none">&times;</button>
+  </div>
+</div>
   <!-- WELCOME BANNER -->
   <div class="glass rounded-2xl p-6 mb-5">
     <span class="badge badge-emerald mb-3">WORLDWIDE REMOTE OPPORTUNITIES</span>
@@ -1247,6 +1257,27 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     document.getElementById('taskGrid').scrollIntoView({ behavior: 'smooth' });
   }
   window.scrollToTasks = scrollToTasks;
+async function loadAnnouncement() {
+  try {
+    const { data, error } = await db
+      .from('announcements')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(1);
+    if (error) throw error;
+    const banner = document.getElementById('announcementBanner');
+    const text = document.getElementById('announcementText');
+    if (data && data.length > 0 && data[0].message) {
+      text.textContent = data[0].message;
+      banner.classList.remove('hidden');
+    } else {
+      banner.classList.add('hidden');
+    }
+  } catch (e) {
+    console.warn('Announcement load failed:', e);
+  }
+}
 
   // ============================================================
   // LOAD TASKS FROM SUPABASE
@@ -1372,6 +1403,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   await loadProfile();
   updateUIStats();
   await syncSubmissionsFromSupabase();
+  await loadAnnouncement();
   await loadTasks();
 });
 

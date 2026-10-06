@@ -249,6 +249,21 @@
     </form>
   </div>
 
+  <!-- ============ ANNOUNCEMENTS ============ -->
+<div class="glass rounded-xl p-5 mb-8">
+  <h2 class="text-lg font-bold gold-text mb-4">📢 Announcements</h2>
+  <div class="space-y-3 mb-4">
+    <div>
+      <label class="text-xs text-amber-200/70 block mb-1.5 font-semibold">Message</label>
+      <textarea id="announcementMessage" rows="2" placeholder="Type a message to show on the worker portal..." class="input-field"></textarea>
+    </div>
+    <button onclick="postAnnouncement()" class="btn-gold px-5 py-2.5 rounded-lg text-sm">📢 Post Announcement</button>
+  </div>
+  <div id="announcementsList" class="space-y-2">
+    <p class="text-xs text-amber-300/50">Loading...</p>
+  </div>
+</div>
+
   <!-- PENDING WITHDRAWALS -->
   <div class="glass rounded-xl p-5 mb-8">
     <h2 class="text-lg font-bold gold-text mb-4 flex items-center gap-2">
@@ -540,10 +555,83 @@ async function updateSub(id, status) {
 
 window.updateSub = updateSub;
 
+// ============ ANNOUNCEMENTS ============
+async function postAnnouncement() {
+  const msg = document.getElementById('announcementMessage').value.trim();
+  if (!msg) { toast('Please enter a message.', true); return; }
+  try {
+    // Deactivate all old announcements first
+    await db.from('announcements').update({ is_active: false }).eq('is_active', true);
+    // Insert new active announcement
+    const { error } = await db.from('announcements').insert([{ message: msg, is_active: true }]);
+    if (error) throw error;
+    document.getElementById('announcementMessage').value = '';
+    toast('✅ Announcement posted!');
+    loadAnnouncements();
+  } catch (e) {
+    console.error(e);
+    toast('Failed to post announcement: ' + e.message, true);
+  }
+}
+window.postAnnouncement = postAnnouncement;
+
+async function loadAnnouncements() {
+  const container = document.getElementById('announcementsList');
+  try {
+    const { data, error } = await db.from('announcements').select('*').order('created_at', { ascending: false }).limit(10);
+    if (error) throw error;
+    if (!data || data.length === 0) {
+      container.innerHTML = '<p class="text-xs text-amber-300/50">No announcements yet.</p>';
+      return;
+    }
+    container.innerHTML = data.map(a => `
+      <div class="glass rounded-lg p-3 flex justify-between items-start gap-3">
+        <div class="flex-1">
+          <p class="text-xs text-white">${escapeHtml(a.message)}</p>
+          <p class="text-[10px] text-amber-300/40 mt-1">${new Date(a.created_at).toLocaleString()}</p>
+        </div>
+        <div class="flex flex-col items-end gap-1">
+          <span class="badge ${a.is_active ? 'badge-accepted' : 'badge-pending'}">${a.is_active ? 'ACTIVE' : 'INACTIVE'}</span>
+          <div class="flex gap-1">
+            <button onclick="toggleAnnouncement('${a.id}', ${!a.is_active})" class="text-[10px] text-amber-300 hover:text-amber-200 underline">${a.is_active ? 'Deactivate' : 'Activate'}</button>
+            <button onclick="deleteAnnouncement('${a.id}')" class="text-[10px] text-red-400 hover:text-red-300 underline">Delete</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  } catch (e) {
+    console.error(e);
+    container.innerHTML = '<p class="text-xs text-red-400">Failed to load.</p>';
+  }
+}
+
+async function toggleAnnouncement(id, activate) {
+  try {
+    await db.from('announcements').update({ is_active: activate }).eq('id', id);
+    loadAnnouncements();
+  } catch (e) { toast(e.message, true); }
+}
+window.toggleAnnouncement = toggleAnnouncement;
+
+async function deleteAnnouncement(id) {
+  if (!confirm('Delete this announcement?')) return;
+  try {
+    await db.from('announcements').delete().eq('id', id);
+    loadAnnouncements();
+  } catch (e) { toast(e.message, true); }
+}
+window.deleteAnnouncement = deleteAnnouncement;
+
+function escapeHtml(s) {
+  if (s === null || s === undefined) return '';
+  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
 // ============ BOOTSTRAP ============
 document.addEventListener('DOMContentLoaded', () => {
   if (localStorage.getItem('apex_admin_unlocked') === 'true') {
     unlockPanel();
+    loadAnnouncements();
   } else {
     document.getElementById('pinInput').focus();
   }

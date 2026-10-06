@@ -80,7 +80,10 @@
       </div>
       <div>
         <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Password</label>
-        <input type="password" id="loginPassword" placeholder="Enter your password" required class="input-field" />
+        <div class="relative">
+  <input type="password" id="loginPassword" placeholder="Enter your password" required class="input-field pr-12" />
+  <button type="button" onclick="togglePassword('loginPassword', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-300/60 hover:text-emerald-300 text-lg">👁️</button>
+</div>
       </div>
       <button type="submit" id="loginBtn" class="btn-primary w-full py-3 rounded-lg text-sm mt-2">Log In</button>
     </form>
@@ -102,7 +105,10 @@
       </div>
       <div>
         <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Password</label>
-        <input type="password" id="signupPassword" placeholder="At least 6 characters" required class="input-field" />
+        <div class="relative">
+  <input type="password" id="signupPassword" placeholder="At least 6 characters" required class="input-field pr-12" />
+  <button type="button" onclick="togglePassword('signupPassword', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-300/60 hover:text-emerald-300 text-lg">👁️</button>
+</div>
       </div>
       <button type="submit" id="signupBtn" class="btn-primary w-full py-3 rounded-lg text-sm mt-2">Create Account</button>
     </form>
@@ -737,6 +743,18 @@ function switchAuthTab(tab) {
   }
 }
 window.switchAuthTab = switchAuthTab;
+function togglePassword(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    btn.textContent = '👁️';
+  }
+}
+window.togglePassword = togglePassword;
 
 async function authLogout() {
   try { await db.auth.signOut(); } catch (e) { console.warn(e); }

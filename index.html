@@ -643,12 +643,7 @@
   }
   window.openEditProfile = openEditProfile;
 
-    async function saveProfile(data) {
-    // If a profile already exists, prevent name change (keep the original name)
-    if (userProfile && userProfile.full_name && data.full_name !== userProfile.full_name) {
-      data.full_name = userProfile.full_name; // Force the original name
-      toast('⚠️ Your name is locked — it cannot be changed.', true);
-    }
+  async function saveProfile(data) {
     userProfile = data;
     lsSet(STORAGE_KEYS.PROFILE, data);
     loadProfile();

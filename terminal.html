@@ -159,7 +159,7 @@
   </header>
 
   <!-- STATS BAR -->
-  <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+  <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6"></div>
     <div class="stat-card">
       <p class="text-xs text-amber-200/60 uppercase tracking-wider font-semibold">Total Tasks</p>
       <p class="text-2xl font-extrabold text-white mt-1" id="statTotalTasks">—</p>
@@ -185,6 +185,16 @@
       <p class="text-2xl font-extrabold text-amber-400 mt-1" id="statPendingCashout">—</p>
       <p class="text-xs text-amber-300/40 mt-0.5">Withdrawals waiting</p>
     </div>
+  <div class="stat-card">
+  <p class="text-xs text-amber-200/60 uppercase tracking-wider font-semibold">Unlock Fee Income</p>
+  <p class="text-2xl font-extrabold text-amber-400 mt-1" id="statUnlockIncome">$0.00</p>
+  <p class="text-xs text-amber-300/40 mt-0.5">Fees from locked tasks</p>
+</div>
+<div class="stat-card">
+  <p class="text-xs text-amber-200/60 uppercase tracking-wider font-semibold">Net Profit</p>
+  <p class="text-2xl font-extrabold text-emerald-400 mt-1" id="statNetProfit">$0.00</p>
+  <p class="text-xs text-amber-300/40 mt-0.5">Profit + Fees − Payouts</p>
+</div>
   </div>
 
   <!-- POST TASK FORM -->
@@ -451,6 +461,49 @@ async function loadStats() {
 
     const { count: pendingCount } = await db.from('withdrawals').select('*', { count: 'exact', head: true }).eq('status', 'pending');
     document.getElementById('statPendingCashout').textContent = pendingCount || 0;
+    
+    // Unlock fee income — sum of lock_fee for tasks where a submission exists
+try {
+  const { data: tasksWithFees } = await db
+    .from('tasks')
+    .select('id, lock_fee')
+    .gt('lock_fee', 0);
+  
+  let unlockIncome = 0;
+  if (tasksWithFees && tasksWithFees.length > 0) {
+    // Get submissions to know which locked tasks were actually worked on
+    const { data: subs } = await db
+      .from('submissions')
+      .select('task_id')
+      .in('task_id', tasksWithFees.map(t => String(t.id)));
+    
+    const workedTaskIds = new Set((subs || []).map(s => String(s.task_id)));
+    
+    tasksWithFees.forEach(t => {
+      if (workedTaskIds.has(String(t.id))) {
+        unlockIncome += Number(t.lock_fee) || 0;
+      }
+    });
+  }
+  
+  document.getElementById('statUnlockIncome').textContent = '$' + unlockIncome.toFixed(2);
+  
+  // Net Profit = Total Profit + Unlock Income − Withdrawals Paid
+  const { data: paidWithdrawals } = await db
+    .from('withdrawals')
+    .select('amount')
+    .eq('status', 'paid');
+  
+  const withdrawalsPaid = (paidWithdrawals || []).reduce((sum, w) => sum + (Number(w.amount) || 0), 0);
+  
+  const totalProfitEl = document.getElementById('statTotalProfit');
+  const totalProfit = parseFloat((totalProfitEl?.textContent || '0').replace('$', '')) || 0;
+  
+  const netProfit = totalProfit + unlockIncome - withdrawalsPaid;
+  document.getElementById('statNetProfit').textContent = '$' + netProfit.toFixed(2);
+} catch (e) {
+  console.warn('Net profit calculation failed:', e);
+}
   } catch (err) {
     console.warn('Stats load error:', err);
   }

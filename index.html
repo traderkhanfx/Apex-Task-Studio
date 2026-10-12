@@ -177,6 +177,26 @@
         <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">M-Pesa Phone Number</label>
         <input type="tel" id="editPhone" class="input-field" required />
       </div>
+<div class="border-t border-emerald-500/15 pt-4 mt-2">
+        <p class="text-xs text-emerald-200/70 font-medium mb-3">🔐 Change Password (Optional)</p>
+        <div class="space-y-3">
+          <div>
+            <label class="text-xs text-emerald-200/70 block mb-1.5">New Password</label>
+            <div class="relative">
+              <input type="password" id="newPassword" placeholder="At least 6 characters" class="input-field pr-12" />
+              <button type="button" onclick="togglePassword('newPassword', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-300/60 hover:text-emerald-300 text-lg">👁️</button>
+            </div>
+          </div>
+          <div>
+            <label class="text-xs text-emerald-200/70 block mb-1.5">Confirm New Password</label>
+            <div class="relative">
+              <input type="password" id="confirmNewPassword" placeholder="Retype new password" class="input-field pr-12" />
+              <button type="button" onclick="togglePassword('confirmNewPassword', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-300/60 hover:text-emerald-300 text-lg">👁️</button>
+            </div>
+          </div>
+          <button type="button" onclick="updateUserPassword()" class="btn-ghost w-full py-2.5 rounded-lg text-xs font-semibold mt-1">Update Password</button>
+        </div>
+      </div>
              <button type="submit" class="btn-primary w-full py-3 rounded-lg text-sm mt-2">Save Profile & Continue</button>
       <button type="button" onclick="authLogout()" class="w-full py-2.5 rounded-lg text-xs font-semibold text-red-400 hover:text-red-300 border border-red-500/30 hover:bg-red-500/10 mt-3">🚪 Log Out</button>      
     </form>
@@ -856,6 +876,42 @@ async function submitPasswordResetRequest() {
   }
 }
 window.submitPasswordResetRequest = submitPasswordResetRequest;
+
+// ============================================================
+// CHANGE PASSWORD (Inside Edit Profile)
+// ============================================================
+async function updateUserPassword() {
+  const newPass = document.getElementById('newPassword').value;
+  const confirmPass = document.getElementById('confirmNewPassword').value;
+
+  if (!newPass || !confirmPass) {
+    toast('Please fill in both password fields.', true);
+    return;
+  }
+  if (newPass.length < 6) {
+    toast('Password must be at least 6 characters.', true);
+    return;
+  }
+  if (newPass !== confirmPass) {
+    toast('Passwords do not match.', true);
+    return;
+  }
+
+  try {
+    // This securely updates the password for the currently logged-in user
+    const { error } = await db.auth.updateUser({ password: newPass });
+    if (error) throw error;
+    
+    toast('✅ Password updated successfully!');
+    // Clear the fields after a successful update
+    document.getElementById('newPassword').value = '';
+    document.getElementById('confirmNewPassword').value = '';
+  } catch (err) {
+    console.error('Password update failed:', err);
+    toast('Failed to update password: ' + err.message, true);
+  }
+}
+window.updateUserPassword = updateUserPassword;
 
 async function authLogout() {
   try { await db.auth.signOut(); } catch (e) { console.warn(e); }

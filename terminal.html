@@ -284,6 +284,16 @@
     </div>
   </div>
 
+  <!-- ============ PASSWORD RESET REQUESTS ============ -->
+  <div class="glass rounded-xl p-5 mb-8">
+    <h2 class="text-lg font-bold gold-text mb-4 flex items-center gap-2">
+      <span>🔑</span> Password Reset Requests
+    </h2>
+    <div id="resetRequestsContainer" class="space-y-3">
+      <p class="text-xs text-amber-300/50">Loading reset requests...</p>
+    </div>
+  </div>
+
   <!-- SUBMISSIONS -->
   <div class="glass rounded-xl p-5">
     <h2 class="text-lg font-bold gold-text mb-4">📝 Submitted Work Proofs</h2>
@@ -328,6 +338,7 @@ function unlockPanel() {
   document.getElementById('adminPanel').classList.remove('hidden');
   loadStats();
   fetchWithdrawals();
+  fetchResetRequests();
   fetchSubmissions();
 }
 function lockPanel() {
@@ -549,6 +560,63 @@ async function markPaid(id) {
   } catch (err) { toast(err.message, true); }
 }
 window.markPaid = markPaid;
+
+// ============ PASSWORD RESET REQUESTS ============
+async function fetchResetRequests() {
+  const container = document.getElementById('resetRequestsContainer');
+  if (!container) return;
+  
+  try {
+    const { data, error } = await db
+      .from('reset_requests')
+      .select('*')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    if (!data || !data.length) {
+      container.innerHTML = '<p class="text-xs text-amber-300/50">No pending password reset requests.</p>';
+      return;
+    }
+
+    container.innerHTML = data.map(r => {
+      const cleanPhone = (r.phone || '').replace(/\D/g, '');
+      const waLink = cleanPhone ? `https://wa.me/${cleanPhone}` : '#';
+      return `
+        <div class="glass p-3 rounded-lg flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <p class="text-sm font-bold text-white">📱 <strong>${r.phone || '—'}</strong></p>
+            <p class="text-xs text-amber-200/60">${r.email ? '✉️ ' + r.email : 'No email provided'}</p>
+            <p class="text-[10px] text-amber-300/40 mt-1">Requested: ${new Date(r.created_at).toLocaleString()}</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <a href="${waLink}" target="_blank" class="btn-gold text-xs px-3 py-1.5 rounded-lg no-underline">💬 WhatsApp</a>
+            <button onclick="markResetDone('${r.id}')" class="bg-emerald-600/80 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold">✓ Mark Done</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    container.innerHTML = `<p class="text-xs text-red-400">${err.message}</p>`;
+  }
+}
+
+async function markResetDone(id) {
+  if (!confirm('Have you sent the temporary password to this user?')) return;
+  try {
+    const { error } = await db.from('reset_requests').update({ status: 'done' }).eq('id', id);
+    if (error) throw error;
+    toast('✅ Marked as done.');
+    fetchResetRequests();
+  } catch (err) { toast(err.message, true); }
+}
+window.markResetDone = markResetDone;
+
+
+
+
+
 
 // ============ SUBMISSIONS ============
 async function fetchSubmissions() {

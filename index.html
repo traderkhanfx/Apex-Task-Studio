@@ -53,11 +53,58 @@
   .toast { position: fixed; top: 1.5rem; left: 50%; transform: translateX(-50%); background: rgba(15,23,42,0.96); border: 1px solid rgba(16,185,129,0.4); padding: 0.85rem 1.25rem; border-radius: 0.75rem; font-size: 0.85rem; color: white; z-index: 200; box-shadow: 0 10px 40px rgba(0,0,0,0.6); max-width: 90vw; }
   .toast-error { border-color: rgba(239,68,68,0.6); }
   .asset-btn { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.6rem; border-radius: 0.5rem; font-size: 0.75rem; font-weight: 600; cursor: pointer; text-decoration: none; }
+    /* LOADING SCREEN */
+  #apexLoader {
+    position: fixed;
+    inset: 0;
+    background: #0a0f1a; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    transition: opacity 0.6s ease, visibility 0.6s ease;
+  }
+  #apexLoader.hidden-loader {
+    opacity: 0;
+    visibility: hidden;
+  }
+  .loader-logo-container {
+    width: 80px;
+    height: 80px;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse-logo 1.5s infinite;
+  }
+  .loader-spinner {
+    border: 3px solid rgba(16,185,129,0.15);
+    border-top: 3px solid #10b981;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin-top: 1.5rem;
+  }
+  @keyframes pulse-logo {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.7; }
+  }
 </style>
 </head>
 <body>
 
   <div id="toastContainer"></div>
+
+    <!-- LOADING SCREEN -->
+  <div id="apexLoader">
+    <div class="loader-logo-container">
+      <span style="font-size: 40px;">⚡</span>
+    </div>
+    <div class="loader-spinner"></div>
+  </div>
 
 <!-- ============ AUTH MODAL ============ -->
 <div id="authModal" class="modal-overlay hidden">
@@ -1551,6 +1598,10 @@ async function loadAnnouncement() {
   await syncSubmissionsFromSupabase();
   await loadAnnouncement();
   await loadTasks();
+    // Hide loading screen smoothly after the site is ready
+  setTimeout(() => {
+    document.getElementById('apexLoader').classList.add('hidden-loader');
+  }, 1200); 
 });
 
   document.querySelectorAll('.modal-overlay').forEach(o => {

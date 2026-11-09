@@ -1,0 +1,1644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Apex Task Studio — Remote Work, Simplified</title>
+<link rel="icon" type="image/jpeg" href="apex-logo.jpg?v=2">
+<script src="https://cdn.tailwindcss.com"></script>
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+ window.supabaseClient = createClient(
+  'https://dwdtvasykhorrvmwmnhb.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3ZHR2YXN5a2hvcnJ2bXdtbmhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUzNzQsImV4cCI6MjEwNjUzMTM3NH0.vt_I7uvUqsjv5e8RTgREMoXJiZqq_80a9fVOqVyW6Lk',
+  {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: false
+    }
+  }
+);
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  body { background: #0a0f1a; color: #f1f5f9; min-height: 100vh; }
+  .glass { background: rgba(17, 24, 39, 0.6); backdrop-filter: blur(14px); border: 1px solid rgba(16, 185, 129, 0.15); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+  .btn-primary { background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%); color: white; font-weight: 600; transition: all 0.2s; box-shadow: 0 4px 14px rgba(16,185,129,0.3); }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(16,185,129,0.5); }
+  .btn-ghost { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); color: #6ee7b7; transition: all 0.2s; }
+  .btn-ghost:hover { background: rgba(16,185,129,0.18); color: white; }
+  .btn-file { background: rgba(6,182,212,0.12); border: 1px solid rgba(6,182,212,0.35); color: #67e8f9; transition: all 0.2s; }
+  .btn-file:hover { background: rgba(6,182,212,0.22); color: white; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(10,15,26,0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 1rem; }
+  .modal-content { background: rgba(15,23,42,0.96); border: 1px solid rgba(16,185,129,0.3); border-radius: 1rem; max-width: 520px; width: 100%; padding: 1.75rem; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 80px rgba(0,0,0,0.7); }
+  .hidden { display: none !important; }
+  .input-field { width: 100%; padding: 0.75rem 0.9rem; border-radius: 0.5rem; background: rgba(10,15,29,0.7); border: 1.5px solid rgba(16,185,129,0.2); color: white; font-size: 0.875rem; outline: none; transition: all 0.2s; }
+  .input-field:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.15); }
+  .input-field::placeholder { color: rgba(110,231,183,0.35); }
+  .cat-tab { padding: 0.55rem 1.1rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; border: 1px solid rgba(16,185,129,0.2); background: rgba(15,23,42,0.5); color: #6ee7b7; transition: all 0.2s; white-space: nowrap; }
+  .cat-tab:hover { background: rgba(16,185,129,0.12); color: white; }
+  .cat-tab.active { background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%); color: white; border-color: transparent; }
+  .avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: white; }
+  .badge { font-size: 0.65rem; padding: 0.25rem 0.65rem; border-radius: 9999px; font-weight: 600; display: inline-block; }
+  .badge-emerald { background: rgba(16,185,129,0.15); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+  .badge-cyan { background: rgba(6,182,212,0.15); color: #67e8f9; border: 1px solid rgba(6,182,212,0.3); }
+  .badge-amber { background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+  .badge-slate { background: rgba(148,163,184,0.12); color: #cbd5e1; border: 1px solid rgba(148,163,184,0.2); }
+  .badge-soon { background: linear-gradient(135deg, rgba(6,182,212,0.2), rgba(16,185,129,0.2)); color: #67e8f9; border: 1px solid rgba(6,182,212,0.4); font-weight: 700; }
+  .stat-card { background: rgba(15,23,42,0.6); border: 1px solid rgba(16,185,129,0.15); border-radius: 0.9rem; padding: 1rem; }
+  .loading-spinner { border: 3px solid rgba(16,185,129,0.15); border-top: 3px solid #10b981; border-radius: 50%; width: 28px; height: 28px; animation: spin 1s linear infinite; margin: 0 auto; }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  .toast { position: fixed; top: 1.5rem; left: 50%; transform: translateX(-50%); background: rgba(15,23,42,0.96); border: 1px solid rgba(16,185,129,0.4); padding: 0.85rem 1.25rem; border-radius: 0.75rem; font-size: 0.85rem; color: white; z-index: 200; box-shadow: 0 10px 40px rgba(0,0,0,0.6); max-width: 90vw; }
+  .toast-error { border-color: rgba(239,68,68,0.6); }
+  .asset-btn { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.6rem; border-radius: 0.5rem; font-size: 0.75rem; font-weight: 600; cursor: pointer; text-decoration: none; }
+    /* LOADING SCREEN */
+  #apexLoader {
+    position: fixed;
+    inset: 0;
+    background: #0a0f1a; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    transition: opacity 0.6s ease, visibility 0.6s ease;
+  }
+  #apexLoader.hidden-loader {
+    opacity: 0;
+    visibility: hidden;
+  }
+  .loader-logo-container {
+    width: 80px;
+    height: 80px;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse-logo 1.5s infinite;
+  }
+  .loader-spinner {
+    border: 3px solid rgba(16,185,129,0.15);
+    border-top: 3px solid #10b981;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin-top: 1.5rem;
+  }
+  @keyframes pulse-logo {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.7; }
+  }
+    body { padding-bottom: 5rem !important; }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+</style>
+</head>
+<body>
+
+  <div id="toastContainer"></div>
+
+    <!-- LOADING SCREEN -->
+  <div id="apexLoader">
+    <div class="loader-logo-container">
+      <span style="font-size: 40px;">⚡</span>
+    </div>
+    <div class="loader-spinner"></div>
+  </div>
+
+<!-- ============ AUTH MODAL ============ -->
+<div id="authModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="flex items-center gap-3 mb-5">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);">
+        <span class="text-2xl">⚡</span>
+      </div>
+      <div>
+        <h2 class="text-lg font-bold text-white" id="authModalTitle">Welcome to Apex Task Studio</h2>
+        <p class="text-xs text-emerald-300/60 mt-0.5" id="authModalSubtitle">Log in or sign up to start earning</p>
+      </div>
+    </div>
+
+    <div class="mb-4 p-3 rounded-lg" style="background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3);">
+      <p class="text-[11px] text-amber-400/90 leading-tight">⚠️ <strong>One account per person.</strong> Multiple accounts may lead to a permanent ban. Use your real legal name — not a nickname.</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex gap-1 mb-5 border-b border-emerald-500/20">
+      <button id="tabLogin" onclick="switchAuthTab('login')" class="flex-1 py-2.5 text-sm font-semibold text-white border-b-2 border-emerald-400">Log In</button>
+      <button id="tabSignup" onclick="switchAuthTab('signup')" class="flex-1 py-2.5 text-sm font-semibold text-emerald-300/50 border-b-2 border-transparent hover:text-white">Sign Up</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <form id="loginForm" class="space-y-3">
+      <div>
+        <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Email Address</label>
+        <input type="email" id="loginEmail" placeholder="Enter your email" required class="input-field" />
+      </div>
+      <div>
+        <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Password</label>
+        <div class="relative">
+  <input type="password" id="loginPassword" placeholder="Enter your password" required class="input-field pr-12" />
+  <button type="button" onclick="togglePassword('loginPassword', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-300/60 hover:text-emerald-300 text-lg">👁️</button>
+</div>
+<div class="text-right mt-1.5">
+        <button type="button" onclick="openForgotPasswordModal()" class="text-xs text-emerald-400 hover:text-emerald-300 underline">Forgot Password?</button>
+      </div>
+      </div>
+      <button type="submit" id="loginBtn" class="btn-primary w-full py-3 rounded-lg text-sm mt-2">Log In</button>
+    </form>
+
+    <!-- SIGNUP FORM -->
+    <form id="signupForm" class="space-y-3 hidden">
+      <div>
+        <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Full Legal Name</label>
+        <input type="text" id="signupName" placeholder="Enter your full legal name" required class="input-field" />
+        <p class="text-[10px] text-amber-400/80 mt-1.5 leading-tight">⚠️ This becomes your permanent account ID. Use the name on your ID.</p>
+      </div>
+      <div>
+        <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Email Address</label>
+        <input type="email" id="signupEmail" placeholder="Enter your email" required class="input-field" />
+      </div>
+      <div>
+        <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">M-Pesa Phone Number</label>
+        <input type="tel" id="signupPhone" placeholder="e.g. 0712345678" required class="input-field" />
+      </div>
+      <div>
+        <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Password</label>
+        <div class="relative">
+  <input type="password" id="signupPassword" placeholder="At least 6 characters" required class="input-field pr-12" />
+  <button type="button" onclick="togglePassword('signupPassword', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-300/60 hover:text-emerald-300 text-lg">👁️</button>
+</div>
+      </div>
+      <button type="submit" id="signupBtn" class="btn-primary w-full py-3 rounded-lg text-sm mt-2">Create Account</button>
+    </form>
+  </div>
+</div>
+
+<!-- ============ FORGOT PASSWORD MODAL ============ -->
+<div id="forgotPasswordModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <h2 class="text-lg font-bold text-white">🔐 Reset Password</h2>
+        <p class="text-xs text-emerald-300/60 mt-0.5">Enter your registered details to request a reset.</p>
+      </div>
+      <button onclick="closeModal('forgotPasswordModal')" class="text-emerald-300 hover:text-white text-2xl">&times;</button>
+    </div>
+    <div class="space-y-3">
+      <div>
+        <label class="text-xs text-emerald-200/70 block mb-1.5 font-medium">Registered M-Pesa Phone Number</label>
+        <input type="tel" id="resetPhone" placeholder="e.g. 0712345678" class="input-field" />
+      </div>
+      <div>
+        <label class="text-xs text-emerald-200/70 block mb-1.5 font-medium">Email Address (Optional)</label>
+        <input type="email" id="resetEmail" placeholder="Your registered email" class="input-field" />
+      </div>
+      <button onclick="submitPasswordResetRequest()" id="resetRequestBtn" class="btn-primary w-full py-3 rounded-lg text-sm mt-2">Send Reset Request</button>
+      <p class="text-xs text-emerald-300/40 text-center mt-2">Admin will verify and send a temporary password via WhatsApp.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ EDIT PROFILE MODAL ============ -->
+<div id="editProfileModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <span class="badge badge-emerald mb-2">Worker Profile</span>
+        <h2 class="text-lg font-bold text-white mt-1">Edit your profile</h2>
+        <p class="text-xs text-emerald-300/60 mt-0.5">Add your details to access work and M-Pesa withdrawal requests.</p>
+      </div>
+      <button onclick="closeModal('editProfileModal')" class="text-emerald-300 hover:text-white text-2xl">&times;</button>
+    </div>
+    <form id="editProfileForm" class="space-y-3">
+      <div>
+        <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Full Name</label>
+        <input type="text" id="editName" class="input-field !opacity-60 !cursor-not-allowed" readonly />
+        <p class="text-[10px] text-amber-400/80 mt-1.5 leading-tight">⚠️ Your name is locked. It's your permanent account ID.</p>
+      </div>
+      <div>
+        <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Email Address</label>
+        <input type="email" id="editEmail" class="input-field" required />
+      </div>
+      <div>
+        <label class="text-xs text-emerald-200/70 font-medium block mb-1.5">M-Pesa Phone Number</label>
+        <input type="tel" id="editPhone" class="input-field" required />
+      </div>
+<div class="border-t border-emerald-500/15 pt-4 mt-2">
+        <p class="text-xs text-emerald-200/70 font-medium mb-3">🔐 Change Password (Optional)</p>
+        <div class="space-y-3">
+          <div>
+            <label class="text-xs text-emerald-200/70 block mb-1.5">New Password</label>
+            <div class="relative">
+              <input type="password" id="newPassword" placeholder="At least 6 characters" class="input-field pr-12" />
+              <button type="button" onclick="togglePassword('newPassword', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-300/60 hover:text-emerald-300 text-lg">👁️</button>
+            </div>
+          </div>
+          <div>
+            <label class="text-xs text-emerald-200/70 block mb-1.5">Confirm New Password</label>
+            <div class="relative">
+              <input type="password" id="confirmNewPassword" placeholder="Retype new password" class="input-field pr-12" />
+              <button type="button" onclick="togglePassword('confirmNewPassword', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-300/60 hover:text-emerald-300 text-lg">👁️</button>
+            </div>
+          </div>
+          <button type="button" onclick="updateUserPassword()" class="btn-ghost w-full py-2.5 rounded-lg text-xs font-semibold mt-1">Update Password</button>
+        </div>
+      </div>
+             <button type="submit" class="btn-primary w-full py-3 rounded-lg text-sm mt-2">Save Profile & Continue</button>
+      <button type="button" onclick="authLogout()" class="w-full py-2.5 rounded-lg text-xs font-semibold text-red-400 hover:text-red-300 border border-red-500/30 hover:bg-red-500/10 mt-3">🚪 Log Out</button>      
+    </form>
+  </div>
+</div>
+
+<!-- ============ HELP CENTER MODAL ============ -->
+<div id="helpModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="flex justify-between items-start mb-4">
+      <h2 class="text-lg font-bold text-white">❓ Help Center</h2>
+      <button onclick="closeModal('helpModal')" class="text-emerald-300 hover:text-white text-2xl">&times;</button>
+    </div>
+    <div class="space-y-3 text-sm">
+      <div class="glass rounded-lg p-3">
+        <h3 class="font-semibold text-emerald-400 mb-1">📌 How do I get paid?</h3>
+        <p class="text-xs text-slate-300">Once your task is approved, the payout is added to your balance. Withdraw via M-Pesa.</p>
+      </div>
+      <div class="glass rounded-lg p-3">
+        <h3 class="font-semibold text-emerald-400 mb-1">📌 Why is a task locked?</h3>
+        <p class="text-xs text-slate-300">Your first task is free. Premium tasks require a small unlock fee to maintain quality.</p>
+      </div>
+      <div class="glass rounded-lg p-3">
+        <h3 class="font-semibold text-emerald-400 mb-1">📌 How long do withdrawals take?</h3>
+        <p class="text-xs text-slate-300">M-Pesa withdrawals are processed within 24 hours.</p>
+      </div>
+      <div class="pt-2 border-t border-emerald-500/15">
+        <a href="https://wa.me/254107246326" target="_blank" class="btn-primary w-full py-3 rounded-lg text-sm flex items-center justify-center gap-2">
+          💬 Chat on WhatsApp
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SUBMISSION MODAL ============ -->
+<div id="submissionModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="flex justify-between items-start mb-4">
+      <div class="pr-4">
+        <span class="badge badge-emerald mb-2" id="modalCategory">Category</span>
+        <h2 class="text-lg font-bold text-white mt-2" id="modalTitle">Task Title</h2>
+      </div>
+      <button onclick="closeModal('submissionModal')" class="text-emerald-300 hover:text-white text-2xl">&times;</button>
+    </div>
+    <div class="glass rounded-lg p-3 mb-4">
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div><p class="text-xs text-emerald-300/50">Payout</p><p class="text-sm font-bold text-emerald-400" id="modalPayout">$0.00</p></div>
+        <div><p class="text-xs text-emerald-300/50">Time</p><p class="text-sm font-bold text-white" id="modalTime">5 min</p></div>
+        <div><p class="text-xs text-emerald-300/50">Worker</p><p class="text-sm font-bold text-white truncate" id="modalWorker">—</p></div>
+      </div>
+    </div>
+    <div class="mb-4">
+      <p class="text-xs text-emerald-200/70 font-medium mb-2">📋 Description</p>
+      <div class="glass rounded-lg p-3 text-xs text-slate-200/90 max-h-32 overflow-y-auto" id="modalDescription">—</div>
+    </div>
+    <div id="modalAssets" class="mb-4 space-y-2"></div>
+    <div>
+      <label class="text-xs text-emerald-200/70 block mb-1.5 font-medium">Your Proof / Submission</label>
+      <textarea id="modalProof" rows="5" placeholder="Paste your transcription, verification code, or output here..." class="input-field resize-none"></textarea>
+    </div>
+    <div class="flex gap-2 mt-5">
+      <button onclick="closeModal('submissionModal')" class="btn-ghost flex-1 py-3 rounded-lg text-sm">Cancel</button>
+      <button onclick="submitTaskProof()" id="submitProofBtn" class="btn-primary flex-1 py-3 rounded-lg text-sm">Submit Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ UNLOCK MODAL ============ -->
+<div id="unlockModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <span class="badge badge-amber mb-2">🔒 Task Locked</span>
+    <h2 class="text-lg font-bold text-white mt-2 mb-1">Unlock this task</h2>
+    <p class="text-xs text-emerald-200/60 mb-4" id="unlockTaskTitle">"Task name" needs a one-time unlock fee before starting.</p>
+    <div class="glass rounded-lg p-4 mb-4 space-y-2">
+      <div class="flex justify-between"><span class="text-sm text-slate-300">Unlock fee</span><span class="text-sm font-bold text-amber-400" id="unlockFeeDisplay">$1.50</span></div>
+      <div class="flex justify-between"><span class="text-sm text-slate-300">Your balance</span><span class="text-sm font-bold text-emerald-400" id="unlockBalanceDisplay">$0.00</span></div>
+    </div>
+    <div class="flex gap-2">
+      <button onclick="closeModal('unlockModal')" class="btn-ghost flex-1 py-3 rounded-lg text-sm">Cancel</button>
+      <button onclick="confirmUnlock()" id="unlockConfirmBtn" class="btn-primary flex-1 py-3 rounded-lg text-sm">Unlock Now</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ WITHDRAWAL MODAL ============ -->
+<div id="withdrawModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <h2 class="text-lg font-bold text-white">💸 M-Pesa Withdrawal</h2>
+        <p class="text-xs text-emerald-300/60 mt-0.5">Cash out your approved balance</p>
+      </div>
+      <button onclick="closeModal('withdrawModal')" class="text-emerald-300 hover:text-white text-2xl">&times;</button>
+    </div>
+    <div class="glass rounded-lg p-3 mb-4 flex justify-between items-center">
+      <span class="text-xs text-emerald-200/70">Available Balance</span>
+      <span class="text-lg font-bold text-emerald-400" id="withdrawAvailable">$0.00</span>
+    </div>
+    <div class="space-y-3">
+      <div>
+        <label class="text-xs text-emerald-200/70 block mb-1.5 font-medium">M-Pesa Mobile Number</label>
+        <input type="tel" id="withdrawPhone" placeholder="e.g. 0712345678" class="input-field" />
+      </div>
+      <div>
+        <label class="text-xs text-emerald-200/70 block mb-1.5 font-medium">Amount (USD)</label>
+        <input type="number" id="withdrawAmount" placeholder="10.00" step="0.01" min="1" class="input-field" />
+      </div>
+      <button onclick="submitWithdrawal()" id="withdrawBtn" class="btn-primary w-full py-3 rounded-lg text-sm">Request Withdrawal</button>
+      <p class="text-xs text-emerald-300/40 text-center">Minimum: $1.00 · Processed within 24 hours</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MY WORK HISTORY MODAL ============ -->
+<div id="historyModal" class="modal-overlay hidden">
+  <div class="modal-content" style="max-width: 700px;">
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <span class="badge badge-emerald mb-2">Submissions</span>
+        <h2 class="text-lg font-bold text-white mt-1">My Work History</h2>
+        <p class="text-xs text-emerald-300/60 mt-0.5">Track the review status and earnings for your submitted tasks.</p>
+      </div>
+      <button onclick="closeModal('historyModal')" class="text-emerald-300 hover:text-white text-2xl">&times;</button>
+    </div>
+    <div id="historyContent">
+      <div class="text-center py-8"><div class="loading-spinner"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TERMS & CONDITIONS MODAL ============ -->
+<div id="termsModal" class="modal-overlay hidden">
+  <div class="modal-content" style="max-width: 640px;">
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <span class="badge badge-emerald mb-2">Terms & Conditions</span>
+        <h2 class="text-lg font-bold text-white mt-1">Apex Task Studio Rules</h2>
+        <p class="text-xs text-emerald-300/60 mt-0.5">Please read carefully before working on tasks.</p>
+      </div>
+      <button onclick="closeModal('termsModal')" class="text-emerald-300 hover:text-white text-2xl">&times;</button>
+    </div>
+    <div class="space-y-3 text-sm text-slate-300 leading-relaxed max-h-96 overflow-y-auto pr-2">
+      <div class="glass rounded-lg p-3">
+        <h3 class="font-semibold text-emerald-400 mb-1 text-sm">1. One Account Per Person</h3>
+        <p class="text-xs">Each worker is allowed only ONE account. Multiple accounts using the same name, email, phone number, or M-Pesa number will be flagged and may result in account suspension and forfeiture of earnings.</p>
+      </div>
+      <div class="glass rounded-lg p-3">
+        <h3 class="font-semibold text-emerald-400 mb-1 text-sm">2. Real Information Required</h3>
+        <p class="text-xs">You must register with your real name, valid email, and a personal M-Pesa number in your own name. Fake identities or impersonation will lead to a permanent ban.</p>
+      </div>
+      <div class="glass rounded-lg p-3">
+        <h3 class="font-semibold text-emerald-400 mb-1 text-sm">3. Quality Submissions</h3>
+        <p class="text-xs">All work must be genuine, accurate, and completed by you. Copying, AI-generated content without disclosure, or submitting work that does not match the task will be rejected.</p>
+      </div>
+      <div class="glass rounded-lg p-3">
+        <h3 class="font-semibold text-emerald-400 mb-1 text-sm">4. Task Reservations</h3>
+        <p class="text-xs">When you start a task, it is reserved for 30 minutes. If you do not submit within that time, the task reopens for other workers.</p>
+      </div>
+      <div class="glass rounded-lg p-3">
+        <h3 class="font-semibold text-emerald-400 mb-1 text-sm">5. Payouts</h3>
+        <p class="text-xs">Payments are processed via M-Pesa within 24 hours of approval. Minimum withdrawal is $1.00. All payouts are subject to task approval by our QA team.</p>
+      </div>
+      <div class="glass rounded-lg p-3">
+        <h3 class="font-semibold text-emerald-400 mb-1 text-sm">6. Account Suspension</h3>
+        <p class="text-xs">Violation of any of these terms may result in the suspension or termination of your account without notice. Pending earnings may be forfeited in cases of fraud.</p>
+      </div>
+    </div>
+    <button onclick="closeModal('termsModal')" class="btn-primary w-full py-3 rounded-lg text-sm mt-5">I Understand</button>
+  </div>
+</div>
+
+<!-- ============ MAIN APP ============ -->
+<div class="max-w-6xl mx-auto p-4 pb-16">
+
+  <!-- HEADER -->
+  <header class="flex flex-wrap items-center justify-between gap-3 mb-5">
+    <div class="flex items-center gap-3">
+      <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);">
+        <span class="text-xl">⚡</span>
+      </div>
+      <div>
+        <h1 class="text-lg font-extrabold text-white">Apex Task Studio</h1>
+        <p class="text-xs text-emerald-300/60">Remote work, simplified</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 flex-wrap">
+      <select id="currencySelector" onchange="changeCurrency(this.value)" class="input-field !w-auto !py-2 !px-3 text-xs font-semibold cursor-pointer">
+        <option value="USD">USD ($)</option>
+        <option value="KES">KES (KSh)</option>
+      </select>
+      <button onclick="openHistory()" class="btn-ghost px-3 py-2 rounded-lg text-xs font-semibold">My Submissions</button>
+      <button onclick="openModal('helpModal')" class="btn-ghost px-3 py-2 rounded-lg text-xs font-semibold">Help Center</button>
+      <button onclick="openEditProfile()" class="glass rounded-full pl-1.5 pr-4 py-1.5 flex items-center gap-2.5">
+        <div class="avatar" id="headerAvatar">?</div>
+        <div class="text-left hidden sm:block">
+          <p class="text-xs font-bold text-white leading-tight" id="headerName">Set Profile</p>
+          <p class="text-[10px] text-emerald-300/60 leading-tight" id="headerPhone">Tap to onboard</p>
+        </div>
+      </button>
+    </div>
+  </header>
+
+  <!-- STATS GRID -->
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-5">
+    <div class="stat-card">
+      <p class="text-xs text-emerald-200/60 uppercase tracking-wider font-medium">Available Balance</p>
+      <p class="text-2xl font-extrabold text-emerald-400 mt-1" id="statAvailable">$0.00</p>
+      <p class="text-xs text-emerald-300/50 mt-0.5">Ready to withdraw</p>
+    </div>
+    <div class="stat-card">
+      <p class="text-xs text-emerald-200/60 uppercase tracking-wider font-medium">Pending Review</p>
+      <p class="text-2xl font-extrabold text-amber-400 mt-1" id="statPending">$0.00</p>
+      <p class="text-xs text-emerald-300/50 mt-0.5">Under verification</p>
+    </div>
+    <div class="stat-card">
+      <p class="text-xs text-emerald-200/60 uppercase tracking-wider font-medium">Lifetime Earned</p>
+      <p class="text-2xl font-extrabold text-white mt-1" id="statLifetime">$0.00</p>
+      <p class="text-xs text-emerald-300/50 mt-0.5">Total approved work</p>
+    </div>
+    <div class="stat-card">
+      <p class="text-xs text-emerald-200/60 uppercase tracking-wider font-medium">Total Withdrawn</p>
+      <p class="text-2xl font-extrabold text-white mt-1" id="statWithdrawn">$0.00</p>
+      <p class="text-xs text-emerald-300/50 mt-0.5">Paid to M-Pesa</p>
+    </div>
+    <div class="stat-card">
+      <p class="text-xs text-emerald-200/60 uppercase tracking-wider font-medium">Tasks Started</p>
+      <p class="text-2xl font-extrabold text-white mt-1" id="statTasks">0</p>
+      <p class="text-xs text-emerald-300/50 mt-0.5">First task free</p>
+    </div>
+  </div>
+<!-- Announcement Banner (populated by JS) -->
+<div id="announcementBanner" class="hidden glass rounded-xl p-4 mb-5" style="border-color: rgba(251,191,36,0.4); background: rgba(251,191,36,0.08);">
+  <div class="flex items-start gap-3">
+    <span class="text-xl">📢</span>
+    <div class="flex-1">
+      <p class="text-xs font-bold text-amber-400 mb-1">ANNOUNCEMENT</p>
+      <p class="text-sm text-white" id="announcementText">—</p>
+    </div>
+    <button onclick="document.getElementById('announcementBanner').classList.add('hidden')" class="text-amber-300/50 hover:text-amber-300 text-xl leading-none">&times;</button>
+  </div>
+</div>
+  <!-- WELCOME BANNER -->
+  <div class="glass rounded-2xl p-6 mb-5">
+    <span class="badge badge-emerald mb-3">WORLDWIDE REMOTE OPPORTUNITIES</span>
+    <h2 class="text-xl md:text-2xl font-extrabold text-white leading-snug mb-2 mt-3">
+      Welcome to remote microtask platform where you can work at home and it is worldwide. It supports M-Pesa withdraw.
+    </h2>
+    <p class="text-sm text-emerald-200/70 mb-4">Complete simple verified tasks, submit your work, track earnings, and request M-Pesa withdrawals when your balance is available.</p>
+    <div class="flex gap-2 flex-wrap">
+      <button onclick="scrollToTasks()" class="btn-primary px-5 py-2.5 rounded-lg text-sm">Browse Work</button>
+      <button onclick="openWithdraw()" class="btn-ghost px-5 py-2.5 rounded-lg text-sm">Withdraw via M-Pesa</button>
+    </div>
+  </div>
+
+  <!-- CATEGORY TABS -->
+  <div class="flex gap-2 mb-4 overflow-x-auto" style="scrollbar-width: none;">
+    <button onclick="setCategory('All Work')" class="cat-tab active" data-cat="All Work">All Work</button>
+    <button onclick="setCategory('Audio Transcription')" class="cat-tab" data-cat="Audio Transcription">Audio Transcription</button>
+    <button onclick="setCategory('Data Annotation')" class="cat-tab" data-cat="Data Annotation">Data Annotation</button>
+    <button onclick="setCategory('Surveys & Polls')" class="cat-tab" data-cat="Surveys & Polls">Surveys & Polls</button>
+    <button onclick="setCategory('RLHF & AI Training')" class="cat-tab" data-cat="RLHF & AI Training">RLHF & AI Training</button>
+    <button onclick="setCategory('Microtasks')" class="cat-tab" data-cat="Microtasks">Microtasks</button>
+  </div>
+
+  <!-- COMING SOON BANNER -->
+  <div id="comingSoonBanner" class="hidden glass rounded-xl p-5 mb-5 text-center">
+    <span class="badge badge-soon mb-2">🚧 COMING SOON</span>
+    <h3 class="text-base font-bold text-white mb-1" id="comingSoonTitle">New Tasks Incoming</h3>
+    <p class="text-xs text-emerald-200/70 max-w-md mx-auto">We're preparing high-paying tasks for this category. Check back soon!</p>
+  </div>
+
+  <!-- TASK GRID -->
+  <div class="mb-3">
+    <h2 class="text-lg font-bold text-white">📋 Active Work Assignment Grid</h2>
+    <p class="text-xs text-emerald-300/60 mt-0.5 mb-4">Quality submissions are reviewed before earnings are approved.</p>
+  </div>
+
+  <div id="taskGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div class="col-span-full text-center py-12"><div class="loading-spinner"></div><p class="text-sm text-emerald-300/50 mt-3">Loading tasks...</p></div>
+  </div>
+
+  <!-- WITHDRAWAL PANEL -->
+  <div class="glass rounded-2xl p-6 mt-8">
+    <span class="badge badge-emerald mb-2">M-PESA WITHDRAWALS</span>
+    <h2 class="text-xl font-extrabold text-white mt-3 mb-2">Ready to cash out?</h2>
+    <p class="text-sm text-emerald-200/70 mb-4">Submit a withdrawal request using your registered M-Pesa number. Requests are recorded securely for processing.</p>
+    <button onclick="openWithdraw()" class="btn-primary px-6 py-3 rounded-lg text-sm">Request Withdrawal</button>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="mt-10 pt-6 border-t border-emerald-500/10">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div>
+        <h3 class="text-white font-bold mb-2">Apex Task Studio</h3>
+        <p class="text-xs text-emerald-300/60 leading-relaxed">Empowering workers with fast microtasks, simplified remote work, and direct M-Pesa payouts.</p>
+      </div>
+      <div>
+        <h3 class="text-white font-bold mb-2 text-sm">QUICK LINKS</h3>
+        <ul class="space-y-1 text-xs text-emerald-300/60">
+          <li><button onclick="scrollToTasks()" class="hover:text-emerald-400">Browse Tasks</button></li>
+          <li><button onclick="openHistory()" class="hover:text-emerald-400">My Submissions</button></li>
+          <li><button onclick="openWithdraw()" class="hover:text-emerald-400">M-Pesa Withdrawals</button></li>
+          <li><button onclick="openModal('helpModal')" class="hover:text-emerald-400">Help Center</button></li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="text-white font-bold mb-2 text-sm">SUPPORT CONTACT</h3>
+        <p class="text-xs text-emerald-300/60">Email: apextaskstudio@gmail.com</p>
+        <p class="text-xs text-emerald-300/60 mt-1">M-Pesa Support: +254 107 246 326</p>
+      </div>
+    </div>
+    <p class="text-center text-xs text-emerald-300/40">
+      © 2026 Apex Task Studio. All rights reserved. ·
+      <button onclick="openModal('termsModal')" class="hover:text-emerald-400 underline">Terms & Conditions</button>
+    </p>
+  </footer>
+</div>
+
+
+<script type="module">
+  // ============================================================
+  // SUPABASE
+  // ============================================================
+  const db = window.supabaseClient;
+
+  const STORAGE_KEYS = {
+    PROFILE: 'apexTaskStudioProfile',
+    WALLET: 'apexTaskStudioWallet',
+    SUBMISSIONS: 'apexTaskStudioSubmissions',
+    RESERVATIONS: 'apexTaskStudioReservations',
+    CURRENCY: 'apexTaskStudioCurrency'
+  };
+
+  const RESERVATION_MS = 30 * 60 * 1000;
+  const RATES = { USD: 1, KES: 130 };
+  const SYMBOLS = { USD: '$', KES: 'KSh ' };
+
+  let allTasks = [];
+  let userProfile = null;
+  let wallet = null;
+  let submissions = [];
+  let reservations = [];
+  let currentCurrency = 'USD';
+  let currentCategory = 'All Work';
+  let activeTaskForModal = null;
+
+  // ============================================================
+  // HELPERS
+  // ============================================================
+  function lsGet(key, fallback) {
+    try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+    catch (e) { return fallback; }
+  }
+  function lsSet(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
+
+  function esc(s) {
+    if (s === null || s === undefined) return '';
+    return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  function fmtMoney(usd) {
+    const rate = RATES[currentCurrency] || 1;
+    const sym = SYMBOLS[currentCurrency] || '$';
+    const n = Number(usd || 0) * rate;
+    return currentCurrency === 'KES' ? sym + n.toFixed(0) : sym + n.toFixed(2);
+  }
+
+  function toast(msg, isErr) {
+    const c = document.getElementById('toastContainer');
+    const el = document.createElement('div');
+    el.className = 'toast' + (isErr ? ' toast-error' : '');
+    el.textContent = msg;
+    c.appendChild(el);
+    setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 0.3s'; setTimeout(() => el.remove(), 300); }, 3200);
+  }
+
+  function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+  function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+  window.openModal = openModal;
+  window.closeModal = closeModal;
+
+  function getInitials(name) {
+    if (!name) return '?';
+    return name.trim().split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  }
+
+  // ============================================================
+  // WALLET / SUBMISSIONS / RESERVATIONS
+  // ============================================================
+  function initWallet() {
+    wallet = lsGet(STORAGE_KEYS.WALLET, null);
+    if (!wallet || typeof wallet !== 'object') {
+      wallet = { baseBalanceUSD: 0, totalWithdrawnUSD: 0, totalUnlockFeesPaidUSD: 0 };
+    }
+    wallet.baseBalanceUSD = Number(wallet.baseBalanceUSD) || 0;
+    wallet.totalWithdrawnUSD = Number(wallet.totalWithdrawnUSD) || 0;
+    wallet.totalUnlockFeesPaidUSD = Number(wallet.totalUnlockFeesPaidUSD) || 0;
+    lsSet(STORAGE_KEYS.WALLET, wallet);
+  }
+
+  function saveWallet() { lsSet(STORAGE_KEYS.WALLET, wallet); }
+
+  function initSubmissions() {
+    submissions = lsGet(STORAGE_KEYS.SUBMISSIONS, []);
+    if (!Array.isArray(submissions)) submissions = [];
+    submissions = submissions.map(s => ({
+      task_id: s.task_id || s.id || null,
+      task_title: s.task_title || s.title || 'Untitled',
+      payout: Number(s.payout) || Number(s.payout_usd) || 0,
+      status: (s.status || 'pending').toLowerCase(),
+      proof: s.proof || '',
+      submitted_at: s.submitted_at || new Date().toISOString()
+    }));
+  }
+
+  function saveSubmissions() { lsSet(STORAGE_KEYS.SUBMISSIONS, submissions); }
+
+  function initReservations() {
+    reservations = lsGet(STORAGE_KEYS.RESERVATIONS, []);
+    if (!Array.isArray(reservations)) reservations = [];
+    const now = Date.now();
+    reservations = reservations.filter(r => r.expires_at > now);
+    lsSet(STORAGE_KEYS.RESERVATIONS, reservations);
+  }
+
+  async function reserveTask(taskId) {
+    initReservations();
+    const now = Date.now();
+    const expires = new Date(now + RESERVATION_MS).toISOString();
+
+    reservations = reservations.filter(r => String(r.task_id) !== String(taskId));
+    reservations.push({ task_id: taskId, reserved_at: now, expires_at: now + RESERVATION_MS });
+    lsSet(STORAGE_KEYS.RESERVATIONS, reservations);
+
+    try {
+      await db.from('tasks').update({
+        reserved_until: expires,
+        reserved_by: userProfile?.full_name || 'Unknown'
+      }).eq('id', taskId);
+    } catch (e) {
+      console.warn('[Apex] Failed to reserve task in Supabase:', e);
+    }
+  }
+
+  async function clearReservation(taskId) {
+    reservations = reservations.filter(r => String(r.task_id) !== String(taskId));
+    lsSet(STORAGE_KEYS.RESERVATIONS, reservations);
+
+    try {
+      await db.from('tasks').update({
+        reserved_until: null,
+        reserved_by: null
+      }).eq('id', taskId);
+    } catch (e) {
+      console.warn('[Apex] Failed to clear reservation in Supabase:', e);
+    }
+  }
+
+  function isReservedByMe(taskId) {
+    initReservations();
+    return reservations.some(r => String(r.task_id) === String(taskId));
+  }
+
+  // ============================================================
+  // BALANCE CALCULATION
+  // ============================================================
+  function getCalculatedBalances() {
+    initWallet();
+    initSubmissions();
+
+    const approved = submissions.filter(s => s.status === 'approved' || s.status === 'accepted')
+      .reduce((sum, s) => sum + (Number(s.payout) || 0), 0);
+    const pending = submissions.filter(s => s.status === 'pending')
+      .reduce((sum, s) => sum + (Number(s.payout) || 0), 0);
+    const rejected = submissions.filter(s => s.status === 'rejected')
+      .reduce((sum, s) => sum + (Number(s.payout) || 0), 0);
+
+    const available = Math.max(0,
+      wallet.baseBalanceUSD + approved - wallet.totalUnlockFeesPaidUSD - wallet.totalWithdrawnUSD
+    );
+
+    return {
+      baseWalletUSD: wallet.baseBalanceUSD,
+      approvedEarningsUSD: approved,
+      pendingEarningsUSD: pending,
+      rejectedEarningsUSD: rejected,
+      unlockFeesPaidUSD: wallet.totalUnlockFeesPaidUSD,
+      totalWithdrawnUSD: wallet.totalWithdrawnUSD,
+      availableBalanceUSD: available,
+      lifetimeEarnedUSD: approved + pending
+    };
+  }
+
+  // ============================================================
+  // UI STATS
+  // ============================================================
+  function updateUIStats() {
+    const b = getCalculatedBalances();
+    const el = id => document.getElementById(id);
+    if (el('statAvailable')) el('statAvailable').textContent = fmtMoney(b.availableBalanceUSD);
+    if (el('statPending')) el('statPending').textContent = fmtMoney(b.pendingEarningsUSD);
+    if (el('statLifetime')) el('statLifetime').textContent = fmtMoney(b.lifetimeEarnedUSD);
+    if (el('statWithdrawn')) el('statWithdrawn').textContent = fmtMoney(b.totalWithdrawnUSD);
+    if (el('statTasks')) el('statTasks').textContent = submissions.length;
+    if (el('withdrawAvailable')) el('withdrawAvailable').textContent = fmtMoney(b.availableBalanceUSD);
+    if (el('unlockBalanceDisplay')) el('unlockBalanceDisplay').textContent = fmtMoney(b.availableBalanceUSD);
+  }
+
+  // ============================================================
+  // CURRENCY
+  // ============================================================
+  function changeCurrency(cur) {
+    currentCurrency = cur;
+    lsSet(STORAGE_KEYS.CURRENCY, cur);
+    updateUIStats();
+    renderTasks();
+  }
+  window.changeCurrency = changeCurrency;
+
+  // ============================================================
+  // PROFILE
+  // ============================================================
+ async function loadProfile() {
+  try {
+    const { data: { session } } = await db.auth.getSession();
+
+    if (session && session.user) {
+      const email = session.user.email;
+      let profile = lsGet(STORAGE_KEYS.PROFILE, null);
+
+      if (!profile || profile.email !== email) {
+        const { data } = await db
+          .from('profiles')
+          .select('*')
+          .eq('email', email)
+          .maybeSingle();
+        if (data && data.full_name) {
+          profile = {
+            full_name: data.full_name,
+            email: data.email,
+            mpesa_phone: data.mpesa_phone || ''
+          };
+          lsSet(STORAGE_KEYS.PROFILE, profile);
+        }
+      }
+
+      userProfile = profile;
+
+      if (userProfile) {
+        applyProfileToUI();
+      } else {
+        openModal('authModal');
+      }
+    } else {
+      openModal('authModal');
+    }
+  } catch (e) {
+    console.warn('loadProfile error:', e);
+    openModal('authModal');
+  }
+}
+
+  function openEditProfile() {
+    if (!userProfile) { openModal('onboardingModal'); return; }
+    document.getElementById('editName').value = userProfile.full_name || '';
+    document.getElementById('editEmail').value = userProfile.email || '';
+    document.getElementById('editPhone').value = userProfile.mpesa_phone || '';
+    openModal('editProfileModal');
+  }
+  window.openEditProfile = openEditProfile;
+
+  async function saveProfile(data) {
+    userProfile = data;
+    lsSet(STORAGE_KEYS.PROFILE, data);
+    loadProfile();
+    try { await db.from('profiles').insert([data]); } catch (e) { console.warn('Profile sync:', e); }
+  }
+// ============================================================
+// AUTHENTICATION (Login + Signup with Supabase Auth)
+// ============================================================
+function applyProfileToUI() {
+  if (!userProfile) return;
+  const init = getInitials(userProfile.full_name);
+  if (document.getElementById('headerAvatar')) document.getElementById('headerAvatar').textContent = init;
+  if (document.getElementById('headerName')) document.getElementById('headerName').textContent = userProfile.full_name.split(' ')[0];
+  if (document.getElementById('headerPhone')) document.getElementById('headerPhone').textContent = userProfile.mpesa_phone || userProfile.email;
+  if (document.getElementById('withdrawPhone')) document.getElementById('withdrawPhone').value = userProfile.mpesa_phone || '';
+}
+
+function switchAuthTab(tab) {
+  const tabLogin = document.getElementById('tabLogin');
+  const tabSignup = document.getElementById('tabSignup');
+  const loginForm = document.getElementById('loginForm');
+  const signupForm = document.getElementById('signupForm');
+  const title = document.getElementById('authModalTitle');
+  const subtitle = document.getElementById('authModalSubtitle');
+
+  if (tab === 'login') {
+    tabLogin.className = 'flex-1 py-2.5 text-sm font-semibold text-white border-b-2 border-emerald-400';
+    tabSignup.className = 'flex-1 py-2.5 text-sm font-semibold text-emerald-300/50 border-b-2 border-transparent hover:text-white';
+    loginForm.classList.remove('hidden');
+    signupForm.classList.add('hidden');
+    title.textContent = 'Welcome back';
+    subtitle.textContent = 'Log in to your account';
+  } else {
+    tabSignup.className = 'flex-1 py-2.5 text-sm font-semibold text-white border-b-2 border-emerald-400';
+    tabLogin.className = 'flex-1 py-2.5 text-sm font-semibold text-emerald-300/50 border-b-2 border-transparent hover:text-white';
+    signupForm.classList.remove('hidden');
+    loginForm.classList.add('hidden');
+    title.textContent = 'Create your account';
+    subtitle.textContent = 'Sign up to start earning';
+  }
+}
+window.switchAuthTab = switchAuthTab;
+function togglePassword(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    btn.textContent = '👁️';
+  }
+}
+window.togglePassword = togglePassword;
+// ============================================================
+// FORGOT PASSWORD FEATURE
+// ============================================================
+function openForgotPasswordModal() {
+  // Pre-fill email if the user just typed it in the login form
+  const loginEmail = document.getElementById('loginEmail').value.trim();
+  if (loginEmail) {
+    document.getElementById('resetEmail').value = loginEmail;
+  }
+  document.getElementById('resetPhone').value = '';
+  openModal('forgotPasswordModal');
+}
+window.openForgotPasswordModal = openForgotPasswordModal;
+
+async function submitPasswordResetRequest() {
+  const phone = document.getElementById('resetPhone').value.trim();
+  const email = document.getElementById('resetEmail').value.trim();
+
+  if (!phone) {
+    toast('Please enter your registered M-Pesa phone number.', true);
+    return;
+  }
+  if (phone.replace(/\D/g, '').length < 9) {
+    toast('Enter a valid M-Pesa number.', true);
+    return;
+  }
+
+  const btn = document.getElementById('resetRequestBtn');
+  btn.disabled = true;
+  btn.textContent = 'Sending request...';
+
+  try {
+    // Insert into reset_requests table in Supabase
+    const { error } = await db.from('reset_requests').insert([{ 
+      phone: phone, 
+      email: email || null, 
+      status: 'pending' 
+    }]);
+
+    if (error) throw error;
+
+    closeModal('forgotPasswordModal');
+    toast('✅ Request sent! Admin will contact you shortly on WhatsApp.');
+  } catch (err) {
+    console.error('Reset request failed:', err);
+    toast('Failed to send request: ' + err.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Send Reset Request';
+  }
+}
+window.submitPasswordResetRequest = submitPasswordResetRequest;
+
+// ============================================================
+// CHANGE PASSWORD (Inside Edit Profile)
+// ============================================================
+async function updateUserPassword() {
+  const newPass = document.getElementById('newPassword').value;
+  const confirmPass = document.getElementById('confirmNewPassword').value;
+
+  if (!newPass || !confirmPass) {
+    toast('Please fill in both password fields.', true);
+    return;
+  }
+  if (newPass.length < 6) {
+    toast('Password must be at least 6 characters.', true);
+    return;
+  }
+  if (newPass !== confirmPass) {
+    toast('Passwords do not match.', true);
+    return;
+  }
+
+  try {
+    // This securely updates the password for the currently logged-in user
+    const { error } = await db.auth.updateUser({ password: newPass });
+    if (error) throw error;
+    
+    toast('✅ Password updated successfully!');
+    // Clear the fields after a successful update
+    document.getElementById('newPassword').value = '';
+    document.getElementById('confirmNewPassword').value = '';
+  } catch (err) {
+    console.error('Password update failed:', err);
+    toast('Failed to update password: ' + err.message, true);
+  }
+}
+window.updateUserPassword = updateUserPassword;
+
+async function authLogout() {
+  try { await db.auth.signOut(); } catch (e) { console.warn(e); }
+  userProfile = null;
+  localStorage.removeItem(STORAGE_KEYS.PROFILE);
+  localStorage.removeItem(STORAGE_KEYS.WALLET);
+  localStorage.removeItem(STORAGE_KEYS.SUBMISSIONS);
+  localStorage.removeItem(STORAGE_KEYS.RESERVATIONS);
+  location.reload();
+}
+window.authLogout = authLogout;
+
+// ---- SIGNUP ----
+document.getElementById('signupForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const full_name = document.getElementById('signupName').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const mpesa_phone = document.getElementById('signupPhone').value.trim();
+  const password = document.getElementById('signupPassword').value;
+
+  if (!full_name || !email || !mpesa_phone || !password) {
+    toast('Please fill in all fields.', true);
+    return;
+  }
+  if (mpesa_phone.replace(/\D/g, '').length < 9) {
+    toast('Enter a valid M-Pesa number.', true);
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    toast('Enter a valid email address.', true);
+    return;
+  }
+  if (password.length < 6) {
+    toast('Password must be at least 6 characters.', true);
+    return;
+  }
+
+  const btn = document.getElementById('signupBtn');
+  btn.disabled = true;
+  btn.textContent = 'Creating account...';
+
+  try {
+    const { data, error } = await db.auth.signUp({ email, password });
+    if (error) throw error;
+
+    // Save profile to profiles table
+    const profile = { full_name, email, mpesa_phone };
+    await db.from('profiles').insert([profile]);
+
+    userProfile = profile;
+    lsSet(STORAGE_KEYS.PROFILE, profile);
+    applyProfileToUI();
+
+    closeModal('authModal');
+    toast('✅ Account created! Welcome, ' + full_name.split(' ')[0] + '!');
+    await syncSubmissionsFromSupabase();
+    await loadTasks();
+  } catch (err) {
+    console.error(err);
+    toast('Signup failed: ' + err.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Create Account';
+  }
+});
+
+// ---- LOGIN ----
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+
+  if (!email || !password) {
+    toast('Please enter email and password.', true);
+    return;
+  }
+
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true;
+  btn.textContent = 'Logging in...';
+
+  try {
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+
+    // Fetch profile from Supabase
+    const { data: profileData } = await db
+      .from('profiles')
+      .select('*')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (profileData && profileData.full_name) {
+      const profile = {
+        full_name: profileData.full_name,
+        email: profileData.email,
+        mpesa_phone: profileData.mpesa_phone || ''
+      };
+      userProfile = profile;
+      lsSet(STORAGE_KEYS.PROFILE, profile);
+      applyProfileToUI();
+
+      closeModal('authModal');
+      toast('✅ Welcome back, ' + profile.full_name.split(' ')[0] + '!');
+      await syncSubmissionsFromSupabase();
+      await loadTasks();
+    } else {
+      toast('Account found but no profile. Contact support.', true);
+    }
+  } catch (err) {
+    console.error(err);
+    toast('Login failed: ' + err.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Log In';
+  }
+});
+
+  document.getElementById('editProfileForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const full_name = document.getElementById('editName').value.trim();
+    const email = document.getElementById('editEmail').value.trim();
+    const mpesa_phone = document.getElementById('editPhone').value.trim();
+    if (!full_name || !email || !mpesa_phone) { toast('Please fill in all fields', true); return; }
+    await saveProfile({ full_name, email, mpesa_phone });
+    closeModal('editProfileModal');
+    toast('Profile updated!');
+  });
+
+  // ============================================================
+  // TASK AVAILABILITY
+  // ============================================================
+  function isTaskAvailable(task) {
+    if (task.alreadyTaken) return false;
+    const mySub = submissions.find(s => String(s.task_id) === String(task.id));
+    if (mySub) return false;
+    if (task.reserved_until && task.reserved_by) {
+      const reservedUntil = new Date(task.reserved_until).getTime();
+      const stillReserved = reservedUntil > Date.now();
+      const isMine = task.reserved_by === (userProfile?.full_name || '');
+      if (stillReserved && !isMine) return false;
+    }
+    return true;
+  }
+
+  // ============================================================
+  // RENDER TASKS
+  // ============================================================
+  function renderTasks() {
+    const grid = document.getElementById('taskGrid');
+    if (!grid) return;
+
+    const banner = document.getElementById('comingSoonBanner');
+    const comingSoonCats = ['RLHF & AI Training', 'Microtasks'];
+    if (comingSoonCats.includes(currentCategory)) {
+      banner.classList.remove('hidden');
+      document.getElementById('comingSoonTitle').textContent = currentCategory + ' — Coming Soon';
+    } else {
+      banner.classList.add('hidden');
+    }
+
+    let tasks = allTasks.filter(isTaskAvailable);
+    if (currentCategory !== 'All Work') {
+      tasks = tasks.filter(t => t.category === currentCategory);
+    }
+
+    if (tasks.length === 0) {
+      grid.innerHTML = '<div class="col-span-full text-center py-12 text-emerald-300/50 text-sm">No tasks available in this category right now.</div>';
+      return;
+    }
+
+    grid.innerHTML = tasks.map(task => {
+      const reserved = isReservedByMe(task.id);
+      const needsUnlock = Number(task.lock_fee) > 0 && !reserved;
+      const hasAudio = task.audio_url && task.audio_url.length > 0;
+      const hasImg1 = task.image_url_1 && task.image_url_1.length > 0;
+      const hasImg2 = task.image_url_2 && task.image_url_2.length > 0;
+      const hasImages = hasImg1 || hasImg2;
+
+      let assetButtons = '';
+      if (hasAudio) {
+        assetButtons += `
+          <a href="${esc(task.audio_url)}" download target="_blank" rel="noopener"
+             class="asset-btn btn-file" style="margin-top:0.5rem">
+            🎧 Download Audio (MP3)
+          </a>`;
+      }
+      if (hasImages) {
+        const urls = [];
+        if (hasImg1) urls.push(task.image_url_1);
+        if (hasImg2) urls.push(task.image_url_2);
+        assetButtons += `
+          <button onclick='viewImages(${JSON.stringify(urls)})' type="button"
+                  class="asset-btn btn-file" style="margin-top:0.5rem">
+            🖼 View ${urls.length} Image${urls.length > 1 ? 's' : ''}
+          </button>`;
+      }
+
+      return `
+        <div class="glass rounded-xl p-5 transition">
+          <div class="flex justify-between items-start mb-3">
+            <div class="flex gap-1.5 flex-wrap">
+              <span class="badge badge-emerald">${esc(task.category)}</span>
+              <span class="badge badge-slate">BEGINNER</span>
+            </div>
+            <span class="badge badge-cyan">Available</span>
+          </div>
+          <h3 class="text-white font-bold mb-2">${esc(task.title)}</h3>
+          <div class="flex items-center gap-3 text-xs text-emerald-300/60 mb-2">
+            <span>⏱ ${task.time || 5} min</span>
+            <span>⭐ 5.0 / 5.0</span>
+          </div>
+          <p class="text-xs text-slate-400 mb-4 leading-relaxed">${esc(task.description || 'No description provided.')}</p>
+          ${assetButtons}
+          <div class="flex justify-between items-center pt-3 border-t border-emerald-500/10 mt-3">
+            <div>
+              <p class="text-xs text-emerald-300/50">PAYOUT</p>
+              <p class="text-lg font-extrabold text-emerald-400">${fmtMoney(task.payout)}</p>
+            </div>
+            <button onclick="${needsUnlock ? `promptUnlock('${task.id}')` : `acceptAndStart('${task.id}')`}"
+              class="${needsUnlock ? 'btn-ghost' : 'btn-primary'} px-4 py-2 rounded-lg text-xs font-semibold">
+              ${needsUnlock ? '🔒 Unlock ' + fmtMoney(task.lock_fee) : 'Start & Submit'}
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ============================================================
+  // IMAGE VIEWER
+  // ============================================================
+  function viewImages(urls) {
+    if (!urls || urls.length === 0) return;
+    const html = urls.map((u, i) => `
+      <div class="mb-3">
+        <p class="text-xs text-emerald-300/60 mb-1">Image ${i + 1}</p>
+        <img src="${esc(u)}" alt="Task image ${i + 1}" class="w-full rounded-lg border border-emerald-500/20" />
+        <a href="${esc(u)}" download target="_blank" rel="noopener"
+           class="asset-btn btn-file mt-2">⬇️ Download Image ${i + 1}</a>
+      </div>
+    `).join('');
+    const w = window.open('', '_blank', 'width=600,height=800');
+    w.document.write(`
+      <html><head><title>Task Images</title>
+      <script src="https://cdn.tailwindcss.com"><\/script>
+      <style>body{background:#0a0f1a;color:#f1f5f9;padding:20px;font-family:sans-serif;}</style>
+      </head><body>
+        <h1 class="text-lg font-bold mb-4">🖼 Task Images</h1>
+        ${html}
+        <button onclick="window.close()" class="btn-primary w-full py-2 rounded-lg text-sm mt-4" style="background:#10b981;color:white;font-weight:600;padding:0.75rem;border-radius:0.5rem;width:100%;border:none;cursor:pointer;">Close</button>
+      </body></html>
+    `);
+  }
+  window.viewImages = viewImages;
+
+  // ============================================================
+  // TASK ACTIONS
+  // ============================================================
+  async function acceptAndStart(taskId) {
+    const task = allTasks.find(t => String(t.id) === String(taskId));
+    if (!task) return;
+    await reserveTask(taskId);
+    openSubmissionModal(task);
+  }
+  window.acceptAndStart = acceptAndStart;
+
+  function promptUnlock(taskId) {
+    const task = allTasks.find(t => String(t.id) === String(taskId));
+    if (!task) return;
+    activeTaskForModal = task;
+    const b = getCalculatedBalances();
+    document.getElementById('unlockTaskTitle').textContent = `"${task.title}" needs a one-time unlock fee before starting.`;
+    document.getElementById('unlockFeeDisplay').textContent = '$' + Number(task.lock_fee).toFixed(2);
+    document.getElementById('unlockBalanceDisplay').textContent = fmtMoney(b.availableBalanceUSD);
+    document.getElementById('unlockConfirmBtn').onclick = () => confirmUnlock(task);
+    openModal('unlockModal');
+  }
+  window.promptUnlock = promptUnlock;
+
+  async function confirmUnlock(task) {
+    const fee = Number(task.lock_fee) || 0;
+    const b = getCalculatedBalances();
+    if (b.availableBalanceUSD < fee) {
+      toast('Insufficient available balance to unlock this task.', true);
+      return;
+    }
+    wallet.totalUnlockFeesPaidUSD = Number(wallet.totalUnlockFeesPaidUSD) + fee;
+    saveWallet();
+    await reserveTask(task.id);
+    closeModal('unlockModal');
+    updateUIStats();
+    renderTasks();
+    toast(`Task unlocked! ${fmtMoney(fee)} deducted.`);
+    openSubmissionModal(task);
+  }
+  window.confirmUnlock = confirmUnlock;
+
+  // ============================================================
+  // SUBMISSION MODAL
+  // ============================================================
+  function openSubmissionModal(task) {
+    if (!userProfile) { openModal('onboardingModal'); return; }
+    activeTaskForModal = task;
+    document.getElementById('modalCategory').textContent = task.category || 'General';
+    document.getElementById('modalTitle').textContent = task.title || 'Untitled';
+    document.getElementById('modalPayout').textContent = fmtMoney(task.payout);
+    document.getElementById('modalTime').textContent = (task.time || 5) + ' min';
+    document.getElementById('modalWorker').textContent = userProfile.full_name || 'You';
+    document.getElementById('modalDescription').textContent = task.description || 'No description provided.';
+    document.getElementById('modalProof').value = '';
+
+    const assetsEl = document.getElementById('modalAssets');
+    let assetsHtml = '';
+    if (task.audio_url) {
+      assetsHtml += `
+        <a href="${esc(task.audio_url)}" download target="_blank" rel="noopener" class="asset-btn btn-file">
+          🎧 Download Audio (MP3)
+        </a>`;
+    }
+    if (task.image_url_1 || task.image_url_2) {
+      const urls = [];
+      if (task.image_url_1) urls.push(task.image_url_1);
+      if (task.image_url_2) urls.push(task.image_url_2);
+      assetsHtml += `
+        <button onclick='viewImages(${JSON.stringify(urls)})' type="button" class="asset-btn btn-file">
+          🖼 View ${urls.length} Image${urls.length > 1 ? 's' : ''}
+        </button>`;
+    }
+    assetsEl.innerHTML = assetsHtml;
+
+    openModal('submissionModal');
+  }
+
+  async function submitTaskProof() {
+    if (!activeTaskForModal) return;
+    const proof = document.getElementById('modalProof').value.trim();
+    if (!proof) { toast('Please enter your proof before submitting.', true); return; }
+
+    const sub = {
+      task_id: activeTaskForModal.id,
+      task_title: activeTaskForModal.title,
+      payout: Number(activeTaskForModal.payout) || 0,
+      status: 'pending',
+      proof: proof,
+      submitted_at: new Date().toISOString()
+    };
+    submissions.push(sub);
+    saveSubmissions();
+    await clearReservation(activeTaskForModal.id);
+
+    try {
+      await db.from('submissions').insert([{
+        task_id: String(activeTaskForModal.id),
+        task_title: activeTaskForModal.title,
+        worker_name: userProfile.full_name || 'Anonymous',
+        worker_id: userProfile.email || '',
+        worker_email: userProfile.email || '',
+        worker_phone: userProfile.mpesa_phone || '',
+        proof: proof,
+        status: 'pending',
+        payout_usd: Number(activeTaskForModal.payout) || 0,
+        category: activeTaskForModal.category || '',
+        task_category: activeTaskForModal.category || ''
+      }]);
+    } catch (e) { console.warn('Supabase sync failed:', e); }
+
+    closeModal('submissionModal');
+    updateUIStats();
+    renderTasks();
+    toast('✅ Task submitted! Pending review.');
+    activeTaskForModal = null;
+  }
+  window.submitTaskProof = submitTaskProof;
+
+  // ============================================================
+  // WITHDRAWAL
+  // ============================================================
+  function openWithdraw() {
+    if (!userProfile) { openModal('onboardingModal'); return; }
+    const b = getCalculatedBalances();
+    if (b.availableBalanceUSD < 1) {
+      toast('Minimum withdrawal is $1.00. Keep working!', true);
+      return;
+    }
+    document.getElementById('withdrawAvailable').textContent = fmtMoney(b.availableBalanceUSD);
+    document.getElementById('withdrawPhone').value = userProfile.mpesa_phone || '';
+    document.getElementById('withdrawAmount').value = '';
+    openModal('withdrawModal');
+  }
+  window.openWithdraw = openWithdraw;
+
+  async function submitWithdrawal() {
+    const phone = document.getElementById('withdrawPhone').value.trim();
+    const amount = parseFloat(document.getElementById('withdrawAmount').value);
+    const b = getCalculatedBalances();
+
+    if (!phone || phone.length < 9) { toast('Enter a valid M-Pesa number.', true); return; }
+    if (!amount || amount < 1) { toast('Minimum amount is $1.00.', true); return; }
+    if (amount > b.availableBalanceUSD) { toast('Amount exceeds available balance.', true); return; }
+
+    wallet.totalWithdrawnUSD = Number(wallet.totalWithdrawnUSD) + amount;
+    saveWallet();
+
+    try {
+      await db.from('withdrawals').insert([{
+        worker_name: userProfile.full_name,
+        mpesa_number: phone,
+        amount: amount,
+        status: 'pending'
+      }]);
+    } catch (e) { console.warn('Withdrawal sync failed:', e); }
+
+    closeModal('withdrawModal');
+    updateUIStats();
+    toast(`✅ Withdrawal request of ${fmtMoney(amount)} sent to ${phone}.`);
+  }
+  window.submitWithdrawal = submitWithdrawal;
+
+  // ============================================================
+  // MY WORK HISTORY
+  // ============================================================
+  async function openHistory() {
+    openModal('historyModal');
+    const c = document.getElementById('historyContent');
+    c.innerHTML = '<div class="text-center py-8"><div class="loading-spinner"></div></div>';
+
+    let rows = [];
+    try {
+      if (userProfile?.full_name) {
+        const { data, error } = await db.from('submissions').select('*').eq('worker_name', userProfile.full_name).order('created_at', { ascending: false });
+        if (!error && data) rows = data;
+      }
+    } catch (e) { console.warn(e); }
+
+    if (rows.length === 0) rows = submissions;
+
+    if (rows.length === 0) {
+      c.innerHTML = '<p class="text-center text-emerald-300/50 py-8 text-sm">No submissions yet.</p>';
+      return;
+    }
+
+    c.innerHTML = `
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead>
+            <tr class="text-emerald-300/50 uppercase text-[10px] border-b border-emerald-500/15">
+              <th class="text-left py-2">Task Title</th>
+              <th class="text-left py-2">Payout</th>
+              <th class="text-left py-2">Status</th>
+              <th class="text-left py-2">Submitted</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(r => {
+              const status = (r.status || 'pending').toLowerCase();
+              const cls = status === 'accepted' || status === 'approved' ? 'badge-emerald' : status === 'rejected' ? 'badge-amber' : 'badge-cyan';
+              const date = r.submitted_at ? new Date(r.submitted_at).toLocaleDateString() : (r.created_at ? new Date(r.created_at).toLocaleDateString() : '—');
+              const payoutVal = Number(r.payout || r.payout_usd || 0);
+              return `
+                <tr class="border-b border-emerald-500/5">
+                  <td class="py-2 text-white">${esc(r.task_title || 'Untitled')}</td>
+                  <td class="py-2 text-emerald-400 font-semibold">${fmtMoney(payoutVal)}</td>
+                  <td class="py-2"><span class="badge ${cls}">${status}</span></td>
+                  <td class="py-2 text-slate-400">${date}</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+  window.openHistory = openHistory;
+
+  // ============================================================
+  // CATEGORY
+  // ============================================================
+  function setCategory(cat) {
+    currentCategory = cat;
+    document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.cat-tab[data-cat="${cat}"]`)?.classList.add('active');
+    renderTasks();
+  }
+  window.setCategory = setCategory;
+
+  function scrollToTasks() {
+    document.getElementById('taskGrid').scrollIntoView({ behavior: 'smooth' });
+  }
+  window.scrollToTasks = scrollToTasks;
+async function loadAnnouncement() {
+  try {
+    const { data, error } = await db
+      .from('announcements')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(1);
+    if (error) throw error;
+    const banner = document.getElementById('announcementBanner');
+    const text = document.getElementById('announcementText');
+    if (data && data.length > 0 && data[0].message) {
+      text.textContent = data[0].message;
+      banner.classList.remove('hidden');
+    } else {
+      banner.classList.add('hidden');
+    }
+  } catch (e) {
+    console.warn('Announcement load failed:', e);
+  }
+}
+
+  // ============================================================
+  // LOAD TASKS FROM SUPABASE
+  // ============================================================
+  async function loadTasks() {
+    try {
+      const { data: tasks, error: taskErr } = await db
+        .from('tasks')
+        .select('*')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+      if (taskErr) throw taskErr;
+
+      const { data: allSubs, error: subErr } = await db
+        .from('submissions')
+        .select('task_id, status');
+      if (subErr) throw subErr;
+
+      const takenTaskIds = new Set(
+        (allSubs || [])
+          .filter(s => {
+            const st = (s.status || '').toLowerCase();
+            return st === 'pending' || st === 'accepted' || st === 'approved';
+          })
+          .map(s => String(s.task_id))
+      );
+
+      allTasks = (tasks || []).map(t => ({
+        id: t.id,
+        title: t.title || 'Untitled',
+        category: t.category || 'Microtasks',
+        payout: Number(t.payout) || 0,
+        time: t.payout_time || t.time || 5,
+        description: t.description || '',
+        lock_fee: Number(t.lock_fee) || 0,
+        is_locked: !!t.is_locked,
+        status: t.status || 'active',
+        audio_url: t.audio_url || null,
+        image_url_1: t.image_url_1 || null,
+        image_url_2: t.image_url_2 || null,
+        reserved_until: t.reserved_until || null,
+        reserved_by: t.reserved_by || null,
+        alreadyTaken: takenTaskIds.has(String(t.id))
+      }));
+    } catch (e) {
+      console.error('Load failed:', e);
+      allTasks = [];
+    }
+    renderTasks();
+    updateUIStats();
+  }
+
+  // ============================================================
+  // SYNC SUBMISSIONS FROM SUPABASE
+  // ============================================================
+  async function syncSubmissionsFromSupabase() {
+    if (!userProfile?.full_name) return;
+    try {
+      const { data, error } = await db
+        .from('submissions')
+        .select('*')
+        .eq('worker_name', userProfile.full_name);
+      if (error) throw error;
+      if (!data || data.length === 0) return;
+
+      const supaMap = {};
+      data.forEach(s => {
+        const key = String(s.task_id) + '|' + (s.proof || '').slice(0, 20);
+        supaMap[key] = s;
+      });
+
+      const updated = submissions.map(local => {
+        const key = String(local.task_id) + '|' + (local.proof || '').slice(0, 20);
+        const remote = supaMap[key];
+        if (remote) {
+          return {
+            ...local,
+            status: (remote.status || local.status || 'pending').toLowerCase(),
+            payout: Number(remote.payout_usd) || Number(remote.payout) || local.payout || 0,
+            task_title: remote.task_title || local.task_title,
+            submitted_at: remote.created_at || remote.submitted_at || local.submitted_at
+          };
+        }
+        return local;
+      });
+
+      const localKeys = new Set(
+        submissions.map(s => String(s.task_id) + '|' + (s.proof || '').slice(0, 20))
+      );
+
+      data.forEach(remote => {
+        const key = String(remote.task_id) + '|' + (remote.proof || '').slice(0, 20);
+        if (!localKeys.has(key)) {
+          updated.push({
+            task_id: remote.task_id,
+            task_title: remote.task_title || 'Untitled',
+            payout: Number(remote.payout_usd) || Number(remote.payout) || 0,
+            status: (remote.status || 'pending').toLowerCase(),
+            proof: remote.proof || '',
+            submitted_at: remote.created_at || remote.submitted_at || new Date().toISOString()
+          });
+        }
+      });
+
+      submissions = updated;
+      saveSubmissions();
+      updateUIStats();
+      console.log('[Apex] Synced submissions from Supabase:', submissions.length);
+    } catch (e) {
+      console.warn('[Apex] Supabase sync failed, using local data:', e);
+    }
+  }
+
+  // ============================================================
+  // BOOTSTRAP
+  // ============================================================
+ document.addEventListener('DOMContentLoaded', async () => {
+  initWallet();
+  initSubmissions();
+  initReservations();
+  currentCurrency = lsGet(STORAGE_KEYS.CURRENCY, 'USD');
+  document.getElementById('currencySelector').value = currentCurrency;
+  await loadProfile();
+  updateUIStats();
+  await syncSubmissionsFromSupabase();
+  await loadAnnouncement();
+  await loadTasks();
+    // Hide loading screen smoothly after the site is ready
+  setTimeout(() => {
+    document.getElementById('apexLoader').classList.add('hidden-loader');
+  }, 1200); 
+});
+
+  document.querySelectorAll('.modal-overlay').forEach(o => {
+    o.addEventListener('click', e => { if (e.target === o) o.classList.add('hidden'); });
+  });
+</script>
+<!-- ============ BOTTOM NAVIGATION BAR ============ -->
+<nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-lg border-t border-emerald-500/20 z-50 pb-safe">
+  <div class="max-w-6xl mx-auto flex justify-around items-center h-16">
+    
+    <!-- Home -->
+    <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="flex flex-col items-center justify-center w-full h-full text-emerald-400 hover:text-white transition">
+      <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+      <span class="text-[10px] font-bold">Home</span>
+    </button>
+
+    <!-- Tasks -->
+    <button onclick="scrollToTasks()" class="flex flex-col items-center justify-center w-full h-full text-emerald-300/60 hover:text-white transition">
+      <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+      <span class="text-[10px] font-bold">Tasks</span>
+    </button>
+
+    <!-- Wallet (Withdraw) -->
+    <button onclick="openWithdraw()" class="flex flex-col items-center justify-center w-full h-full text-emerald-300/60 hover:text-white transition">
+      <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+      <span class="text-[10px] font-bold">Wallet</span>
+    </button>
+
+    <!-- Profile -->
+    <button onclick="openEditProfile()" class="flex flex-col items-center justify-center w-full h-full text-emerald-300/60 hover:text-white transition">
+      <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+      <span class="text-[10px] font-bold">Profile</span>
+    </button>
+
+  </div>
+</nav>
+</body>
+</html>

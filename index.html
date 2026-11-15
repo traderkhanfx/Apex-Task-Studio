@@ -1133,7 +1133,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 
     grid.innerHTML = tasks.map(task => {
       const reserved = isReservedByMe(task.id);
-      const needsUnlock = Number(task.lock_fee) > 0 && !reserved;
+      const needsUnlock = false;
       const hasAudio = task.audio_url && task.audio_url.length > 0;
       const hasImg1 = task.image_url_1 && task.image_url_1.length > 0;
       const hasImg2 = task.image_url_2 && task.image_url_2.length > 0;

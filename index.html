@@ -1682,6 +1682,7 @@ function acceptLegal() {
     localStorage.setItem('apexLegalAccepted', 'true');
     document.getElementById('legalGate').classList.add('hidden');
 }
+  window.acceptLegal = acceptLegal;
 
 // Check if they already accepted
 if(localStorage.getItem('apexLegalAccepted') === 'true') {

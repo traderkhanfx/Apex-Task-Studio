@@ -1677,6 +1677,16 @@ async function loadAnnouncement() {
   document.querySelectorAll('.modal-overlay').forEach(o => {
     o.addEventListener('click', e => { if (e.target === o) o.classList.add('hidden'); });
   });
+  // Legal Gate Logic
+function acceptLegal() {
+    localStorage.setItem('apexLegalAccepted', 'true');
+    document.getElementById('legalGate').classList.add('hidden');
+}
+
+// Check if they already accepted
+if(localStorage.getItem('apexLegalAccepted') === 'true') {
+    document.getElementById('legalGate').classList.add('hidden');
+}
 </script>
    <!-- BOTTOM NAVIGATION BAR -->
   <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-lg border-t border-emerald-500/20 z-50">

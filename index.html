@@ -105,6 +105,22 @@
 </style>
 </head>
 <body>
+  <!-- LEGAL GATE -->
+<div id="legalGate" class="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center p-4 backdrop-blur-md">
+    <div class="glass max-w-md w-full p-6 rounded-2xl border border-emerald-500/30">
+        <h2 class="text-xl font-bold text-white mb-4">Terms & Privacy</h2>
+        <div class="h-40 overflow-y-auto text-xs text-slate-300 mb-4 p-3 bg-black/50 rounded-lg space-y-2">
+            <p><strong>1. Data Collection:</strong> We collect your name, phone, and M-Pesa details to process payments.</p>
+            <p><strong>2. External Offers:</strong> Apex is not liable for delayed payments from third-party partner offers.</p>
+            <p><strong>3. Quality:</strong> Submissions that do not meet guidelines will be rejected.</p>
+        </div>
+        <label class="flex items-start gap-2 mb-4 cursor-pointer">
+            <input type="checkbox" id="legalCheckbox" class="mt-1 w-4 h-4 accent-emerald-500" onchange="document.getElementById('legalBtn').removeAttribute('disabled'); document.getElementById('legalBtn').classList.remove('opacity-50', 'cursor-not-allowed');">
+            <span class="text-xs text-emerald-200">I have read and agree to the Terms & Conditions and Privacy Policy.</span>
+        </label>
+        <button id="legalBtn" disabled onclick="acceptLegal()" class="btn-primary w-full py-3 rounded-lg opacity-50 cursor-not-allowed">Accept & Enter</button>
+    </div>
+</div>
 
   <div id="toastContainer"></div>
 

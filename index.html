@@ -912,7 +912,15 @@ function applyProfileToUI() {
   if (document.getElementById('headerName')) document.getElementById('headerName').textContent = userProfile.full_name.split(' ')[0];
   if (document.getElementById('headerPhone')) document.getElementById('headerPhone').textContent = userProfile.mpesa_phone || userProfile.email;
   if (document.getElementById('withdrawPhone')) document.getElementById('withdrawPhone').value = userProfile.mpesa_phone || '';
-}
+ const badge = document.getElementById('proBadge');
+  if (badge) {
+      if (userProfile.is_verified) {
+          badge.classList.remove('hidden'); // Show the badge
+      } else {
+          badge.classList.add('hidden'); // Keep it hidden
+      }
+  }
+}}
 
 function switchAuthTab(tab) {
   const tabLogin = document.getElementById('tabLogin');

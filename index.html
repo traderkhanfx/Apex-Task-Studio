@@ -1058,6 +1058,7 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
   const email = document.getElementById('signupEmail').value.trim();
   const mpesa_phone = document.getElementById('signupPhone').value.trim();
   const password = document.getElementById('signupPassword').value;
+    const referred_by = document.getElementById('signupReferral').value.trim();
 
   if (!full_name || !email || !mpesa_phone || !password) {
     toast('Please fill in all fields.', true);
@@ -1085,7 +1086,7 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
     if (error) throw error;
 
     // Save profile to profiles table
-    const profile = { full_name, email, mpesa_phone };
+      const profile = { full_name, email, mpesa_phone, referred_by };
     await db.from('profiles').insert([profile]);
 
     userProfile = profile;

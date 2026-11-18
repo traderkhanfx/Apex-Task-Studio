@@ -912,15 +912,7 @@ function applyProfileToUI() {
   if (document.getElementById('headerName')) document.getElementById('headerName').textContent = userProfile.full_name.split(' ')[0];
   if (document.getElementById('headerPhone')) document.getElementById('headerPhone').textContent = userProfile.mpesa_phone || userProfile.email;
   if (document.getElementById('withdrawPhone')) document.getElementById('withdrawPhone').value = userProfile.mpesa_phone || '';
- const badge = document.getElementById('proBadge');
-  if (badge) {
-      if (userProfile.is_verified) {
-          badge.classList.remove('hidden'); // Show the badge
-      } else {
-          badge.classList.add('hidden'); // Keep it hidden
-      }
-  }
-}}
+}
 
 function switchAuthTab(tab) {
   const tabLogin = document.getElementById('tabLogin');
@@ -1676,10 +1668,6 @@ async function loadAnnouncement() {
   // BOOTSTRAP
   // ============================================================
  document.addEventListener('DOMContentLoaded', async () => {
-       // Hide loading screen smoothly after the site is ready
-  setTimeout(() => {
-    document.getElementById('apexLoader').classList.add('hidden-loader');
-  }, 1200); 
   initWallet();
   initSubmissions();
   initReservations();
@@ -1690,7 +1678,10 @@ async function loadAnnouncement() {
   await syncSubmissionsFromSupabase();
   await loadAnnouncement();
   await loadTasks();
-
+    // Hide loading screen smoothly after the site is ready
+  setTimeout(() => {
+    document.getElementById('apexLoader').classList.add('hidden-loader');
+  }, 1200); 
 });
 
   document.querySelectorAll('.modal-overlay').forEach(o => {
@@ -1736,4 +1727,4 @@ if(localStorage.getItem('apexLegalAccepted') === 'true') {
   </nav>
 
 </body>
-</html>
+  </html>

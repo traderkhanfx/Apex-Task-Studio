@@ -1676,6 +1676,10 @@ async function loadAnnouncement() {
   // BOOTSTRAP
   // ============================================================
  document.addEventListener('DOMContentLoaded', async () => {
+       // Hide loading screen smoothly after the site is ready
+  setTimeout(() => {
+    document.getElementById('apexLoader').classList.add('hidden-loader');
+  }, 1200); 
   initWallet();
   initSubmissions();
   initReservations();
@@ -1686,10 +1690,7 @@ async function loadAnnouncement() {
   await syncSubmissionsFromSupabase();
   await loadAnnouncement();
   await loadTasks();
-    // Hide loading screen smoothly after the site is ready
-  setTimeout(() => {
-    document.getElementById('apexLoader').classList.add('hidden-loader');
-  }, 1200); 
+
 });
 
   document.querySelectorAll('.modal-overlay').forEach(o => {

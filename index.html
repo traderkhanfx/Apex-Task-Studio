@@ -1075,7 +1075,7 @@ async function loadWorkerOffers() {
     `).join('');
   } catch (e) {
     console.error(e);
-    box.innerHTML = '<p class="text-xs text-red-400 text-center py-4">Failed to load offers.</p>';
+    box.innerHTML = '<p class="text-xs text-red-400 text-center py-4">Error: ' + e.message + '</p>';
   }
 }
 window.loadWorkerOffers = loadWorkerOffers;

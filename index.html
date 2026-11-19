@@ -1736,6 +1736,15 @@ if(localStorage.getItem('apexLegalAccepted') === 'true') {
     document.getElementById('legalGate').classList.add('hidden');
 }
 </script>
+  <div id="installBar" class="hidden fixed left-3 right-3 z-[60] glass rounded-xl p-3 flex items-center gap-3" style="bottom:4.75rem;">
+  <span class="text-xl">⚡</span>
+  <div class="flex-1 min-w-0">
+    <p class="text-xs font-bold text-white">Install Apex Task Studio</p>
+    <p id="installHint" class="text-[10px] text-emerald-300/60">Add it to your home screen for quick access.</p>
+  </div>
+  <button id="installBtn" class="btn-primary px-3 py-2 rounded-lg text-xs font-semibold">Install</button>
+  <button id="installClose" class="text-emerald-300/60 hover:text-white text-xl leading-none">&times;</button>
+  </div>
    <!-- BOTTOM NAVIGATION BAR -->
   <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-lg border-t border-emerald-500/20 z-50">
     <div class="max-w-6xl mx-auto flex justify-around items-center h-16">

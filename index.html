@@ -1049,6 +1049,37 @@ async function authLogout() {
 }
 window.authLogout = authLogout;
 
+  // ============ LOAD PARTNER OFFERS FOR WORKERS ============
+async function loadWorkerOffers() {
+  const box = document.getElementById('workerOffersList');
+  if (!box) return;
+  
+  try {
+    const { data, error } = await db.from('partner_offers').select('*').eq('active', true).order('created_at', { ascending: false });
+    if (error) throw error;
+    
+    if (!data || !data.length) {
+      box.innerHTML = '<p class="text-xs text-emerald-300/50 text-center py-4">No partner offers available right now. Check back later!</p>';
+      return;
+    }
+    
+    box.innerHTML = data.map(o => `
+      <div class="glass rounded-xl p-4 border border-emerald-500/20">
+        <h3 class="text-base font-bold text-white mb-1">🤝 ${escapeHtml(o.name)}</h3>
+        <p class="text-xs text-emerald-100/60 mb-3">${escapeHtml(o.description || 'Apply to start earning through this partner.')}</p>
+        <span class="text-[10px] font-bold text-emerald-400 block mb-3">${escapeHtml(o.reward || '')}</span>
+        <a href="${escapeHtml(o.link)}" target="_blank" class="btn-primary w-full py-2.5 rounded-lg text-xs font-semibold text-center block no-underline">
+          Apply Now
+        </a>
+      </div>
+    `).join('');
+  } catch (e) {
+    console.error(e);
+    box.innerHTML = '<p class="text-xs text-red-400 text-center py-4">Failed to load offers.</p>';
+  }
+}
+window.loadWorkerOffers = loadWorkerOffers;
+  
 // ---- SIGNUP ----
 document.getElementById('signupForm').addEventListener('submit', async (e) => {
   e.preventDefault();

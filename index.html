@@ -1078,6 +1078,11 @@ async function loadWorkerOffers() {
     box.innerHTML = '<p class="text-xs text-red-400 text-center py-4">Error: ' + e.message + '</p>';
   }
 }
+  function escapeHtml(s) {
+  if (s === null || s === undefined) return '';
+  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
 window.loadWorkerOffers = loadWorkerOffers;
   
 // ---- SIGNUP ----

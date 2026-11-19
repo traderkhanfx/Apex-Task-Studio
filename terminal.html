@@ -312,7 +312,6 @@ const SUPABASE_URL = 'https://dwdtvasykhorrvmwmnhb.supabase.co';
 const { createClient } = supabase;
 const ADMIN_EMAIL = 'admin@internal.local'; // Matches the user created in Supabase Auth
 
-const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     autoRefreshToken: true,

@@ -793,6 +793,72 @@ async function deleteAnnouncement(id) {
 }
 window.deleteAnnouncement = deleteAnnouncement;
 
+ // ============ PARTNER OFFERS ============
+async function loadOffers() {
+  const box = document.getElementById('offersList');
+  if (!box) return;
+  try {
+    const { data, error } = await db.from('partner_offers').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    if (!data || !data.length) {
+      box.innerHTML = '<p class="text-xs text-amber-300/50">No offers yet.</p>';
+      return;
+    }
+    box.innerHTML = data.map(o => `
+      <div class="glass rounded-lg p-3 flex justify-between items-start gap-3">
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold text-white">${escapeHtml(o.name)} <span class="text-emerald-400 text-xs">${escapeHtml(o.reward || '')}</span></p>
+          <p class="text-xs text-amber-200/60 break-all">${escapeHtml(o.link)}</p>
+        </div>
+        <div class="flex flex-col items-end gap-1">
+          <span class="badge ${o.active ? 'badge-accepted' : 'badge-pending'}">${o.active ? 'LIVE' : 'HIDDEN'}</span>
+          <div class="flex gap-2">
+            <button onclick="toggleOffer('${o.id}', ${!o.active})" class="text-[10px] text-amber-300 underline">${o.active ? 'Hide' : 'Show'}</button>
+            <button onclick="deleteOffer('${o.id}')" class="text-[10px] text-red-400 underline">Delete</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  } catch (e) {
+    box.innerHTML = '<p class="text-xs text-red-400">Failed to load offers.</p>';
+  }
+}
+
+async function addOffer() {
+  const name = document.getElementById('offerName').value.trim();
+  const reward = document.getElementById('offerReward').value.trim();
+  const link = document.getElementById('offerLink').value.trim();
+  const description = document.getElementById('offerDesc').value.trim();
+  if (!name || !link) { toast('Name and link are required.', true); return; }
+  if (!/^https:\/\//i.test(link)) { toast('Link must start with https://', true); return; }
+  try {
+    const { error } = await db.from('partner_offers').insert([{ name, reward, link, description, active: true }]);
+    if (error) throw error;
+    ['offerName', 'offerReward', 'offerLink', 'offerDesc'].forEach(id => document.getElementById(id).value = '');
+    toast('✅ Offer added.');
+    loadOffers();
+  } catch (e) { toast(e.message, true); }
+}
+window.addOffer = addOffer;
+
+async function toggleOffer(id, active) {
+  try {
+    const { error } = await db.from('partner_offers').update({ active }).eq('id', id);
+    if (error) throw error;
+    loadOffers();
+  } catch (e) { toast(e.message, true); }
+}
+window.toggleOffer = toggleOffer;
+
+async function deleteOffer(id) {
+  if (!confirm('Delete this offer?')) return;
+  try {
+    const { error } = await db.from('partner_offers').delete().eq('id', id);
+    if (error) throw error;
+    loadOffers();
+  } catch (e) { toast(e.message, true); }
+}
+window.deleteOffer = deleteOffer;
 function escapeHtml(s) {
   if (s === null || s === undefined) return '';
   return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));

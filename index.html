@@ -1771,6 +1771,68 @@ if(localStorage.getItem('apexLegalAccepted') === 'true') {
 
     </div>
   </nav>
+  <script>
+(function () {
+  const bar = document.getElementById('installBar');
+  const btn = document.getElementById('installBtn');
+  const closeBtn = document.getElementById('installClose');
+  const hint = document.getElementById('installHint');
+  let deferredPrompt = null;
+
+  // Register the service worker (needed for install on Android)
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    });
+  }
+
+  const isStandalone =
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true;
+  if (isStandalone) return; // already installed, show nothing
+
+  // Remember "dismissed" for 7 days
+  const KEY = 'apexInstallDismissed';
+  function dismissedRecently() {
+    try {
+      const t = Number(localStorage.getItem(KEY) || 0);
+      return t && Date.now() - t < 7 * 24 * 60 * 60 * 1000;
+    } catch (e) { return false; }
+  }
+  function showBar() { if (!dismissedRecently()) bar.classList.remove('hidden'); }
+  function hideBar() { bar.classList.add('hidden'); }
+
+  closeBtn.addEventListener('click', () => {
+    try { localStorage.setItem(KEY, String(Date.now())); } catch (e) {}
+    hideBar();
+  });
+
+  // Android Chrome / Samsung Internet: real install prompt
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    showBar();
+  });
+
+  btn.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    hideBar();
+  });
+
+  window.addEventListener('appinstalled', hideBar);
+
+  // iPhone / iPad: no install prompt exists, so show the manual steps
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if (isIOS) {
+    btn.classList.add('hidden');
+    hint.textContent = 'Tap the Share icon, then "Add to Home Screen".';
+    showBar();
+  }
+})();
+  </script>
 
 </body>
   </html>

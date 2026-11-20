@@ -2229,7 +2229,6 @@ if(localStorage.getItem('apexLegalAccepted') === 'true') {
       const req = userProfile.referral_active ? null : await latestRequest();
       card.classList.remove('hidden');
       render(req);
-      await maybeClaim(fresh || userProfile);
     } catch (e) {
       card.classList.remove('hidden');
       render(null);

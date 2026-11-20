@@ -2355,5 +2355,100 @@ err.textContent = 'Could not submit: ' + (e && e.message ? e.message : e);
   window.ApexReferral = { sync };
 })();
 </script>
+  <!-- ═══════════ APEX TRUST LAYER — additive only ═══════════ -->
+<style>
+  .apx-rev{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease}
+  .apx-rev.apx-in{opacity:1;transform:none}
+  .apx-faq-a{max-height:0;overflow:hidden;transition:max-height .45s ease}
+  .apx-faq.apx-open .apx-faq-a{max-height:400px}
+  .apx-faq.apx-open .apx-chev{transform:rotate(45deg)}
+  .apx-chev{transition:transform .3s ease}
+</style>
+
+<div id="apxTrust" class="hidden w-full max-w-5xl mx-auto px-4 pb-10 space-y-6">
+
+  <div class="apx-rev rounded-2xl border border-emerald-500/40 bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-sky-500/10 p-4 flex items-start gap-3">
+    <span class="text-2xl shrink-0">🛡️</span>
+    <p class="text-sm text-emerald-100"><b class="text-white">Apex Task Studio is free to join.</b> We never charge activation, registration or withdrawal fees — and we never ask for deposits. The optional KSh 100 referral programme is a bonus feature, never a requirement to work or cash out. Anyone requesting payment to "unlock tasks" is not us: report it to <a href="mailto:support@apextaskstudio.space" class="underline text-emerald-300">support@apextaskstudio.space</a>.</p>
+  </div>
+
+  <section class="apx-rev rounded-2xl border border-slate-700/70 bg-slate-900/80 p-6 sm:p-8">
+    <span class="inline-block text-[11px] font-bold uppercase tracking-widest text-teal-300 bg-teal-500/10 border border-teal-500/30 rounded-full px-3 py-1 mb-4">About Apex Task Studio</span>
+    <h2 class="text-2xl sm:text-3xl font-extrabold text-white leading-tight mb-4">Built for workers,<br class="sm:hidden"/> not for fees.</h2>
+    <div class="space-y-4 text-sm sm:text-base text-slate-300 leading-relaxed">
+      <p>Apex Task Studio is a remote microtask platform founded in Kenya in 2026, built for anyone who wants honest, flexible work from a phone or laptop. We connect everyday workers with businesses and AI labs that need small, careful jobs done well: <b class="text-white">audio transcription, data annotation, surveys &amp; polls, and RLHF / AI training</b>. No degree, no interview, no starter kit — just your attention to detail.</p>
+      <p>Our model is simple and transparent: <b class="text-white">clients pay us for completed work, and we pay you.</b> You never pay to join, never pay to unlock tasks, and never pay to withdraw. Every submission is reviewed by a human QA team against published guidelines, approved earnings land in your balance, and withdrawals go straight to your registered M-Pesa number.</p>
+      <p>We started Apex because too many "online job" platforms hide fees behind fine print. Ours is the opposite: <b class="text-emerald-300">free in, paid out.</b> If a rule ever feels unclear, our support team answers in plain language — by email or WhatsApp, from real people, during East African working hours and beyond.</p>
+    </div>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-6">
+      <div class="rounded-xl bg-slate-800/70 border border-slate-700 p-4"><p class="text-xl mb-1">⚖️</p><p class="text-white font-bold text-sm">Fair pay</p><p class="text-slate-400 text-xs mt-1">Rates shown before you start any task.</p></div>
+      <div class="rounded-xl bg-slate-800/70 border border-slate-700 p-4"><p class="text-xl mb-1">📲</p><p class="text-white font-bold text-sm">M-Pesa payouts</p><p class="text-slate-400 text-xs mt-1">Direct to your registered number.</p></div>
+      <div class="rounded-xl bg-slate-800/70 border border-slate-700 p-4"><p class="text-xl mb-1">🧑‍💻</p><p class="text-white font-bold text-sm">Human support</p><p class="text-slate-400 text-xs mt-1">Real replies, not bot loops.</p></div>
+      <div class="rounded-xl bg-slate-800/70 border border-slate-700 p-4"><p class="text-xl mb-1">🔒</p><p class="text-white font-bold text-sm">Privacy first</p><p class="text-slate-400 text-xs mt-1">Your data is never sold or shared.</p></div>
+    </div>
+  </section>
+
+  <section class="apx-rev rounded-2xl border border-slate-700/70 bg-slate-900/80 p-6 sm:p-8">
+    <span class="inline-block text-[11px] font-bold uppercase tracking-widest text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 rounded-full px-3 py-1 mb-4">How it works — free, always</span>
+    <div class="grid sm:grid-cols-3 gap-4">
+      <div class="rounded-xl bg-gradient-to-b from-emerald-500/10 to-transparent border border-emerald-500/25 p-5"><p class="text-3xl font-extrabold text-emerald-400 mb-2">1</p><p class="text-white font-bold mb-1">Create your free account</p><p class="text-slate-400 text-xs leading-relaxed">Name, email and M-Pesa number. That's it. No card, no deposit, no activation payment — your first task is free to start.</p></div>
+      <div class="rounded-xl bg-gradient-to-b from-teal-500/10 to-transparent border border-teal-500/25 p-5"><p class="text-3xl font-extrabold text-teal-300 mb-2">2</p><p class="text-white font-bold mb-1">Pick a task &amp; submit</p><p class="text-slate-400 text-xs leading-relaxed">Choose from transcription, annotation, surveys or AI training. Follow the guidelines, submit, and track review status live.</p></div>
+      <div class="rounded-xl bg-gradient-to-b from-sky-500/10 to-transparent border border-sky-500/25 p-5"><p class="text-3xl font-extrabold text-sky-300 mb-2">3</p><p class="text-white font-bold mb-1">Get paid to M-Pesa</p><p class="text-slate-400 text-xs leading-relaxed">Approved work credits your balance. Request a withdrawal and we send it to your registered M-Pesa number — no withdrawal fee.</p></div>
+    </div>
+    <div class="mt-5 rounded-xl bg-slate-800/70 border border-slate-700 p-4 text-xs text-slate-300 leading-relaxed">
+      <b class="text-white">Our pay rules, in plain language:</b> every task shows its rate before you begin · submissions are reviewed against published guidelines, usually within 24–48 hours · rejected work always comes with a reason so you can improve and resubmit · approved earnings are yours, with no expiry and no hidden deductions.
+    </div>
+  </section>
+
+  <section class="apx-rev rounded-2xl border border-slate-700/70 bg-slate-900/80 p-6 sm:p-8">
+    <span class="inline-block text-[11px] font-bold uppercase tracking-widest text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-full px-3 py-1 mb-4">Questions, answered</span>
+    <div class="space-y-2" id="apxFaqList">
+      <div class="apx-faq rounded-xl border border-slate-700 bg-slate-800/60 overflow-hidden"><button class="apx-faq-q w-full flex items-center justify-between gap-3 text-left px-4 py-3 text-sm font-semibold text-white">Is there really no activation fee?<span class="apx-chev text-emerald-400 text-lg shrink-0">+</span></button><div class="apx-faq-a px-4 text-xs text-slate-300 leading-relaxed"><p class="pb-4">Correct — joining, working and withdrawing are completely free. Any message asking you to pay an "activation fee" is a scam impersonating us. Report it to support@apextaskstudio.space and we will investigate.</p></div></div>
+      <div class="apx-faq rounded-xl border border-slate-700 bg-slate-800/60 overflow-hidden"><button class="apx-faq-q w-full flex items-center justify-between gap-3 text-left px-4 py-3 text-sm font-semibold text-white">Then what is the KSh 100 referral programme?<span class="apx-chev text-emerald-400 text-lg shrink-0">+</span></button><div class="apx-faq-a px-4 text-xs text-slate-300 leading-relaxed"><p class="pb-4">An <b>optional</b> bonus feature for workers who want to earn extra by inviting friends. It is never required: you can work, earn and withdraw without ever touching it. Activating it adds a Verified badge and pays you KSh 50 per friend who joins through your link.</p></div></div>
+      <div class="apx-faq rounded-xl border border-slate-700 bg-slate-800/60 overflow-hidden"><button class="apx-faq-q w-full flex items-center justify-between gap-3 text-left px-4 py-3 text-sm font-semibold text-white">How and when do I get paid?<span class="apx-chev text-emerald-400 text-lg shrink-0">+</span></button><div class="apx-faq-a px-4 text-xs text-slate-300 leading-relaxed"><p class="pb-4">Approved submissions credit your Available Balance immediately. Withdrawals are sent to your registered M-Pesa number after a short security check, typically within 24 hours on working days. There is no withdrawal fee.</p></div></div>
+      <div class="apx-faq rounded-xl border border-slate-700 bg-slate-800/60 overflow-hidden"><button class="apx-faq-q w-full flex items-center justify-between gap-3 text-left px-4 py-3 text-sm font-semibold text-white">What happens if my submission is rejected?<span class="apx-chev text-emerald-400 text-lg shrink-0">+</span></button><div class="apx-faq-a px-4 text-xs text-slate-300 leading-relaxed"><p class="pb-4">You receive a specific reason tied to the task guidelines, and you can fix and resubmit. Rejections never cost you money or affect your account standing.</p></div></div>
+      <div class="apx-faq rounded-xl border border-slate-700 bg-slate-800/60 overflow-hidden"><button class="apx-faq-q w-full flex items-center justify-between gap-3 text-left px-4 py-3 text-sm font-semibold text-white">Is my personal data safe?<span class="apx-chev text-emerald-400 text-lg shrink-0">+</span></button><div class="apx-faq-a px-4 text-xs text-slate-300 leading-relaxed"><p class="pb-4">We collect only what payouts require: name, email and M-Pesa number. Data is stored encrypted in transit, never sold, and never shared with advertisers. You can request deletion at any time via support.</p></div></div>
+      <div class="apx-faq rounded-xl border border-slate-700 bg-slate-800/60 overflow-hidden"><button class="apx-faq-q w-full flex items-center justify-between gap-3 text-left px-4 py-3 text-sm font-semibold text-white">Who do I contact if something feels wrong?<span class="apx-chev text-emerald-400 text-lg shrink-0">+</span></button><div class="apx-faq-a px-4 text-xs text-slate-300 leading-relaxed"><p class="pb-4">Our only official channels are support@apextaskstudio.space and M-Pesa support +254 107 246 326. We will never DM you asking for money, passwords or OTP codes.</p></div></div>
+    </div>
+    <div class="flex flex-col sm:flex-row gap-3 mt-6">
+      <a href="mailto:support@apextaskstudio.space" class="flex-1 text-center rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] transition text-slate-950 font-bold py-3 text-sm">✉️ Email support</a>
+      <a href="https://wa.me/254107246326" target="_blank" rel="noopener" class="flex-1 text-center rounded-xl bg-[#25D366]/15 border border-[#25D366]/40 text-[#25D366] hover:bg-[#25D366]/25 transition font-bold py-3 text-sm">💬 WhatsApp support</a>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  function logged() {
+    if (window.ApexBridge && window.ApexBridge.profile) return true;
+    if (window.userProfile) return true;
+    try { if (typeof userProfile !== 'undefined' && userProfile) return true; } catch (e) {}
+    return false;
+  }
+  function place() {
+    var wrap = document.getElementById('apxTrust');
+    var f = document.querySelector('footer');
+    if (f && f.parentElement) f.parentElement.insertBefore(wrap, f);
+    else (document.querySelector('main') || document.body).appendChild(wrap);
+    wrap.dataset.apxPlaced = '1';
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (x) { if (x.isIntersecting) { x.target.classList.add('apx-in'); io.unobserve(x.target); } });
+    }, { threshold: 0.12 });
+    wrap.querySelectorAll('.apx-rev').forEach(function (el) { io.observe(el); });
+  }
+  function vis() {
+    var wrap = document.getElementById('apxTrust');
+    if (!wrap) return;
+    if (logged()) { wrap.classList.add('hidden'); return; }
+    if (!wrap.dataset.apxPlaced) place();
+    wrap.classList.remove('hidden');
+  }
+  document.addEventListener('click', function (e) {
+    var q = e.target.closest('.apx-faq-q');
+    if (q && q.closest('#apxTrust')) q.parentElement.classList.toggle('apx-open');
+  });
+  window.addEventListener('load', function () { vis(); setInterval(vis, 4000); });
+})();
+</script>
 </body>
   </html>

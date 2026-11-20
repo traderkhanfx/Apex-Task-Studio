@@ -2214,7 +2214,8 @@ if(localStorage.getItem('apexLegalAccepted') === 'true') {
   async function sync() {
     const d = getDB(), card = $('apxRefCard');
     if (!card) return;
-    if (typeof userProfile === 'undefined' || !userProfile || !d) { card.classList.add('hidden'); return; }
+    pullProfile();
+    if (!userProfile || !d) { setTimeout(sync, 2000); return; }
     if (busy) return;
     busy = true;
     try {

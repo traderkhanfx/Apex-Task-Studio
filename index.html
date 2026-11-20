@@ -1721,8 +1721,10 @@ async function loadAnnouncement() {
   }, 1200); 
 });
 
-  document.querySelectorAll('.modal-overlay').forEach(o => {
-    o.addEventListener('click', e => { if (e.target === o) o.classList.add('hidden'); });
+    document.querySelectorAll('.modal-overlay').forEach(o => {
+    o.addEventListener('click', e => {
+      if (e.target === o && o.id !== 'authModal') o.classList.add('hidden');
+    });
   });
   // Legal Gate Logic
 function acceptLegal() {

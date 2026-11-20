@@ -2355,14 +2355,21 @@ err.textContent = 'Could not submit: ' + (e && e.message ? e.message : e);
   window.ApexReferral = { sync };
 })();
 </script>
-  <!-- ═══════════ APEX TRUST LAYER — additive only ═══════════ -->
+  <!-- ═══════════ APEX TRUST LAYER v2 — additive, landing-only ═══════════ -->
 <style>
-  .apx-rev{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease}
-  .apx-rev.apx-in{opacity:1;transform:none}
-  .apx-faq-a{max-height:0;overflow:hidden;transition:max-height .45s ease}
-  .apx-faq.apx-open .apx-faq-a{max-height:400px}
-  .apx-faq.apx-open .apx-chev{transform:rotate(45deg)}
-  .apx-chev{transition:transform .3s ease}
+  #apxTrust .apx-rev{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease}
+  #apxTrust .apx-rev.apx-in{opacity:1;transform:none}
+  #apxTrust .apx-rev:nth-child(2){transition-delay:.08s}
+  #apxTrust .apx-rev:nth-child(3){transition-delay:.14s}
+  #apxTrust .apx-rev:nth-child(4){transition-delay:.2s}
+  #apxTrust .apx-card{transition:transform .3s ease,border-color .3s ease,box-shadow .3s ease}
+  #apxTrust .apx-card:hover{transform:translateY(-3px);border-color:rgba(45,212,191,.45);box-shadow:0 10px 30px -12px rgba(16,185,129,.35)}
+  #apxTrust .apx-faq-a{max-height:0;overflow:hidden;transition:max-height .45s ease}
+  #apxTrust .apx-faq.apx-open .apx-faq-a{max-height:420px}
+  #apxTrust .apx-faq.apx-open .apx-chev{transform:rotate(45deg)}
+  #apxTrust .apx-chev{transition:transform .3s ease}
+  #apxTrust .apx-faq{transition:border-color .3s ease}
+  #apxTrust .apx-faq:hover{border-color:rgba(45,212,191,.4)}
 </style>
 
 <div id="apxTrust" class="hidden w-full max-w-5xl mx-auto px-4 pb-10 space-y-6">
@@ -2381,19 +2388,19 @@ err.textContent = 'Could not submit: ' + (e && e.message ? e.message : e);
       <p>We started Apex because too many "online job" platforms hide fees behind fine print. Ours is the opposite: <b class="text-emerald-300">free in, paid out.</b> If a rule ever feels unclear, our support team answers in plain language — by email or WhatsApp, from real people, during East African working hours and beyond.</p>
     </div>
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-6">
-      <div class="rounded-xl bg-slate-800/70 border border-slate-700 p-4"><p class="text-xl mb-1">⚖️</p><p class="text-white font-bold text-sm">Fair pay</p><p class="text-slate-400 text-xs mt-1">Rates shown before you start any task.</p></div>
-      <div class="rounded-xl bg-slate-800/70 border border-slate-700 p-4"><p class="text-xl mb-1">📲</p><p class="text-white font-bold text-sm">M-Pesa payouts</p><p class="text-slate-400 text-xs mt-1">Direct to your registered number.</p></div>
-      <div class="rounded-xl bg-slate-800/70 border border-slate-700 p-4"><p class="text-xl mb-1">🧑‍💻</p><p class="text-white font-bold text-sm">Human support</p><p class="text-slate-400 text-xs mt-1">Real replies, not bot loops.</p></div>
-      <div class="rounded-xl bg-slate-800/70 border border-slate-700 p-4"><p class="text-xl mb-1">🔒</p><p class="text-white font-bold text-sm">Privacy first</p><p class="text-slate-400 text-xs mt-1">Your data is never sold or shared.</p></div>
+      <div class="apx-card rounded-xl bg-slate-800/70 border border-slate-700 p-4"><p class="text-xl mb-1">⚖️</p><p class="text-white font-bold text-sm">Fair pay</p><p class="text-slate-400 text-xs mt-1">Rates shown before you start any task.</p></div>
+      <div class="apx-card rounded-xl bg-slate-800/70 border border-slate-700 p-4"><p class="text-xl mb-1">📲</p><p class="text-white font-bold text-sm">M-Pesa payouts</p><p class="text-slate-400 text-xs mt-1">Direct to your registered number.</p></div>
+      <div class="apx-card rounded-xl bg-slate-800/70 border border-slate-700 p-4"><p class="text-xl mb-1">🧑‍💻</p><p class="text-white font-bold text-sm">Human support</p><p class="text-slate-400 text-xs mt-1">Real replies, not bot loops.</p></div>
+      <div class="apx-card rounded-xl bg-slate-800/70 border border-slate-700 p-4"><p class="text-xl mb-1">🔒</p><p class="text-white font-bold text-sm">Privacy first</p><p class="text-slate-400 text-xs mt-1">Your data is never sold or shared.</p></div>
     </div>
   </section>
 
   <section class="apx-rev rounded-2xl border border-slate-700/70 bg-slate-900/80 p-6 sm:p-8">
     <span class="inline-block text-[11px] font-bold uppercase tracking-widest text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 rounded-full px-3 py-1 mb-4">How it works — free, always</span>
     <div class="grid sm:grid-cols-3 gap-4">
-      <div class="rounded-xl bg-gradient-to-b from-emerald-500/10 to-transparent border border-emerald-500/25 p-5"><p class="text-3xl font-extrabold text-emerald-400 mb-2">1</p><p class="text-white font-bold mb-1">Create your free account</p><p class="text-slate-400 text-xs leading-relaxed">Name, email and M-Pesa number. That's it. No card, no deposit, no activation payment — your first task is free to start.</p></div>
-      <div class="rounded-xl bg-gradient-to-b from-teal-500/10 to-transparent border border-teal-500/25 p-5"><p class="text-3xl font-extrabold text-teal-300 mb-2">2</p><p class="text-white font-bold mb-1">Pick a task &amp; submit</p><p class="text-slate-400 text-xs leading-relaxed">Choose from transcription, annotation, surveys or AI training. Follow the guidelines, submit, and track review status live.</p></div>
-      <div class="rounded-xl bg-gradient-to-b from-sky-500/10 to-transparent border border-sky-500/25 p-5"><p class="text-3xl font-extrabold text-sky-300 mb-2">3</p><p class="text-white font-bold mb-1">Get paid to M-Pesa</p><p class="text-slate-400 text-xs leading-relaxed">Approved work credits your balance. Request a withdrawal and we send it to your registered M-Pesa number — no withdrawal fee.</p></div>
+      <div class="apx-card rounded-xl bg-gradient-to-b from-emerald-500/10 to-transparent border border-emerald-500/25 p-5"><p class="text-3xl font-extrabold text-emerald-400 mb-2">1</p><p class="text-white font-bold mb-1">Create your free account</p><p class="text-slate-400 text-xs leading-relaxed">Name, email and M-Pesa number. That's it. No card, no deposit, no activation payment — your first task is free to start.</p></div>
+      <div class="apx-card rounded-xl bg-gradient-to-b from-teal-500/10 to-transparent border border-teal-500/25 p-5"><p class="text-3xl font-extrabold text-teal-300 mb-2">2</p><p class="text-white font-bold mb-1">Pick a task &amp; submit</p><p class="text-slate-400 text-xs leading-relaxed">Choose from transcription, annotation, surveys or AI training. Follow the guidelines, submit, and track review status live.</p></div>
+      <div class="apx-card rounded-xl bg-gradient-to-b from-sky-500/10 to-transparent border border-sky-500/25 p-5"><p class="text-3xl font-extrabold text-sky-300 mb-2">3</p><p class="text-white font-bold mb-1">Get paid to M-Pesa</p><p class="text-slate-400 text-xs leading-relaxed">Approved work credits your balance. Request a withdrawal and we send it to your registered M-Pesa number — no withdrawal fee.</p></div>
     </div>
     <div class="mt-5 rounded-xl bg-slate-800/70 border border-slate-700 p-4 text-xs text-slate-300 leading-relaxed">
       <b class="text-white">Our pay rules, in plain language:</b> every task shows its rate before you begin · submissions are reviewed against published guidelines, usually within 24–48 hours · rejected work always comes with a reason so you can improve and resubmit · approved earnings are yours, with no expiry and no hidden deductions.
@@ -2419,35 +2426,48 @@ err.textContent = 'Could not submit: ' + (e && e.message ? e.message : e);
 
 <script>
 (function () {
-  function logged() {
-    if (window.ApexBridge && window.ApexBridge.profile) return true;
-    if (window.userProfile) return true;
-    try { if (typeof userProfile !== 'undefined' && userProfile) return true; } catch (e) {}
+  function shown(el) {
+    if (!el || el.closest('.hidden')) return false;
+    for (var n = el; n && n !== document.documentElement; n = n.parentElement) {
+      var c = getComputedStyle(n);
+      if (c.display === 'none' || c.visibility === 'hidden') return false;
+    }
+    var r = el.getBoundingClientRect();
+    return r.width > 2 && r.height > 2;
+  }
+  function isLanding() {
+    var want = ['Sign Up', 'Login', 'Create free account', 'I already have an account'];
+    var els = document.querySelectorAll('button, a');
+    for (var i = 0; i < els.length; i++) {
+      var t = (els[i].textContent || '').trim();
+      if (want.indexOf(t) > -1 && shown(els[i])) return true;
+    }
     return false;
   }
-  function place() {
-    var wrap = document.getElementById('apxTrust');
+  function place(wrap) {
     var f = document.querySelector('footer');
     if (f && f.parentElement) f.parentElement.insertBefore(wrap, f);
     else (document.querySelector('main') || document.body).appendChild(wrap);
     wrap.dataset.apxPlaced = '1';
     var io = new IntersectionObserver(function (es) {
       es.forEach(function (x) { if (x.isIntersecting) { x.target.classList.add('apx-in'); io.unobserve(x.target); } });
-    }, { threshold: 0.12 });
+    }, { threshold: 0.1 });
     wrap.querySelectorAll('.apx-rev').forEach(function (el) { io.observe(el); });
   }
   function vis() {
     var wrap = document.getElementById('apxTrust');
     if (!wrap) return;
-    if (logged()) { wrap.classList.add('hidden'); return; }
-    if (!wrap.dataset.apxPlaced) place();
+    if (!isLanding()) { wrap.classList.add('hidden'); return; }
+    if (!wrap.dataset.apxPlaced) place(wrap);
     wrap.classList.remove('hidden');
   }
   document.addEventListener('click', function (e) {
     var q = e.target.closest('.apx-faq-q');
     if (q && q.closest('#apxTrust')) q.parentElement.classList.toggle('apx-open');
   });
-  window.addEventListener('load', function () { vis(); setInterval(vis, 4000); });
+  window.addEventListener('load', function () { vis(); setInterval(vis, 2000); });
+  setTimeout(vis, 300);
+  setTimeout(vis, 1500);
 })();
 </script>
 </body>

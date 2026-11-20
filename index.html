@@ -1946,5 +1946,48 @@ if(localStorage.getItem('apexLegalAccepted') === 'true') {
 })();
   </script>
 
+<script>
+(function () {
+  const L = document.getElementById('landingScreen');
+  let loggedIn = false;
+
+  async function checkSession() {
+    try {
+      const { data: { session } } = await window.supabaseClient.auth.getSession();
+      loggedIn = !!session;
+    } catch (e) { loggedIn = false; }
+  }
+
+  function setHeader() {
+    document.getElementById('landingAuthBtns').classList.toggle('hidden', loggedIn);
+    document.getElementById('landingCloseBtn').classList.toggle('hidden', !loggedIn);
+  }
+
+  window.openLanding = async function () {
+    await checkSession();
+    setHeader();
+    L.classList.remove('hidden');
+    L.scrollTop = 0;
+  };
+
+  window.closeLanding = function () { L.classList.add('hidden'); };
+
+  window.landingGo = function (tab) {
+    closeLanding();
+    if (window.openModal) openModal('authModal');
+    if (window.switchAuthTab) switchAuthTab(tab);
+  };
+
+  window.landingSteps = function () {
+    document.getElementById('landingSteps').scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Show the landing screen to visitors who are not logged in
+  document.addEventListener('DOMContentLoaded', async () => {
+    await checkSession();
+    if (!loggedIn) openLanding();
+  });
+})();
+</script>  
 </body>
   </html>

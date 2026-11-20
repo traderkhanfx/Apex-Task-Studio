@@ -2090,11 +2090,25 @@ if(localStorage.getItem('apexLegalAccepted') === 'true') {
     return u.toString();
   }
 
-  /* Capture ?ref=CODE from the link */
-  try {
-    const r = new URLSearchParams(location.search).get('ref');
-    if (r) localStorage.setItem(LS_PENDING, r.trim().toUpperCase());
-  } catch (e) {}
+  /* Capture ?ref=CODE from the link and auto-fill */
+try {
+  const r = new URLSearchParams(location.search).get('ref');
+  if (r) {
+    const code = r.trim().toUpperCase();
+    localStorage.setItem(LS_PENDING, code);
+    
+    // Auto-fill the box and open the Sign Up tab
+    document.addEventListener('DOMContentLoaded', () => {
+      const refInput = document.getElementById('signupReferral');
+      if (refInput) {
+        refInput.value = code;
+      }
+      if (window.switchAuthTab) {
+        window.switchAuthTab('signup');
+      }
+    });
+  }
+} catch (e) {}
 
   /* Add optional referral field to the signup form */
   function injectSignupField() {

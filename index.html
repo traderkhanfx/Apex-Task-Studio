@@ -2058,7 +2058,20 @@ if(localStorage.getItem('apexLegalAccepted') === 'true') {
   };
 
   const $ = (id) => document.getElementById(id);
-  const getDB = () => (typeof db !== 'undefined' ? db : null);
+  const bridge = () => window.ApexBridge || null;
+  const getDB = () => {
+    const b = bridge();
+    if (b && b.db) return b.db;
+    try { if (typeof db !== 'undefined' && db) return db; } catch (e) {}
+    return window.db || null;
+  };
+  var userProfile = null;
+  const pullProfile = () => {
+    const b = bridge();
+    if (b && b.profile) userProfile = b.profile;
+    else if (window.userProfile) userProfile = window.userProfile;
+    return userProfile;
+  };
   const LS_PENDING = 'apx_ref_pending';
   let busy = false, pollTimer = null;
 

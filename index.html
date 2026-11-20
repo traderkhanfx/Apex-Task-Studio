@@ -889,7 +889,7 @@
 }
 
   function openEditProfile() {
-    if (!userProfile) { openModal('onboardingModal'); return; }
+    if (!userProfile) { openModal('authModal'); return; }
     document.getElementById('editName').value = userProfile.full_name || '';
     document.getElementById('editEmail').value = userProfile.email || '';
     document.getElementById('editPhone').value = userProfile.mpesa_phone || '';

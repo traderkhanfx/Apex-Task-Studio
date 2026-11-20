@@ -2188,7 +2188,11 @@ try {
 
   function render(req) {
     const body = $('apxRefBody'), pill = $('apxRefStatus');
-    const active = !!userProfile.referral_active;
+        const active = !!userProfile.referral_active;
+    const showCard = active || !!(req && (req.status === 'pending' || req.status === 'rejected'));
+    const cardEl = $('apxRefCard'), promo = $('apxPromoBanner');
+    if (cardEl) cardEl.classList.toggle('hidden', !showCard);
+    if (promo) promo.classList.toggle('hidden', showCard);
 
     if (active) {
       pill.textContent = '✅ Active';

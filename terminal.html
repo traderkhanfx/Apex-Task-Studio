@@ -947,48 +947,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     }).join('');
   }
 
-  async function review(reqId, uid, approve) {
-  const d = getDB();
-  if (!d) return;
+    async function review(reqId, uid, approve) {
+    const d = getDB();
+    if (!d) return;
 
-  if (approve) {
-    // 1. Activate the user and give them the verified badge
-    const { error: e1 } = await d.from('profiles')
-      .update({ referral_active: true, is_verified: true }).eq('id', uid);
-    if (e1) { toast('Failed to activate user.', false); return; }
+    const { data, error } = await d.rpc('admin_review_referral', {
+      p_request_id: Number(reqId),
+      p_approve: !!approve
+    });
 
-    // 2. Find out who referred this user
-    const { data: userProfile } = await d.from('profiles').select('referred_by').eq('id', uid).single();
-    
-    // 3. Pay the referrer KSh 50
-    if (userProfile && userProfile.referred_by) {
-      // Find the referrer's profile using the code
-      const { data: referrer } = await d.from('profiles')
-        .select('id, referral_earnings, referral_count')
-        .eq('referral_code', userProfile.referred_by)
-        .single();
+    if (error) { toast('Failed: ' + error.message, false); load(); return; }
 
-      if (referrer) {
-        const currentEarnings = Number(referrer.referral_earnings) || 0;
-        const currentCount = Number(referrer.referral_count) || 0;
-        
-        // Update the referrer's balance and count
-        await d.from('profiles').update({
-          referral_earnings: currentEarnings + 50,
-          referral_count: currentCount + 1
-        }).eq('id', referrer.id);
-      }
+    if (approve) {
+      toast(data && data.referrer_paid
+        ? '✅ Activated. Referrer paid KSh 50.'
+        : '✅ Activated. (No referrer to pay.)', true);
+    } else {
+      toast('Request rejected.', false);
     }
-  }
-
-  // 4. Mark the request as approved or rejected so it leaves the pending list
-  const { error: e2 } = await d.from('referral_requests')
-    .update({ status: approve ? 'approved' : 'rejected' }).eq('id', reqId);
-  if (e2) { toast('Failed to update request.', false); return; }
-
-  toast(approve ? '✅ Activated & Referrer Paid KSh 50!' : 'Request rejected.', approve);
-  load(); // Refresh the list
-  }
+    load();
+    }
 
   document.addEventListener('click', (e) => {
     const a = e.target.closest('[data-apxapprove],[data-apx-approve]');

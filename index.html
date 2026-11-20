@@ -2292,7 +2292,8 @@ try {
       toast('✅ Submitted! Admin will confirm your KSh 100 shortly.', true);
       sync();
     } catch (e) {
-      err.textContent = 'Could not submit. Check your connection and try again.';
+    console.error(e);
+err.textContent = 'Could not submit: ' + (e && e.message ? e.message : e);  
       err.classList.remove('hidden');
     } finally { btn.disabled = false; btn.textContent = 'Submit for Approval — KSh 100'; }
   }

@@ -2270,6 +2270,7 @@ try {
     if (busy) return;
     busy = true;
     try {
+            await ensureProfileRow();
       const { data: fresh } = await d.from('profiles').select('*').eq('id', userProfile.id).single();
       if (fresh) {
         Object.assign(userProfile, fresh);

@@ -1999,6 +1999,293 @@ if(localStorage.getItem('apexLegalAccepted') === 'true') {
     if (!loggedIn) openLanding();
   });
 })();
-</script>  
+</script> 
+  <!-- ═══════════ APEX REFERRAL PROGRAM — WORKER SIDE ═══════════ -->
+<div id="apxRefCard" class="hidden w-full max-w-3xl mx-auto my-6 px-4">
+  <div class="rounded-2xl border border-emerald-500/30 bg-slate-900/90 p-5 shadow-lg shadow-emerald-500/10">
+    <div class="flex items-center justify-between gap-3 mb-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-lg">🤝</div>
+        <div>
+          <h3 class="text-white font-bold text-base leading-tight">Referral Programme</h3>
+          <p class="text-slate-400 text-xs">Earn KSh 50 for every friend who joins</p>
+        </div>
+      </div>
+      <span id="apxRefStatus" class="text-[11px] font-semibold px-2.5 py-1 rounded-full border border-slate-600 text-slate-300 whitespace-nowrap">Locked</span>
+    </div>
+    <div id="apxRefBody"></div>
+  </div>
+</div>
+
+<div id="apxRefModal" class="hidden fixed inset-0 z-[999] flex items-end sm:items-center justify-center p-0 sm:p-4">
+  <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" data-apx-close></div>
+  <div class="relative w-full sm:max-w-md bg-slate-900 border border-emerald-500/30 rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl">
+    <div class="flex items-start justify-between mb-4">
+      <div>
+        <h3 class="text-white font-bold text-lg">Activate Referrals</h3>
+        <p class="text-slate-400 text-xs mt-0.5">One-time fee · KSh 100</p>
+      </div>
+      <button data-apx-close class="text-slate-400 hover:text-white text-xl leading-none px-2">✕</button>
+    </div>
+    <ol class="space-y-3 text-sm text-slate-300 mb-5">
+      <li class="flex gap-3"><span class="w-6 h-6 shrink-0 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-xs font-bold flex items-center justify-center">1</span><span>Go to M-Pesa → Lipa na M-Pesa → send <b class="text-white">KSh 100</b> to <b id="apxPayNumber" class="text-emerald-400"></b> (<span id="apxPayName"></span>).</span></li>
+      <li class="flex gap-3"><span class="w-6 h-6 shrink-0 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-xs font-bold flex items-center justify-center">2</span><span>Copy the M-Pesa confirmation code from the SMS (e.g. <span class="text-slate-400">SFJ4K2L9QX</span>).</span></li>
+      <li class="flex gap-3"><span class="w-6 h-6 shrink-0 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-xs font-bold flex items-center justify-center">3</span><span>Paste it below. Admin confirms payment, then your <b class="text-white">Verified badge ✅</b> and referral link unlock.</span></li>
+    </ol>
+    <label class="block text-xs font-semibold text-slate-400 mb-1.5">M-PESA TRANSACTION CODE</label>
+    <input id="apxMpesaCode" type="text" maxlength="12" autocomplete="off" placeholder="e.g. SFJ4K2L9QX"
+      class="w-full rounded-xl bg-slate-800 border border-slate-600 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none text-white uppercase tracking-widest placeholder:normal-case placeholder:tracking-normal placeholder:text-slate-500 px-4 py-3 text-sm mb-1" />
+    <p id="apxPayErr" class="hidden text-red-400 text-xs mb-2"></p>
+    <button id="apxPaySubmit" class="w-full mt-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] transition text-slate-950 font-bold py-3 text-sm">
+      Submit for Approval — KSh 100
+    </button>
+    <p class="text-slate-500 text-[11px] text-center mt-3">Activation is reviewed manually. Usually approved within a few hours.</p>
+  </div>
+</div>
+
+<div id="apxToast" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-[1000] px-4 py-3 rounded-xl text-sm font-semibold shadow-2xl border max-w-[92vw] text-center"></div>
+
+<script>
+(function () {
+  /* ── CHANGE THESE TWO VALUES ONLY ── */
+  const CFG = {
+    FEE: 100,
+    BONUS: 50,
+    REFEREE_BONUS: 0,            // set to 50 if the NEW user should also receive KSh 50
+    MPESA_NUMBER: '0719 131 174', // ← your real M-Pesa number
+    MPESA_NAME: 'ABSA NEXT'
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const getDB = () => (typeof db !== 'undefined' ? db : null);
+  const LS_PENDING = 'apx_ref_pending';
+  let busy = false, pollTimer = null;
+
+  function toast(msg, ok) {
+    const t = $('apxToast'); if (!t) return;
+    t.textContent = msg;
+    t.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 z-[1000] px-4 py-3 rounded-xl text-sm font-semibold shadow-2xl border max-w-[92vw] text-center ' +
+      (ok ? 'bg-emerald-500 text-slate-950 border-emerald-300' : 'bg-red-500 text-white border-red-300');
+    clearTimeout(t._h); t._h = setTimeout(() => t.classList.add('hidden'), 4200);
+  }
+
+  function myLink(code) {
+    const u = new URL(location.href);
+    u.search = ''; u.hash = '';
+    u.searchParams.set('ref', code);
+    return u.toString();
+  }
+
+  /* Capture ?ref=CODE from the link */
+  try {
+    const r = new URLSearchParams(location.search).get('ref');
+    if (r) localStorage.setItem(LS_PENDING, r.trim().toUpperCase());
+  } catch (e) {}
+
+  /* Add optional referral field to the signup form */
+  function injectSignupField() {
+    const sf = $('signupForm');
+    if (!sf || $('apxSignupRef')) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'mb-3';
+    wrap.innerHTML =
+      '<label class="block text-xs font-semibold text-slate-400 mb-1">REFERRAL CODE (OPTIONAL)</label>' +
+      '<input id="apxSignupRef" type="text" autocomplete="off" placeholder="e.g. APX7K2M9Q" ' +
+      'class="w-full rounded-xl bg-slate-800 border border-slate-600 focus:border-emerald-500 outline-none text-white uppercase tracking-widest placeholder:normal-case placeholder:tracking-normal placeholder:text-slate-500 px-4 py-3 text-sm" />';
+    const btn = sf.querySelector('button[type="submit"], button');
+    if (btn) sf.insertBefore(wrap, btn); else sf.appendChild(wrap);
+    const saved = localStorage.getItem(LS_PENDING);
+    if (saved) $('apxSignupRef').value = saved;
+    sf.addEventListener('submit', () => {
+      const v = ($('apxSignupRef').value || '').trim().toUpperCase();
+      if (v) localStorage.setItem(LS_PENDING, v);
+    }, true);
+  }
+
+  async function ensureCode() {
+    const d = getDB();
+    if (userProfile.referral_code) return userProfile.referral_code;
+    for (let i = 0; i < 3; i++) {
+      const code = 'APX' + Math.random().toString(36).slice(2, 8).toUpperCase();
+      const { error } = await d.from('profiles').update({ referral_code: code }).eq('id', userProfile.id);
+      if (!error) { userProfile.referral_code = code; return code; }
+    }
+    throw new Error('Could not create your code. Try again.');
+  }
+
+  async function latestRequest() {
+    const d = getDB();
+    const { data } = await d.from('referral_requests')
+      .select('*').eq('profile_id', userProfile.id)
+      .order('created_at', { ascending: false }).limit(1);
+    return data && data[0] ? data[0] : null;
+  }
+
+  function render(req) {
+    const body = $('apxRefBody'), pill = $('apxRefStatus');
+    const active = !!userProfile.referral_active;
+
+    if (active) {
+      pill.textContent = '✅ Active';
+      pill.className = 'text-[11px] font-semibold px-2.5 py-1 rounded-full border border-emerald-500/50 bg-emerald-500/10 text-emerald-400 whitespace-nowrap';
+      const link = myLink(userProfile.referral_code || '');
+      const msg = encodeURIComponent('Join Apex Task Studio and start earning! Register with my link: ' + link);
+      body.innerHTML =
+        '<div class="grid grid-cols-2 gap-3 mb-4">' +
+          '<div class="rounded-xl bg-slate-800/80 border border-slate-700 p-3 text-center"><p class="text-2xl font-extrabold text-white">' + (userProfile.referral_count || 0) + '</p><p class="text-[11px] text-slate-400 mt-0.5">Friends joined</p></div>' +
+          '<div class="rounded-xl bg-slate-800/80 border border-slate-700 p-3 text-center"><p class="text-2xl font-extrabold text-emerald-400">KSh ' + (userProfile.referral_earnings || 0) + '</p><p class="text-[11px] text-slate-400 mt-0.5">Referral earnings</p></div>' +
+        '</div>' +
+        '<label class="block text-xs font-semibold text-slate-400 mb-1.5">YOUR REFERRAL LINK</label>' +
+        '<div class="flex gap-2 mb-3">' +
+          '<input id="apxLinkBox" readonly value="' + link + '" class="flex-1 min-w-0 rounded-xl bg-slate-800 border border-slate-600 text-slate-200 px-3 py-2.5 text-xs" />' +
+          '<button data-apx-copy class="shrink-0 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 transition text-slate-950 font-bold px-4 text-sm">Copy</button>' +
+        '</div>' +
+        '<div class="flex gap-2">' +
+          '<a href="https://wa.me/?text=' + msg + '" target="_blank" rel="noopener" class="flex-1 text-center rounded-xl bg-[#25D366]/15 border border-[#25D366]/40 text-[#25D366] hover:bg-[#25D366]/25 transition font-semibold py-2.5 text-sm">Share on WhatsApp</a>' +
+          '<button data-apx-share class="flex-1 rounded-xl bg-slate-800 border border-slate-600 text-slate-200 hover:border-emerald-500 transition font-semibold py-2.5 text-sm">More options</button>' +
+        '</div>' +
+        '<p class="text-slate-500 text-[11px] mt-3">You earn <b class="text-emerald-400">KSh 50</b> instantly every time someone registers using your link. Your code: <b class="text-slate-300">' + (userProfile.referral_code || '') + '</b></p>';
+      return;
+    }
+
+    if (req && req.status === 'pending') {
+      pill.textContent = '⏳ Pending';
+      pill.className = 'text-[11px] font-semibold px-2.5 py-1 rounded-full border border-amber-500/50 bg-amber-500/10 text-amber-400 whitespace-nowrap';
+      body.innerHTML =
+        '<div class="rounded-xl bg-amber-500/10 border border-amber-500/30 p-4 text-sm text-amber-200">' +
+          '<p class="font-semibold mb-1">Payment under review ⏳</p>' +
+          '<p class="text-amber-200/80 text-xs">M-Pesa code <b>' + req.mpesa_code + '</b> submitted. Once admin confirms your KSh 100, your Verified badge ✅ and referral link unlock automatically.</p>' +
+        '</div>';
+      if (!pollTimer) pollTimer = setInterval(() => sync(), 60000);
+      return;
+    }
+
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    pill.textContent = '🔒 Locked';
+    pill.className = 'text-[11px] font-semibold px-2.5 py-1 rounded-full border border-slate-600 text-slate-300 whitespace-nowrap';
+    body.innerHTML =
+      (req && req.status === 'rejected'
+        ? '<div class="rounded-xl bg-red-500/10 border border-red-500/30 p-3 text-xs text-red-300 mb-3">Your last payment code was rejected. Check the code and submit again.</div>' : '') +
+      '<div class="flex items-center gap-3 rounded-xl bg-slate-800/60 border border-slate-700 p-3 mb-4">' +
+        '<span class="text-2xl">✅</span>' +
+        '<p class="text-xs text-slate-300">Activate once for <b class="text-white">KSh 100</b> and get your <b class="text-emerald-400">Verified badge</b> plus a personal link. Every friend who registers through it earns you <b class="text-emerald-400">KSh 50</b> — again and again.</p>' +
+      '</div>' +
+      '<button data-apx-open class="w-full rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] transition text-slate-950 font-bold py-3 text-sm">Activate for KSh 100 →</button>';
+  }
+
+  async function maybeClaim(fresh) {
+    const d = getDB();
+    const code = localStorage.getItem(LS_PENDING);
+    const doneKey = 'apx_claimed_' + userProfile.id;
+    if (!code || localStorage.getItem(doneKey)) return;
+    if (fresh.referred_by) { localStorage.setItem(doneKey, '1'); localStorage.removeItem(LS_PENDING); return; }
+    if (userProfile.referral_code && code === userProfile.referral_code) { localStorage.removeItem(LS_PENDING); return; }
+    const { data, error } = await d.rpc('claim_referral', { ref_code: code });
+    if (error) return;
+    if (data && data.ok) {
+      localStorage.setItem(doneKey, '1');
+      localStorage.removeItem(LS_PENDING);
+      if (CFG.REFEREE_BONUS > 0) {
+        await d.from('profiles').update({ balance: (Number(fresh.balance) || 0) + CFG.REFEREE_BONUS }).eq('id', userProfile.id);
+        toast('🎉 Welcome bonus: KSh ' + CFG.REFEREE_BONUS + ' added!', true);
+      } else {
+        toast('🎉 Referral applied — ' + (data.referrer || 'your friend') + ' earned KSh ' + data.bonus, true);
+      }
+      sync();
+    } else if (data && (data.msg === 'invalid_code' || data.msg === 'self_referral')) {
+      localStorage.removeItem(LS_PENDING);
+    }
+  }
+
+  async function sync() {
+    const d = getDB(), card = $('apxRefCard');
+    if (!card) return;
+    if (typeof userProfile === 'undefined' || !userProfile || !d) { card.classList.add('hidden'); return; }
+    if (busy) return;
+    busy = true;
+    try {
+      const { data: fresh } = await d.from('profiles').select('*').eq('id', userProfile.id).single();
+      if (fresh) {
+        Object.assign(userProfile, fresh);
+        try { if (typeof lsSet === 'function' && typeof STORAGE_KEYS !== 'undefined') lsSet(STORAGE_KEYS.PROFILE, userProfile); } catch (e) {}
+        const badge = $('proBadge');
+        if (badge) badge.classList.toggle('hidden', !fresh.is_verified);
+      }
+      const req = userProfile.referral_active ? null : await latestRequest();
+      card.classList.remove('hidden');
+      render(req);
+      await maybeClaim(fresh || userProfile);
+    } catch (e) {
+      card.classList.remove('hidden');
+      render(null);
+    } finally { busy = false; }
+  }
+
+  async function submitPayment() {
+    const d = getDB();
+    const inp = $('apxMpesaCode'), err = $('apxPayErr'), btn = $('apxPaySubmit');
+    const code = (inp.value || '').trim().toUpperCase();
+    err.classList.add('hidden');
+    if (!/^[A-Z0-9]{8,12}$/.test(code)) {
+      err.textContent = 'Enter a valid M-Pesa code (8–12 letters/numbers, e.g. SFJ4K2L9QX).';
+      err.classList.remove('hidden'); return;
+    }
+    btn.disabled = true; btn.textContent = 'Submitting…';
+    try {
+      await ensureCode();
+      const { error } = await d.from('referral_requests').insert([{ profile_id: userProfile.id, mpesa_code: code, amount: CFG.FEE }]);
+      if (error) throw error;
+      $('apxRefModal').classList.add('hidden');
+      inp.value = '';
+      toast('✅ Submitted! Admin will confirm your KSh 100 shortly.', true);
+      sync();
+    } catch (e) {
+      err.textContent = 'Could not submit. Check your connection and try again.';
+      err.classList.remove('hidden');
+    } finally { btn.disabled = false; btn.textContent = 'Submit for Approval — KSh 100'; }
+  }
+
+  function placeCard() {
+    const card = $('apxRefCard');
+    const anchor = $('withdrawPhone');
+    if (anchor) {
+      const host = anchor.closest('section') || anchor.closest('div[class*="rounded"]') || anchor.parentElement;
+      if (host && host.parentElement) { host.insertAdjacentElement('afterend', card); return; }
+    }
+    (document.querySelector('main') || document.body).appendChild(card);
+  }
+
+  document.addEventListener('click', async (e) => {
+    const t = e.target.closest('[data-apx-open],[data-apx-close],[data-apx-copy],[data-apx-share]');
+    if (t) {
+      if (t.hasAttribute('data-apx-open')) {
+        $('apxPayNumber').textContent = CFG.MPESA_NUMBER;
+        $('apxPayName').textContent = CFG.MPESA_NAME;
+        $('apxRefModal').classList.remove('hidden');
+      } else if (t.hasAttribute('data-apx-close')) {
+        $('apxRefModal').classList.add('hidden');
+      } else if (t.hasAttribute('data-apx-copy')) {
+        const link = $('apxLinkBox') ? $('apxLinkBox').value : '';
+        try { await navigator.clipboard.writeText(link); toast('🔗 Link copied!', true); }
+        catch (err) { $('apxLinkBox').select(); document.execCommand('copy'); toast('🔗 Link copied!', true); }
+      } else if (t.hasAttribute('data-apx-share')) {
+        const link = $('apxLinkBox') ? $('apxLinkBox').value : '';
+        if (navigator.share) navigator.share({ title: 'Apex Task Studio', text: 'Join Apex Task Studio and start earning!', url: link }).catch(() => {});
+        else { try { await navigator.clipboard.writeText(link); toast('🔗 Link copied — paste it anywhere!', true); } catch (err) {} }
+      }
+      return;
+    }
+    if (e.target.closest('#apxPaySubmit')) submitPayment();
+  });
+
+  window.addEventListener('load', () => {
+    placeCard();
+    injectSignupField();
+    sync();
+  });
+
+  window.ApexReferral = { sync };
+})();
+</script>
 </body>
   </html>

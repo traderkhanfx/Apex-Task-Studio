@@ -874,5 +874,108 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 </script>
+<!-- ═══════════ APEX REFERRAL PROGRAM — ADMIN SIDE ═══════════ -->
+<div id="apxAdminRef" class="w-full max-w-4xl mx-auto my-6 px-4">
+  <div class="rounded-2xl border border-amber-500/30 bg-slate-900/90 p-5 shadow-lg shadow-amber-500/10">
+    <div class="flex items-center justify-between gap-3 mb-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 text-lg">💰</div>
+        <div>
+          <h3 class="text-white font-bold text-base leading-tight">Referral Activations</h3>
+          <p class="text-slate-400 text-xs">Confirm the KSh 100 M-Pesa payment, then approve</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span id="apxAdmCount" class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-400">0 pending</span>
+        <button id="apxAdmRefresh" class="text-xs rounded-lg bg-slate-800 border border-slate-600 text-slate-200 hover:border-amber-500 transition px-3 py-1.5">↻ Refresh</button>
+      </div>
+    </div>
+    <div id="apxAdmList" class="space-y-3"></div>
+  </div>
+</div>
+<div id="apxAdmToast" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-[1000] px-4 py-3 rounded-xl text-sm font-semibold shadow-2xl border max-w-[92vw] text-center"></div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const getDB = () => (typeof db !== 'undefined' ? db : null);
+
+  function toast(msg, ok) {
+    const t = $('apxAdmToast'); if (!t) return;
+    t.textContent = msg;
+    t.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 z-[1000] px-4 py-3 rounded-xl text-sm font-semibold shadow-2xl border max-w-[92vw] text-center ' +
+      (ok ? 'bg-emerald-500 text-slate-950 border-emerald-300' : 'bg-red-500 text-white border-red-300');
+    clearTimeout(t._h); t._h = setTimeout(() => t.classList.add('hidden'), 4000);
+  }
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  async function load() {
+    const d = getDB(), list = $('apxAdmList');
+    if (!d) { list.innerHTML = '<p class="text-red-400 text-sm">Supabase client (db) not found on this page.</p>'; return; }
+    list.innerHTML = '<p class="text-slate-400 text-sm">Loading…</p>';
+    const { data, error } = await d.from('referral_requests')
+      .select('*, profiles(full_name, mpesa_phone, referral_code, email)')
+      .order('created_at', { ascending: false }).limit(50);
+    if (error) { list.innerHTML = '<p class="text-red-400 text-sm">Could not load requests.</p>'; return; }
+    const pending = (data || []).filter(r => r.status === 'pending');
+    $('apxAdmCount').textContent = pending.length + ' pending';
+    if (!data || !data.length) { list.innerHTML = '<p class="text-slate-500 text-sm">No activation requests yet.</p>'; return; }
+    list.innerHTML = data.map(r => {
+      const p = r.profiles || {};
+      const when = new Date(r.created_at).toLocaleString();
+      const badge = r.status === 'pending'
+        ? '<span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-400">PENDING</span>'
+        : r.status === 'approved'
+        ? '<span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-400">APPROVED ✅</span>'
+        : '<span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-red-500/15 border border-red-500/40 text-red-400">REJECTED</span>';
+      const actions = r.status === 'pending'
+        ? '<div class="flex gap-2 mt-3">' +
+            '<button data-apx-approve="' + r.id + '" data-uid="' + r.profile_id + '" class="flex-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 active:scale-95 transition text-slate-950 font-bold py-2 text-xs">✓ Approve · KSh ' + r.amount + '</button>' +
+            '<button data-apx-reject="' + r.id + '" class="flex-1 rounded-lg bg-red-500/15 border border-red-500/40 text-red-400 hover:bg-red-500/25 transition font-bold py-2 text-xs">✕ Reject</button>' +
+          '</div>' : '';
+      return '<div class="rounded-xl bg-slate-800/70 border border-slate-700 p-4">' +
+        '<div class="flex items-start justify-between gap-2">' +
+          '<div><p class="text-white font-semibold text-sm">' + esc(p.full_name || 'Unknown user') + '</p>' +
+          '<p class="text-slate-400 text-xs">' + esc(p.mpesa_phone || p.email || '') + ' · code <b class="text-slate-200">' + esc(p.referral_code || '—') + '</b></p></div>' + badge +
+        '</div>' +
+        '<div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs">' +
+          '<span class="text-slate-400">M-Pesa: <b class="text-emerald-400 tracking-widest">' + esc(r.mpesa_code) + '</b></span>' +
+          '<span class="text-slate-400">Amount: <b class="text-white">KSh ' + r.amount + '</b></span>' +
+          '<span class="text-slate-500">' + when + '</span>' +
+        '</div>' + actions + '</div>';
+    }).join('');
+  }
+
+  async function review(reqId, uid, approve) {
+    const d = getDB();
+    if (approve) {
+      const { error: e1 } = await d.from('profiles')
+        .update({ referral_active: true, is_verified: true }).eq('id', uid);
+      if (e1) { toast('Failed to activate user.', false); return; }
+    }
+    const { error: e2 } = await d.from('referral_requests')
+      .update({ status: approve ? 'approved' : 'rejected' }).eq('id', reqId);
+    if (e2) { toast('Failed to update request.', false); return; }
+    toast(approve ? '✅ Activated — badge + referral link unlocked.' : 'Request rejected.', approve);
+    load();
+  }
+
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('[data-apxapprove],[data-apx-approve]');
+    const r = e.target.closest('[data-apx-reject]');
+    if (a) { if (confirm('Confirm you received KSh 100 on M-Pesa from this user?')) review(a.getAttribute('data-apx-approve'), a.getAttribute('data-uid'), true); }
+    else if (r) { if (confirm('Reject this payment code?')) review(r.getAttribute('data-apx-reject'), null, false); }
+    else if (e.target.closest('#apxAdmRefresh')) load();
+  });
+
+  window.addEventListener('load', () => {
+    const panel = $('apxAdminRef');
+    (document.querySelector('main') || document.body).appendChild(panel);
+    load();
+    setInterval(load, 60000);
+  });
+})();
+</script> 
 </body>
          </html>

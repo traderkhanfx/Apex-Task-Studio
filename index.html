@@ -2313,15 +2313,12 @@ err.textContent = 'Could not submit: ' + (e && e.message ? e.message : e);
     } finally { btn.disabled = false; btn.textContent = 'Submit for Approval — KSh 100'; }
   }
 
-  function placeCard() {
+    function placeCard() {
     const card = $('apxRefCard');
-    const anchor = $('withdrawPhone');
-    if (anchor) {
-      const host = anchor.closest('section') || anchor.closest('div[class*="rounded"]') || anchor.parentElement;
-      if (host && host.parentElement) { host.insertAdjacentElement('afterend', card); return; }
-    }
+    const banner = $('apxPromoBanner');
+    if (banner && banner.parentElement) { banner.insertAdjacentElement('afterend', card); return; }
     (document.querySelector('main') || document.body).appendChild(card);
-  }
+    }
 
   document.addEventListener('click', async (e) => {
     const t = e.target.closest('[data-apx-open],[data-apx-close],[data-apx-copy],[data-apx-share]');

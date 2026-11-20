@@ -2043,12 +2043,21 @@ if(localStorage.getItem('apexLegalAccepted') === 'true') {
       </div>
       <button data-apx-close class="text-slate-400 hover:text-white text-xl leading-none px-2">✕</button>
     </div>
-    <ol class="space-y-3 text-sm text-slate-300 mb-5">
-      <li class="flex gap-3"><span class="w-6 h-6 shrink-0 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-xs font-bold flex items-center justify-center">1</span><span>Go to M-Pesa → Lipa na M-Pesa → send <b class="text-white">KSh 100</b> to <b id="apxPayNumber" class="text-emerald-400"></b> (<span id="apxPayName"></span>).</span></li>
-      <li class="flex gap-3"><span class="w-6 h-6 shrink-0 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-xs font-bold flex items-center justify-center">2</span><span>Copy the M-Pesa confirmation code from the SMS (e.g. <span class="text-slate-400">SFJ4K2L9QX</span>).</span></li>
-      <li class="flex gap-3"><span class="w-6 h-6 shrink-0 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-xs font-bold flex items-center justify-center">3</span><span>Paste it below. Admin confirms payment, then your <b class="text-white">Verified badge ✅</b> and referral link unlock.</span></li>
-    </ol>
-    <label class="block text-xs font-semibold text-slate-400 mb-1.5">M-PESA TRANSACTION CODE</label>
+    <div class="bg-slate-800/80 border border-slate-600 rounded-xl p-4 mb-5 space-y-2">
+  <div class="flex justify-between items-center pb-2 border-b border-slate-700">
+    <span class="text-xs text-slate-400 font-semibold">PAY VIA ABSA PAYBILL</span>
+    <span class="text-xs text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded">KSh 100</span>
+  </div>
+  <div class="flex justify-between items-center pt-1">
+    <span class="text-sm text-slate-300">Paybill Number:</span>
+    <strong class="text-white text-base tracking-wider">9188111</strong>
+  </div>
+  <div class="flex justify-between items-center">
+    <span class="text-sm text-slate-300">Account Number:</span>
+    <strong class="text-white text-base tracking-wider">0719131174</strong>
+  </div>
+  <p class="text-[11px] text-slate-500 leading-tight mt-2">After paying, copy the M-Pesa confirmation code from your SMS and paste it below.</p>
+    </div>
     <input id="apxMpesaCode" type="text" maxlength="12" autocomplete="off" placeholder="e.g. SFJ4K2L9QX"
       class="w-full rounded-xl bg-slate-800 border border-slate-600 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none text-white uppercase tracking-widest placeholder:normal-case placeholder:tracking-normal placeholder:text-slate-500 px-4 py-3 text-sm mb-1" />
     <p id="apxPayErr" class="hidden text-red-400 text-xs mb-2"></p>

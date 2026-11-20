@@ -2298,6 +2298,7 @@ try {
     }
     btn.disabled = true; btn.textContent = 'Submitting…';
     try {
+            await ensureProfileRow();
       await ensureCode();
       const { error } = await d.from('referral_requests').insert([{ profile_id: userProfile.id, mpesa_code: code, amount: CFG.FEE }]);
       if (error) throw error;

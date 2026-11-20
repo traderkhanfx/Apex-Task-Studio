@@ -2180,7 +2180,7 @@ if(localStorage.getItem('apexLegalAccepted') === 'true') {
     if (!code || localStorage.getItem(doneKey)) return;
     if (fresh.referred_by) { localStorage.setItem(doneKey, '1'); localStorage.removeItem(LS_PENDING); return; }
     if (userProfile.referral_code && code === userProfile.referral_code) { localStorage.removeItem(LS_PENDING); return; }
-    const { data, error } = await d.rpc('claim_referral', { ref_code: code });
+        const { data, error } = await d.rpc('claim_referral', { ref_code: code, me_id: userProfile.id });
     if (error) return;
     if (data && data.ok) {
       localStorage.setItem(doneKey, '1');

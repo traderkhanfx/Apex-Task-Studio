@@ -2154,15 +2154,28 @@ try {
     }, true);
   }
 
+    async function ensureProfileRow() {
+    pullProfile();
+    if (!userProfile || userProfile.id) return;
+    const d = getDB();
+    const { data } = await d.from('profiles').select('*').eq('email', userProfile.email).maybeSingle();
+    if (data) Object.assign(userProfile, data);
+  }
+
   async function ensureCode() {
     const d = getDB();
     if (userProfile.referral_code) return userProfile.referral_code;
+    let lastError = null;
     for (let i = 0; i < 3; i++) {
       const code = 'APX' + Math.random().toString(36).slice(2, 8).toUpperCase();
-      const { error } = await d.from('profiles').update({ referral_code: code }).eq('id', userProfile.id);
-      if (!error) { userProfile.referral_code = code; return code; }
+      const { data, error } = await d.from('profiles')
+        .update({ referral_code: code })
+        .eq('email', userProfile.email)
+        .select('referral_code');
+      if (!error && data && data.length) { userProfile.referral_code = code; return code; }
+      lastError = error || new Error('Your profile was not updated (permission blocked)');
     }
-    throw new Error('Could not create your code. Try again.');
+    throw new Error('Could not create your code: ' + lastError.message);
   }
 
   async function latestRequest() {

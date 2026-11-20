@@ -1017,6 +1017,7 @@
 // ============================================================
 // AUTHENTICATION (Login + Signup with Supabase Auth)
 // ============================================================
+window.ApexBridge = { get db() { return db; }, get profile() { return userProfile; } };
 function applyProfileToUI() {
   if (!userProfile) return;
   const init = getInitials(userProfile.full_name);

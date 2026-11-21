@@ -2327,7 +2327,7 @@ try {
           '<a href="https://wa.me/?text=' + msg + '" target="_blank" rel="noopener" class="flex-1 text-center rounded-xl bg-[#25D366]/15 border border-[#25D366]/40 text-[#25D366] hover:bg-[#25D366]/25 transition font-semibold py-2.5 text-sm">Share on WhatsApp</a>' +
           '<button data-apx-share class="flex-1 rounded-xl bg-slate-800 border border-slate-600 text-slate-200 hover:border-emerald-500 transition font-semibold py-2.5 text-sm">More options</button>' +
         '</div>' +
-        '<p class="text-slate-500 text-[11px] mt-3">You earn <b class="text-emerald-400">KSh 50</b> each time a friend who joined through your link activates their own Referral Pro.  Your referral balance is included in the Available Balance at the top, so you withdraw everything together. Your code: <b class="text-slate-300"> + (userProfile.referral_code || '') + '</b></p>';
+        '<p class="text-slate-500 text-[11px] mt-3">You earn <b class="text-emerald-400">KSh 50</b> each time a friend who joined through your link activates their own Referral Pro.  Your referral balance is included in the Available Balance at the top, so you withdraw everything together. Your code: <b class="text-slate-300">' + (userProfile.referral_code || '') + '</b></p>';
       return;
     }
 

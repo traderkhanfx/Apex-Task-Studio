@@ -492,7 +492,8 @@ document.getElementById('createTaskForm').addEventListener('submit', async (e) =
       audio_url: audioUrl,
       image_url_1: img1Url,
       image_url_2: img2Url,
-      status: 'active'
+            status: 'active',
+      submission_fields: document.getElementById('taskFields').value.trim() || null
     };
 
     const { error } = await db.from('tasks').insert([payload]);

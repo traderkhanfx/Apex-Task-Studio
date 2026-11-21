@@ -1874,6 +1874,7 @@ async function loadAnnouncement() {
         image_url_2: t.image_url_2 || null,
         reserved_until: t.reserved_until || null,
         reserved_by: t.reserved_by || null,
+        submission_fields: t.submission_fields || '',
         alreadyTaken: takenTaskIds.has(String(t.id))
       }));
     } catch (e) {

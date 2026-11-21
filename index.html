@@ -1673,7 +1673,19 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 
   async function submitTaskProof() {
     if (!activeTaskForModal) return;
-    const proof = document.getElementById('modalProof').value.trim();
+    let proof = document.getElementById('modalProof').value.trim();
+    const fieldEls = document.querySelectorAll('#modalFields textarea[data-field-label]');
+    if (fieldEls.length) {
+      const parts = [];
+      let missing = false;
+      fieldEls.forEach(el => {
+        const v = el.value.trim();
+        if (!v) missing = true;
+        parts.push(el.getAttribute('data-field-label') + ':\n' + v);
+      });
+      if (missing) { toast('Please fill in every box.', true); return; }
+      proof = parts.join('\n\n');
+                           }
     if (!proof) { toast('Please enter your proof before submitting.', true); return; }
 
     const sub = {

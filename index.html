@@ -2615,6 +2615,17 @@ err.textContent = 'Could not submit: ' + (e && e.message ? e.message : e);
   };
 })();
   </script>
+  // Auto-open Login Modal if URL has ?login=true
+window.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('login') === 'true') {
+    // If they are not logged in, open the auth modal
+    if (!window.ApexBridge || !window.ApexBridge.profile) {
+      if (window.openModal) window.openModal('authModal');
+      if (window.switchAuthTab) window.switchAuthTab('login');
+    }
+  }
+});
 
 </body>
           </html>

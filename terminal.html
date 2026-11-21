@@ -728,6 +728,19 @@ async function updateSub(id, status) {
   } catch (err) { toast(err.message, true); }
 }
 window.updateSub = updateSub;
+async function requestChanges(id) {
+  const note = prompt('What should the worker fix? They will see this message.');
+  if (!note || note.trim().length < 5) { toast('Please write what to fix.', true); return; }
+  try {
+    const { error } = await db.from('submissions')
+      .update({ status: 'needs_changes', review_note: note.trim() }).eq('id', id);
+    if (error) throw error;
+    toast('Sent back to the worker.');
+    fetchSubmissions();
+    loadStats();
+  } catch (err) { toast(err.message, true); }
+}
+window.requestChanges = requestChanges; 
 
 // ============ ANNOUNCEMENTS ============
 async function postAnnouncement() {

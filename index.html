@@ -1001,9 +1001,39 @@
   // ============================================================
   // BALANCE CALCULATION
   // ============================================================
+    // Balance comes from the server, not from the browser
+  let serverBalance = null;
+  async function refreshBalance() {
+    try {
+      const { data, error } = await db.rpc('get_my_balance');
+      if (error) throw error;
+      serverBalance = data;
+    } catch (e) {
+      console.warn('Balance refresh failed:', e);
+    }
+    updateUIStats();
+  }
+  setInterval(refreshBalance, 60000);
   function getCalculatedBalances() {
     initWallet();
     initSubmissions();
+        if (!serverBalance) {
+      return {
+        baseWalletUSD: 0, approvedEarningsUSD: 0, pendingEarningsUSD: 0,
+        rejectedEarningsUSD: 0, unlockFeesPaidUSD: 0, totalWithdrawnUSD: 0,
+        availableBalanceUSD: 0, lifetimeEarnedUSD: 0
+      };
+    }
+    return {
+      baseWalletUSD: 0,
+      approvedEarningsUSD: Number(serverBalance.approved) || 0,
+      pendingEarningsUSD: Number(serverBalance.pending) || 0,
+      rejectedEarningsUSD: 0,
+      unlockFeesPaidUSD: 0,
+      totalWithdrawnUSD: Number(serverBalance.withdrawn_paid) || 0,
+      availableBalanceUSD: Number(serverBalance.available) || 0,
+      lifetimeEarnedUSD: Number(serverBalance.lifetime) || 0
+    };
 
     const approved = submissions.filter(s => s.status === 'approved' || s.status === 'accepted')
       .reduce((sum, s) => sum + (Number(s.payout) || 0), 0);

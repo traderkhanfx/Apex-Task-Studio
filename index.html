@@ -1785,7 +1785,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
               const payoutVal = Number(r.payout || r.payout_usd || 0);
               return `
                 <tr class="border-b border-emerald-500/5">
-                  <td class="py-2 text-white">${esc(r.task_title || 'Untitled')}</td>
+                  <td class="py-2 text-white">${esc(r.task_title || 'Untitled')}${status === 'needs_changes' ? `<div class="text-[11px] text-amber-300 mt-1">Fix needed: ${esc(r.review_note || '')}</div><button onclick="resubmitTask('${r.task_id}')" class="btn-primary px-3 py-1 rounded text-[11px] font-semibold mt-1">Fix &amp; resubmit</button>` : ''}</td>
                   <td class="py-2 text-emerald-400 font-semibold">${fmtMoney(payoutVal)}</td>
                   <td class="py-2"><span class="badge ${cls}">${status}</span></td>
                   <td class="py-2 text-slate-400">${date}</td>

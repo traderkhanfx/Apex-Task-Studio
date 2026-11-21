@@ -689,7 +689,7 @@ async function fetchSubmissions() {
             <p class="text-xs font-bold text-amber-200">${escapeHtml(s.task_title || 'Task')} | <span class="text-white">${escapeHtml(s.worker_name || 'Unknown')}</span></p>
             <span class="badge ${cls}">${escapeHtml(status.toUpperCase())}</span>
           </div>
-          <p class="text-xs bg-black/40 p-2 rounded text-slate-200 mb-2 font-mono">${escapeHtml(s.proof || '—')}</p>
+          <p class="text-xs bg-black/40 p-2 rounded text-slate-200 mb-2 font-mono whitespace-pre-wrap">${escapeHtml(s.proof || '—')}</p>
           ${status === 'pending' ? `
             <div class="flex gap-2">
               <button onclick="updateSub('${s.id}', 'accepted')" class="btn-gold text-xs px-3 py-1 rounded font-bold">✓ Accept</button>

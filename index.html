@@ -1848,19 +1848,9 @@ async function loadAnnouncement() {
         .order('created_at', { ascending: false });
       if (taskErr) throw taskErr;
 
-      const { data: allSubs, error: subErr } = await db
-        .from('submissions')
-        .select('task_id, status');
+            const { data: takenRows, error: subErr } = await db.rpc('taken_task_ids');
       if (subErr) throw subErr;
-
-      const takenTaskIds = new Set(
-        (allSubs || [])
-          .filter(s => {
-            const st = (s.status || '').toLowerCase();
-            return st === 'pending' || st === 'accepted' || st === 'approved';
-          })
-          .map(s => String(s.task_id))
-      );
+      const takenTaskIds = new Set((takenRows || []).map(r => String(r.taken_id)));
 
       allTasks = (tasks || []).map(t => ({
         id: t.id,

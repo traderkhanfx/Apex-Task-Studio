@@ -2510,6 +2510,60 @@ err.textContent = 'Could not submit: ' + (e && e.message ? e.message : e);
   else place();
 })();
 </script> 
+  <script>
+(function () {
+  const S = document.getElementById('hireScreen');
+
+  window.openHire = function () { S.classList.remove('hidden'); S.scrollTop = 0; };
+  window.closeHire = function () { S.classList.add('hidden'); };
+  window.hireScrollForm = function () {
+    document.getElementById('hireForm').scrollIntoView({ behavior: 'smooth' });
+  };
+
+  function showErr(msg) {
+    const e = document.getElementById('hireErr');
+    e.textContent = msg; e.classList.remove('hidden');
+  }
+
+  window.submitHire = async function () {
+    const v = (id) => document.getElementById(id).value.trim();
+    document.getElementById('hireErr').classList.add('hidden');
+
+    if (v('hireWebsite')) { // hidden spam trap: bots fill it, people don't
+      document.getElementById('hireFields').classList.add('hidden');
+      document.getElementById('hireDone').classList.remove('hidden');
+      return;
+    }
+
+    const name = v('hireName'), phone = v('hirePhone'), email = v('hireEmail');
+    const service = document.getElementById('hireService').value;
+    const details = v('hireDetails'), deadline = v('hireDeadline');
+
+    if (name.length < 2) return showErr('Please enter your name or business name.');
+    if (!phone && !email) return showErr('Please add a phone number or an email.');
+    if (phone && phone.replace(/\D/g, '').length < 9) return showErr('Enter a valid phone number.');
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showErr('Enter a valid email address.');
+    if (details.length < 10) return showErr('Please describe what you need (at least 10 characters).');
+
+    const btn = document.getElementById('hireSubmitBtn');
+    btn.disabled = true; btn.textContent = 'Sending...';
+    try {
+      const { error } = await window.supabaseClient.from('client_requests').insert([{
+        name, phone: phone || null, email: email || null,
+        service, details, deadline: deadline || null
+      }]);
+      if (error) throw error;
+      ['hireName', 'hirePhone', 'hireEmail', 'hireDetails', 'hireDeadline'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('hireFields').classList.add('hidden');
+      document.getElementById('hireDone').classList.remove('hidden');
+    } catch (e) {
+      showErr('Could not send: ' + (e && e.message ? e.message : e));
+    } finally {
+      btn.disabled = false; btn.textContent = 'Send request';
+    }
+  };
+})();
+  </script>
 
 </body>
   </html>

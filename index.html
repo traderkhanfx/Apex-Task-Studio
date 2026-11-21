@@ -2442,8 +2442,7 @@ err.textContent = 'Could not submit: ' + (e && e.message ? e.message : e);
     const t = e.target.closest('[data-apx-open],[data-apx-close],[data-apx-copy],[data-apx-share]');
     if (t) {
       if (t.hasAttribute('data-apx-open')) {
-        $('apxPayNumber').textContent = CFG.MPESA_NUMBER;
-        $('apxPayName').textContent = CFG.MPESA_NAME;
+        
         $('apxRefModal').classList.remove('hidden');
       } else if (t.hasAttribute('data-apx-close')) {
         $('apxRefModal').classList.add('hidden');

@@ -593,6 +593,86 @@
     <p class="text-center text-xs text-emerald-300/40 mt-8">© 2026 Apex Task Studio</p>
   </div>
 </div>  
+  <!-- ============ HIRE US SCREEN ============ -->
+<div id="hireScreen" class="hidden fixed inset-0 z-[115] overflow-y-auto" style="background: radial-gradient(circle at 80% 0%, rgba(251,191,36,0.10) 0%, transparent 50%), #0a0f1a;">
+
+  <div class="sticky top-0 z-10 border-b border-emerald-500/15" style="background: rgba(10,15,26,0.92); backdrop-filter: blur(10px);">
+    <div class="max-w-4xl mx-auto flex items-center justify-between p-3">
+      <button onclick="closeHire()" class="btn-ghost px-4 py-2 rounded-full text-xs font-semibold">← Back</button>
+      <span class="text-sm font-extrabold text-white">Hire Apex Task Studio</span>
+      <button onclick="hireScrollForm()" class="btn-primary px-4 py-2 rounded-full text-xs font-semibold">Send request</button>
+    </div>
+  </div>
+
+  <div class="max-w-4xl mx-auto px-4 pb-16">
+
+    <div class="text-center pt-10 pb-8">
+      <span class="badge badge-amber">FOR BUSINESSES &amp; CLIENTS</span>
+      <h1 class="text-3xl md:text-4xl font-extrabold text-white leading-tight mt-4">Need work done?<br><span style="background: linear-gradient(135deg, #fbbf24 0%, #34d399 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">We have the workers.</span></h1>
+      <p class="text-sm text-emerald-200/70 mt-4 max-w-xl mx-auto">Apex Task Studio is a remote work platform based in Kenya. Tell us what you need and we will contact you to agree the details.</p>
+      <button onclick="hireScrollForm()" class="btn-primary px-7 py-3 rounded-full text-sm mt-6">Send a request</button>
+    </div>
+
+    <h2 class="text-lg font-extrabold text-white mb-3">What we do</h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-10">
+      <div class="glass rounded-2xl p-4"><p class="text-xl mb-1">🎧</p><p class="text-sm font-bold text-white">Audio transcription</p><p class="text-xs text-slate-400 mt-1">Audio turned into accurate text.</p></div>
+      <div class="glass rounded-2xl p-4"><p class="text-xl mb-1">🌍</p><p class="text-sm font-bold text-white">Translation</p><p class="text-xs text-slate-400 mt-1">Text translated by human workers.</p></div>
+      <div class="glass rounded-2xl p-4"><p class="text-xl mb-1">🏷️</p><p class="text-sm font-bold text-white">Data annotation</p><p class="text-xs text-slate-400 mt-1">Labelling and tagging for datasets.</p></div>
+      <div class="glass rounded-2xl p-4"><p class="text-xl mb-1">💼</p><p class="text-sm font-bold text-white">Virtual assistants</p><p class="text-xs text-slate-400 mt-1">Admin and support help on demand.</p></div>
+      <div class="glass rounded-2xl p-4"><p class="text-xl mb-1">🤝</p><p class="text-sm font-bold text-white">B2B projects</p><p class="text-xs text-slate-400 mt-1">Custom jobs for agencies and teams.</p></div>
+      <div class="glass rounded-2xl p-4"><p class="text-xl mb-1">🤖</p><p class="text-sm font-bold text-white">AI training</p><p class="text-xs text-slate-400 mt-1">Coming soon.</p></div>
+    </div>
+
+    <h2 class="text-lg font-extrabold text-white mb-3">How hiring works</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-10">
+      <div class="glass rounded-2xl p-4 flex gap-3"><div class="avatar shrink-0">1</div><div><p class="text-sm font-bold text-white">Tell us what you need</p><p class="text-xs text-slate-300 mt-1">Fill in the short form below.</p></div></div>
+      <div class="glass rounded-2xl p-4 flex gap-3"><div class="avatar shrink-0">2</div><div><p class="text-sm font-bold text-white">We contact you</p><p class="text-xs text-slate-300 mt-1">By WhatsApp or email, to agree scope and price.</p></div></div>
+      <div class="glass rounded-2xl p-4 flex gap-3"><div class="avatar shrink-0">3</div><div><p class="text-sm font-bold text-white">Work is done and reviewed</p><p class="text-xs text-slate-300 mt-1">Our QA team reviews the work before delivery.</p></div></div>
+    </div>
+
+    <div id="hireForm" class="glass rounded-2xl p-5" style="scroll-margin-top: 80px;">
+      <h2 class="text-lg font-extrabold text-white mb-1">Send a request</h2>
+      <p class="text-xs text-emerald-200/60 mb-4">Add a phone number or an email so we can reach you.</p>
+
+      <div id="hireFields" class="space-y-3">
+        <div><label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Your name or business name</label>
+          <input type="text" id="hireName" maxlength="100" class="input-field" placeholder="e.g. Jane, ABC Ltd" /></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div><label class="text-xs text-emerald-200/70 font-medium block mb-1.5">WhatsApp / phone</label>
+            <input type="tel" id="hirePhone" maxlength="30" class="input-field" placeholder="e.g. 0712345678" /></div>
+          <div><label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Email</label>
+            <input type="email" id="hireEmail" maxlength="150" class="input-field" placeholder="you@company.com" /></div>
+        </div>
+        <div><label class="text-xs text-emerald-200/70 font-medium block mb-1.5">What do you need?</label>
+          <select id="hireService" class="input-field">
+            <option>Audio transcription</option>
+            <option>Translation</option>
+            <option>Data annotation</option>
+            <option>Virtual assistant</option>
+            <option>B2B / custom project</option>
+            <option>Something else</option>
+          </select></div>
+        <div><label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Details</label>
+          <textarea id="hireDetails" rows="4" maxlength="2000" class="input-field resize-none" placeholder="What needs doing, how much, in which language..."></textarea></div>
+        <div><label class="text-xs text-emerald-200/70 font-medium block mb-1.5">Deadline (optional)</label>
+          <input type="text" id="hireDeadline" maxlength="100" class="input-field" placeholder="e.g. within 1 week" /></div>
+        <input type="text" id="hireWebsite" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;opacity:0;height:0;width:0;" />
+        <p id="hireErr" class="hidden text-xs text-red-400"></p>
+        <button id="hireSubmitBtn" onclick="submitHire()" class="btn-primary w-full py-3 rounded-lg text-sm">Send request</button>
+        <a href="https://wa.me/254107246326?text=Hi%20Apex%20Task%20Studio,%20I%20have%20work%20I%20would%20like%20to%20discuss." target="_blank" rel="noopener" class="btn-ghost w-full py-3 rounded-lg text-sm text-center block no-underline">💬 Or chat on WhatsApp</a>
+      </div>
+
+      <div id="hireDone" class="hidden text-center py-6">
+        <p class="text-3xl mb-2">✅</p>
+        <p class="text-base font-bold text-white">Request sent</p>
+        <p class="text-xs text-emerald-200/70 mt-1">Thank you. We will contact you on the details you gave.</p>
+        <button onclick="closeHire()" class="btn-primary px-6 py-2.5 rounded-lg text-sm mt-4">Back to home</button>
+      </div>
+    </div>
+
+    <p class="text-center text-xs text-emerald-300/40 mt-8">Want to earn instead? Tap Back, then Start earning.</p>
+  </div>
+</div>
 <!-- ============ MAIN APP ============ -->
 <div class="max-w-6xl mx-auto p-4 pb-16">
 

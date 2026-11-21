@@ -691,6 +691,7 @@ async function fetchSubmissions() {
           ${status === 'pending' ? `
             <div class="flex gap-2">
               <button onclick="updateSub('${s.id}', 'accepted')" class="btn-gold text-xs px-3 py-1 rounded font-bold">✓ Accept</button>
+                            <button onclick="requestChanges('${s.id}')" class="bg-amber-600/80 hover:bg-amber-500 text-white text-xs px-3 py-1 rounded font-bold">✎ Needs changes</button>
               <button onclick="updateSub('${s.id}', 'rejected')" class="bg-red-600/80 hover:bg-red-500 text-white text-xs px-3 py-1 rounded font-bold">✕ Reject</button>
             </div>
           ` : ''}

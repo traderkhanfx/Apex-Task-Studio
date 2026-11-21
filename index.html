@@ -1797,6 +1797,13 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
       </div>
     `;
   }
+    function resubmitTask(taskId) {
+    const task = allTasks.find(t => String(t.id) === String(taskId));
+    if (!task) { toast('This task is no longer available.', true); return; }
+    closeModal('historyModal');
+    openSubmissionModal(task);
+  }
+  window.resubmitTask = resubmitTask;
   window.openHistory = openHistory;
 
   // ============================================================

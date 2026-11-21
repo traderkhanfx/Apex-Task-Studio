@@ -1539,7 +1539,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             <span>⏱ ${task.time || 5} min</span>
             <span>⭐ 5.0 / 5.0</span>
           </div>
-          <p class="text-xs text-slate-400 mb-4 leading-relaxed">${esc(task.description || 'No description provided.')}</p>
+          <p class="text-xs text-slate-400 mb-4 leading-relaxed whitespace-pre-line line-clamp-3">${esc(task.description || 'No description provided.')}</p>
           ${assetButtons}
           <div class="flex justify-between items-center pt-3 border-t border-emerald-500/10 mt-3">
             <div>

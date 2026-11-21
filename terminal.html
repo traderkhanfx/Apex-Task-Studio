@@ -1077,5 +1077,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   setInterval(load, 60000);
 })();
      </script>
+ <script>
+(function () {
+  const ta = document.getElementById('taskDesc');
+  if (!ta || document.getElementById('apxTplBtn')) return;
+  const btn = document.createElement('button');
+  btn.id = 'apxTplBtn';
+  btn.type = 'button';
+  btn.className = 'btn-ghost-gold text-xs px-3 py-1.5 rounded-lg md:col-span-3';
+  btn.textContent = '📋 Insert instructions template';
+  btn.addEventListener('click', function () {
+    if (ta.value.trim() && !confirm('Replace what you wrote with the template?')) return;
+    ta.value = 'WHAT TO DO:\n...\n\nRULES:\n- ...\n- ...\n\nEXAMPLE OF A GOOD ANSWER:\n...\n\nQUALITY CHECKLIST (check before submitting):\n[ ] I followed every rule\n[ ] I checked spelling and numbers\n[ ] Nothing is left blank';
+  });
+  ta.parentElement.insertBefore(btn, ta);
+})();
+ </script>
 </body>
          </html>

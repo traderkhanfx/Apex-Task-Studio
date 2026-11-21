@@ -2206,9 +2206,12 @@ try {
     
     // Auto-fill the box and open the Sign Up tab
     document.addEventListener('DOMContentLoaded', () => {
-      const refInput = document.getElementById('signupReferral');
+            const refInput = document.getElementById('signupReferral');
       if (refInput) {
         refInput.value = code;
+        refInput.readOnly = true;
+        refInput.classList.add('opacity-70', 'cursor-not-allowed');
+        refInput.title = 'Locked: you joined through a friend\'s invite link';
       }
       if (window.switchAuthTab) {
         window.switchAuthTab('signup');

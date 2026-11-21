@@ -1698,6 +1698,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     updateUIStats();
     renderTasks();
     toast('✅ Task submitted! Pending review.');
+        refreshBalance();
     activeTaskForModal = null;
   }
   window.submitTaskProof = submitTaskProof;

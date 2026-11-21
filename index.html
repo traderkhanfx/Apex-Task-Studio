@@ -1639,6 +1639,15 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     document.getElementById('modalWorker').textContent = userProfile.full_name || 'You';
     document.getElementById('modalDescription').textContent = task.description || 'No description provided.';
     document.getElementById('modalProof').value = '';
+        const fieldsBox = document.getElementById('modalFields');
+    const fieldLabels = (task.submission_fields || '').split('\n').map(s => s.trim()).filter(Boolean);
+    fieldsBox.innerHTML = fieldLabels.map(l =>
+      `<div><label class="text-xs text-emerald-200/70 block mb-1.5 font-medium">${esc(l)}</label>` +
+      `<textarea data-field-label="${esc(l)}" rows="2" class="input-field resize-none"></textarea></div>`
+    ).join('');
+    fieldsBox.classList.toggle('hidden', fieldLabels.length === 0);
+    document.getElementById('modalProof').classList.toggle('hidden', fieldLabels.length > 0);
+    document.getElementById('modalProofLabel').classList.toggle('hidden', fieldLabels.length > 0);
 
     const assetsEl = document.getElementById('modalAssets');
     let assetsHtml = '';

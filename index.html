@@ -1720,31 +1720,27 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   }
   window.openWithdraw = openWithdraw;
 
-  async function submitWithdrawal() {
+    async function submitWithdrawal() {
     const phone = document.getElementById('withdrawPhone').value.trim();
     const amount = parseFloat(document.getElementById('withdrawAmount').value);
-    const b = getCalculatedBalances();
 
     if (!phone || phone.length < 9) { toast('Enter a valid M-Pesa number.', true); return; }
     if (!amount || amount < 1) { toast('Minimum amount is $1.00.', true); return; }
-    if (amount > b.availableBalanceUSD) { toast('Amount exceeds available balance.', true); return; }
 
-    wallet.totalWithdrawnUSD = Number(wallet.totalWithdrawnUSD) + amount;
-    saveWallet();
-
+    const btn = document.getElementById('withdrawBtn');
+    btn.disabled = true;
     try {
-      await db.from('withdrawals').insert([{
-        worker_name: userProfile.full_name,
-        mpesa_number: phone,
-        amount: amount,
-        status: 'pending'
-      }]);
-    } catch (e) { console.warn('Withdrawal sync failed:', e); }
-
-    closeModal('withdrawModal');
-    updateUIStats();
-    toast(`✅ Withdrawal request of ${fmtMoney(amount)} sent to ${phone}.`);
-  }
+      const { error } = await db.rpc('request_withdrawal', { p_amount: amount, p_phone: phone });
+      if (error) throw error;
+      closeModal('withdrawModal');
+      await refreshBalance();
+      toast(`✅ Withdrawal request of ${fmtMoney(amount)} sent to ${phone}.`);
+    } catch (e) {
+      toast(e.message || 'Withdrawal failed.', true);
+    } finally {
+      btn.disabled = false;
+    }
+    }
   window.submitWithdrawal = submitWithdrawal;
 
   // ============================================================

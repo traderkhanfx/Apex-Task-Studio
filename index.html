@@ -2727,5 +2727,17 @@ window.goReferrals = function () {
   setInterval(update, 2000);
 })();
 </script>
+  <script>
+  // Auto-open Login Modal if URL has ?login=true
+  window.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('login') === 'true') {
+      if (!window.ApexBridge || !window.ApexBridge.profile) {
+        if (window.openModal) window.openModal('authModal');
+        if (window.switchAuthTab) window.switchAuthTab('login');
+      }
+    }
+  });
+  </script>
 </body>
           </html>

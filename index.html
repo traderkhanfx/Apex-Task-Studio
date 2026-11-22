@@ -2697,6 +2697,14 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 });
+  <script>
+window.goReferrals = function () {
+  var card = document.getElementById('apxRefCard');
+  var banner = document.getElementById('apxPromoBanner');
+  var target = (card && !card.classList.contains('hidden')) ? card : banner;
+  if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
+  </script>
 
 </body>
           </html>

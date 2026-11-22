@@ -1005,7 +1005,15 @@
   // ============================================================
     // Balance comes from the server, not from the browser
   let serverBalance = null;
+    let minWithdraw = 1;
+  async function loadMinWithdraw() {
+    try {
+      const { data, error } = await db.rpc('current_min_withdrawal');
+      if (!error && data !== null) minWithdraw = Number(data) || 1;
+    } catch (e) {}
+  }
   async function refreshBalance() {
+    await loadMinWithdraw();
     try {
       const { data, error } = await db.rpc('get_my_balance');
       if (error) throw error;

@@ -1746,7 +1746,9 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     }
     document.getElementById('withdrawAvailable').textContent = fmtMoney(b.availableBalanceUSD);
     document.getElementById('withdrawPhone').value = userProfile.mpesa_phone || '';
-    document.getElementById('withdrawAmount').value = '';
+        document.getElementById('withdrawAmount').value = Math.floor(b.availableBalanceUSD * 100) / 100;
+    document.getElementById('withdrawAmount').min = minWithdraw;
+    document.getElementById('withdrawMinNote').textContent = 'Minimum: ' + fmtMoney(minWithdraw) + ' · Processed within 24 hours';
     openModal('withdrawModal');
   }
   window.openWithdraw = openWithdraw;

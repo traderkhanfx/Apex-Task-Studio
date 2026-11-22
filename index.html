@@ -2718,6 +2718,23 @@ window.goReferrals = function () {
   if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
 };
   </script>
-
+<script>
+(function () {
+  function update() {
+    var b = window.ApexBridge, p = b && b.profile;
+    if (!p) return;
+    var n = document.getElementById('homeName');
+    var a = document.getElementById('homeAvatar');
+    var v = document.getElementById('homeBadge');
+    if (n) n.textContent = (p.full_name || 'Welcome').split(' ')[0];
+    if (a && p.full_name) {
+      a.textContent = p.full_name.trim().split(/\s+/).map(function (w) { return w[0]; }).join('').toUpperCase().slice(0, 2);
+    }
+    if (v) v.classList.toggle('hidden', !p.is_verified);
+  }
+  window.addEventListener('load', update);
+  setInterval(update, 2000);
+})();
+</script>
 </body>
           </html>

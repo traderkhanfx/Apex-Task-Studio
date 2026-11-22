@@ -1740,8 +1740,8 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   function openWithdraw() {
     if (!userProfile) { openModal('authModal'); return; }
     const b = getCalculatedBalances();
-    if (b.availableBalanceUSD < 1) {
-      toast('Minimum withdrawal is $1.00. Keep working!', true);
+        if (b.availableBalanceUSD < minWithdraw) {
+      toast('Minimum withdrawal is ' + fmtMoney(minWithdraw) + '. Keep working!', true);
       return;
     }
     document.getElementById('withdrawAvailable').textContent = fmtMoney(b.availableBalanceUSD);

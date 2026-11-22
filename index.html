@@ -1758,7 +1758,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     const amount = parseFloat(document.getElementById('withdrawAmount').value);
 
     if (!phone || phone.length < 9) { toast('Enter a valid M-Pesa number.', true); return; }
-    if (!amount || amount < 1) { toast('Minimum amount is $1.00.', true); return; }
+        if (!amount || amount < minWithdraw) { toast('Minimum amount is ' + fmtMoney(minWithdraw) + '.', true); return; }
 
     const btn = document.getElementById('withdrawBtn');
     btn.disabled = true;

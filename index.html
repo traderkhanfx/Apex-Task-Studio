@@ -2114,6 +2114,50 @@ function acceptLegal() {
 if(localStorage.getItem('apexLegalAccepted') === 'true') {
     document.getElementById('legalGate').classList.add('hidden');
 }
+  // ============================================================
+// TWO-FACTOR AUTHENTICATION (2FA) LOGIC
+// ============================================================
+let mfaFactorId = null;
+
+async function startMfaSetup() {
+  try {
+    const { data, error } = await db.auth.mfa.enroll({ factorType: 'totp' });
+    if (error) throw error;
+    
+    mfaFactorId = data.id;
+    // Display the QR code
+    document.getElementById('mfaQrCode').innerHTML = `<img src="${data.totp.qr_code}" alt="QR Code" />`;
+    document.getElementById('mfaSetupContainer').classList.remove('hidden');
+    document.getElementById('enable2faBtn').classList.add('hidden');
+  } catch (err) {
+    toast('Failed to start 2FA setup: ' + err.message, true);
+  }
+}
+
+async function verifyMfa() {
+  const code = document.getElementById('mfaCodeInput').value;
+  if (!code) { toast('Please enter the code.', true); return; }
+
+  try {
+    const { error } = await db.auth.mfa.challengeAndVerify({
+      factorId: mfaFactorId,
+      code: code
+    });
+    if (error) throw error;
+    
+    toast('✅ 2FA enabled successfully!');
+    document.getElementById('mfaSetupContainer').classList.add('hidden');
+    document.getElementById('enable2faBtn').textContent = '2FA Enabled ✅';
+    document.getElementById('enable2faBtn').classList.add('opacity-50', 'cursor-not-allowed');
+    document.getElementById('enable2faBtn').removeAttribute('onclick');
+  } catch (err) {
+    toast('Invalid code. Please try again.', true);
+  }
+}
+
+// Make them accessible to the HTML buttons
+window.startMfaSetup = startMfaSetup;
+window.verifyMfa = verifyMfa;
 </script>
   <div id="installBar" class="hidden fixed left-3 right-3 z-[60] glass rounded-xl p-3 flex items-center gap-3" style="bottom:4.75rem;">
   <span class="text-xl">⚡</span>

@@ -2781,20 +2781,43 @@ window.goReferrals = function () {
   
 <script>
 (function () {
+  var CHECK = '<svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"></path></svg>';
+
+  function readProfile() {
+    var b = window.ApexBridge;
+    if (b && b.profile) return b.profile;
+    try { return JSON.parse(localStorage.getItem('apexTaskStudioProfile') || 'null'); }
+    catch (e) { return null; }
+  }
+
   function update() {
-    var b = window.ApexBridge, p = b && b.profile;
-    if (!p) return;
+    var p = readProfile();
     var n = document.getElementById('homeName');
     var a = document.getElementById('homeAvatar');
     var v = document.getElementById('homeBadge');
-    if (n) n.textContent = (p.full_name || 'Welcome').split(' ')[0];
-    if (a && p.full_name) {
-      a.textContent = p.full_name.trim().split(/\s+/).map(function (w) { return w[0]; }).join('').toUpperCase().slice(0, 2);
+    var oldBadge = document.getElementById('proBadge');
+    var verified = !!(p && p.is_verified) || !!(oldBadge && !oldBadge.classList.contains('hidden'));
+
+    if (p && p.full_name) {
+      if (n) n.textContent = p.full_name.trim().split(/\s+/)[0].toUpperCase();
+      if (a) {
+        a.textContent = p.full_name.trim().split(/\s+/).map(function (w) { return w[0]; }).join('').toUpperCase().slice(0, 2);
+      }
     }
-    if (v) v.classList.toggle('hidden', !p.is_verified);
+
+    if (v) {
+      if (!v.getAttribute('data-ready')) {
+        v.className = 'inline-flex items-center justify-center rounded-full text-white shrink-0';
+        v.style.cssText = 'width:20px;height:20px;background:linear-gradient(135deg,#10b981 0%,#06b6d4 100%);box-shadow:0 2px 10px rgba(16,185,129,0.45);';
+        v.innerHTML = CHECK;
+        v.setAttribute('data-ready', '1');
+      }
+      v.style.display = verified ? 'inline-flex' : 'none';
+    }
   }
+
   window.addEventListener('load', update);
-  setInterval(update, 2000);
+  setInterval(update, 1500);
 })();
 </script>
   <script>

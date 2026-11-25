@@ -1688,36 +1688,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   }
   window.acceptAndStart = acceptAndStart;
 
-  function promptUnlock(taskId) {
-    const task = allTasks.find(t => String(t.id) === String(taskId));
-    if (!task) return;
-    activeTaskForModal = task;
-    const b = getCalculatedBalances();
-    document.getElementById('unlockTaskTitle').textContent = `"${task.title}" needs a one-time unlock fee before starting.`;
-    document.getElementById('unlockFeeDisplay').textContent = '$' + Number(task.lock_fee).toFixed(2);
-    document.getElementById('unlockBalanceDisplay').textContent = fmtMoney(b.availableBalanceUSD);
-    document.getElementById('unlockConfirmBtn').onclick = () => confirmUnlock(task);
-    openModal('unlockModal');
-  }
-  window.promptUnlock = promptUnlock;
-
-  async function confirmUnlock(task) {
-    const fee = Number(task.lock_fee) || 0;
-    const b = getCalculatedBalances();
-    if (b.availableBalanceUSD < fee) {
-      toast('Insufficient available balance to unlock this task.', true);
-      return;
-    }
-    wallet.totalUnlockFeesPaidUSD = Number(wallet.totalUnlockFeesPaidUSD) + fee;
-    saveWallet();
-    await reserveTask(task.id);
-    closeModal('unlockModal');
-    updateUIStats();
-    renderTasks();
-    toast(`Task unlocked! ${fmtMoney(fee)} deducted.`);
-    openSubmissionModal(task);
-  }
-  window.confirmUnlock = confirmUnlock;
+  
 
   // ============================================================
   // SUBMISSION MODAL

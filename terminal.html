@@ -923,27 +923,14 @@ async function fetchPendingCommissions() {
 }
 window.fetchPendingCommissions = fetchPendingCommissions;
 
-async function approveCommission(referredUserId, referrerCode) {
-  if (!confirm('Have you manually sent KSh 50 to the referrer?')) return;
-
+async function approveCommission(referredId) {
+  if (!confirm('Pay the KSh 50 referral commission to the referrer?')) return;
   try {
-    const { data: referrer, error: refError } = await db.from('profiles')
-      .select('id, referral_earnings')
-      .eq('referral_code', referrerCode)
-      .single();
-
-    if (refError || !referrer) throw new Error("Referrer not found");
-
-    const newEarnings = (Number(referrer.referral_earnings) || 0) + 50;
-    await db.from('profiles').update({ referral_earnings: newEarnings }).eq('id', referrer.id);
-
-    await db.from('profiles').update({ referral_commission_paid: true }).eq('id', referredUserId);
-
-    toast('✅ KSh 50 added to referrer balance.');
+    const { error } = await db.rpc('admin_pay_commission', { p_referred_id: referredId });
+    if (error) throw error;
+    toast('✅ KSh 50 added to the referrer.');
     fetchPendingCommissions();
-  } catch (err) {
-    toast(err.message, true);
-  }
+  } catch (e) { toast(e.message, true); }
 }
 window.approveCommission = approveCommission;
 // ============ BOOTSTRAP ============

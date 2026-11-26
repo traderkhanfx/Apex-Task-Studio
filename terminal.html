@@ -889,6 +889,62 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
+ // ============ REFERRAL COMMISSIONS (ADMIN APPROVAL) ============
+async function fetchPendingCommissions() {
+  const container = document.getElementById('pendingCommissionsContainer');
+  if (!container) return;
+  
+  const { data, error } = await db.from('profiles')
+    .select('id, full_name, referred_by, referral_commission_paid')
+    .eq('is_verified', true)
+    .eq('referral_commission_paid', false)
+    .not('referred_by', 'is', null);
+
+  if (error) {
+    container.innerHTML = `<p class="text-xs text-red-400">${escapeHtml(error.message)}</p>`;
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    container.innerHTML = '<p class="text-xs text-amber-300/50">No pending referral commissions.</p>';
+    return;
+  }
+
+  container.innerHTML = data.map(user => `
+    <div class="glass p-3 rounded-lg flex justify-between items-center gap-2">
+      <div>
+        <p class="text-sm font-bold text-white">User: ${escapeHtml(user.full_name)}</p>
+        <p class="text-xs text-amber-200/60">Referred by code: <b class="text-white">${escapeHtml(user.referred_by)}</b></p>
+      </div>
+      <button onclick="approveCommission('${user.id}', '${user.referred_by}')" class="btn-gold text-xs px-3 py-1.5 rounded-lg">✓ Pay Referrer KSh 50</button>
+    </div>
+  `).join('');
+}
+window.fetchPendingCommissions = fetchPendingCommissions;
+
+async function approveCommission(referredUserId, referrerCode) {
+  if (!confirm('Have you manually sent KSh 50 to the referrer?')) return;
+
+  try {
+    const { data: referrer, error: refError } = await db.from('profiles')
+      .select('id, referral_earnings')
+      .eq('referral_code', referrerCode)
+      .single();
+
+    if (refError || !referrer) throw new Error("Referrer not found");
+
+    const newEarnings = (Number(referrer.referral_earnings) || 0) + 50;
+    await db.from('profiles').update({ referral_earnings: newEarnings }).eq('id', referrer.id);
+
+    await db.from('profiles').update({ referral_commission_paid: true }).eq('id', referredUserId);
+
+    toast('✅ KSh 50 added to referrer balance.');
+    fetchPendingCommissions();
+  } catch (err) {
+    toast(err.message, true);
+  }
+}
+window.approveCommission = approveCommission;
 // ============ BOOTSTRAP ============
 document.addEventListener('DOMContentLoaded', async () => {
   const { data: { session } } = await db.auth.getSession();

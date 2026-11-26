@@ -2810,5 +2810,37 @@ s0.parentNode.insertBefore(s1,s0);
 })();
 </script>
 <!--End of Tawk.to Script-->
+  <script>
+window.apxPayWithMpesa = async function () {
+  var btn = document.getElementById('apxStkBtn');
+  var client = window.supabaseClient;
+  if (!client || !btn) return;
+  var oldText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Sending prompt...';
+  try {
+    var result = await client.functions.invoke('tinypesa-start');
+    if (result.error) throw new Error('Could not start the payment. Please try again or use the Paybill.');
+    if (result.data && result.data.error) throw new Error(result.data.error);
+    alert('Check your phone and enter your M-Pesa PIN to pay KSh 100.');
+    var tries = 0;
+    var timer = setInterval(function () {
+      tries++;
+      if (window.ApexReferral) window.ApexReferral.sync();
+      var p = window.ApexBridge && window.ApexBridge.profile;
+      if (p && p.referral_active) {
+        document.getElementById('apxRefModal').classList.add('hidden');
+        clearInterval(timer);
+      }
+      if (tries > 24) clearInterval(timer);
+    }, 5000);
+  } catch (e) {
+    alert(e && e.message ? e.message : 'Could not start the payment.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = oldText;
+  }
+};
+  </script>
 </body>
           </html>
